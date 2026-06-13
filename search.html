@@ -117,17 +117,41 @@
         }
 
         function filterTable() {
-            let keyword = document.getElementById('searchInput').value.toLowerCase();
+            let rawKeyword = document.getElementById('searchInput').value;
+            let keyword = rawKeyword.toLowerCase().trim();
             let keywordsArray = keyword.split(" ").filter(k => k.trim() !== "");
             
+            if (keywordsArray.length === 0) {
+                renderTable(modelsDatabase);
+                return;
+            }
+
+            // 1. ค้นหาปกติ: ต้องมีคำครบทุกคำที่พิมพ์
             let filteredData = modelsDatabase.filter(item => {
-                let lowerName = String(item.name || "").toLowerCase();
-                let lowerPart = String(item.partNo || "").toLowerCase();
-                let lowerCategory = String(item.typeLabel || "").toLowerCase(); // เพิ่มบรรทัดนี้ให้ดึงหมวดหมู่มาด้วย
-                
-                // เช็คว่าคำที่ค้นหา ตรงกับชื่อ หรือ รหัส หรือ หมวดหมู่
-                return keywordsArray.every(k => lowerName.includes(k) || lowerPart.includes(k) || lowerCategory.includes(k));
+                let combinedText = String(item.partNo || "") + " " + String(item.name || "") + " " + String(item.typeLabel || "");
+                return keywordsArray.every(k => combinedText.toLowerCase().includes(k));
             });
+
+            // 2. ระบบ AI ช่วยเรียง: ดันผลลัพธ์ที่ตรงกับที่พิมพ์ "เป๊ะๆ" ขึ้นบนสุด
+            filteredData.sort((a, b) => {
+                let catA = String(a.typeLabel || "").toLowerCase();
+                let catB = String(b.typeLabel || "").toLowerCase();
+                let combinedA = (String(a.partNo || "") + " " + String(a.name || "") + " " + String(a.typeLabel || "")).toLowerCase();
+                let combinedB = (String(b.partNo || "") + " " + String(b.name || "") + " " + String(b.typeLabel || "")).toLowerCase();
+
+                let scoreA = 0;
+                let scoreB = 0;
+
+                // ให้คะแนนถ้าหมวดหมู่ตรงเป๊ะ หรือข้อความเรียงติดกันเป๊ะๆ
+                if (catA === keyword) scoreA += 3;
+                else if (combinedA.includes(keyword)) scoreA += 1;
+
+                if (catB === keyword) scoreB += 3;
+                else if (combinedB.includes(keyword)) scoreB += 1;
+
+                return scoreB - scoreA; // เรียงจากคะแนนมากไปน้อย
+            });
+
             renderTable(filteredData);
         }
     </script>

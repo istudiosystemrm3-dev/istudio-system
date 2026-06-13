@@ -51,7 +51,7 @@
                 </select>
             </div>
             <p style="font-size: 12px; color: #86868b; line-height: 1.5;">
-                💡 ตารางราคานี้ดึงข้อมูลออนไลน์มาจากแท็บ <strong>"Barcode"</strong> บนคลาวด์ชีตโดยตรง เมื่อคุณเปลี่ยนราคา หน้านี้จะอัปเดตตามทันทีครับ
+                💡 ตารางราคานี้ดึงข้อมูลออนไลน์มาจากแท็บ <strong>"Barcode"</strong> บนคลาวด์ชีตโดยตรง
             </p>
         </div>
         <div class="card">
@@ -101,7 +101,7 @@
         }
 
         function updateCategoryDropdown() {
-            let categories = [...new Set(priceDatabase.map(item => item.category || "ทั่วไป"))].sort();
+            let categories = [...new Set(priceDatabase.map(item => String(item.category || "ทั่วไป")))].sort();
             let select = document.getElementById('filterCategory');
             select.innerHTML = `<option value="ALL">-- แสดงทั้งหมด --</option>` + 
                                categories.map(c => `<option value="${c}">${c}</option>`).join('');
@@ -114,12 +114,12 @@
             
             let data = priceDatabase;
             if(catFilter !== "ALL") {
-                data = data.filter(item => item.category === catFilter);
+                data = data.filter(item => String(item.category || "ทั่วไป") === catFilter);
             }
             if(keywords.length > 0) {
                 data = data.filter(item => {
-                    let lowerDesc = (item.desc || "").toLowerCase();
-                    let lowerCode = (item.code || "").toLowerCase();
+                    let lowerDesc = String(item.desc || "").toLowerCase();
+                    let lowerCode = String(item.code || "").toLowerCase();
                     return keywords.every(k => lowerDesc.includes(k) || lowerCode.includes(k));
                 });
             }

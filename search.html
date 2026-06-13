@@ -101,7 +101,7 @@
             tbody.innerHTML = "";
 
             if (dataArray.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="3" style="text-align: center; color: #86868b; padding: 30px;">ไม่พบข้อมูลรุ่นอุปกรณ์ในระบบคลาวด์</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="3" style="text-align: center; color: #86868b; padding: 30px;">ไม่พบข้อมูลที่ค้นหา</td></tr>`;
                 return;
             }
 
@@ -109,8 +109,8 @@
                 let tr = document.createElement('tr');
                 tr.innerHTML = `
                     <td style="color: #515154; font-weight: bold;">${item.partNo || "-"}</td>
-                    <td style="color: #0071e3; font-weight: 500;">${item.name}</td>
-                    <td style="color: #86868b;">${item.typeLabel}</td>
+                    <td style="color: #0071e3; font-weight: 500;">${item.name || "-"}</td>
+                    <td style="color: #86868b;">${item.typeLabel || "-"}</td>
                 `;
                 tbody.appendChild(tr);
             });
@@ -121,8 +121,10 @@
             let keywordsArray = keyword.split(" ").filter(k => k.trim() !== "");
             
             let filteredData = modelsDatabase.filter(item => {
-                let lowerName = item.name.toLowerCase();
-                let lowerPart = (item.partNo || "").toLowerCase();
+                // อัปเดตบรรทัดนี้: บังคับแปลงเป็น String ป้องกัน Error จากตัวเลขล้วน
+                let lowerName = String(item.name || "").toLowerCase();
+                let lowerPart = String(item.partNo || "").toLowerCase();
+                
                 return keywordsArray.every(k => lowerName.includes(k) || lowerPart.includes(k));
             });
             renderTable(filteredData);

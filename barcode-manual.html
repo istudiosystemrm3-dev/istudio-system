@@ -11,7 +11,7 @@
         .navbar a { color: #f5f5f7; text-decoration: none; padding: 10px 20px; margin: 0 5px; border-radius: 6px; font-size: 15px; font-weight: 500; transition: 0.3s; }
         .navbar a:hover { background-color: #333336; }
         .navbar a.active { background-color: #0071e3; color: white; }
-        .container { max-width: 1200px; margin: 40px auto; display: grid; grid-template-columns: 1fr 2fr; gap: 20px; }
+        .container { max-width: 1200px; margin: 40px auto; display: grid; grid-template-columns: 1fr 2.5fr; gap: 20px; }
         @media (max-width: 768px) { .container { grid-template-columns: 1fr; } }
         .card { background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
         h2 { margin-top: 0; border-bottom: 1px solid #e5e5e7; padding-bottom: 10px; font-size: 18px; margin-bottom: 15px; }
@@ -23,11 +23,12 @@
         .btn-print { background-color: #0071e3; color: white; border: none; padding: 12px 15px; border-radius: 6px; cursor: pointer; font-size: 15px; font-weight: bold; width: 100%; transition: 0.2s; margin-top: 10px; }
         .btn-print:hover { background-color: #005bb5; }
         table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 13px; }
-        th, td { padding: 12px 10px; text-align: left; border-bottom: 1px solid #e5e5e7; }
-        th { background-color: #f5f5f7; color: #515154; }
+        th, td { padding: 12px 8px; text-align: left; border-bottom: 1px solid #e5e5e7; }
+        th { background-color: #f5f5f7; color: #515154; font-weight: 600; }
         .controls-box { background: #f5f5f7; padding: 15px; border-radius: 8px; margin-bottom: 15px; display: flex; gap: 10px; }
         .controls-box select { flex: 1; padding: 10px; border: 1px solid #d2d2d7; border-radius: 6px; font-size: 14px; outline: none; }
         .btn-delete { background-color: #ff3b30; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-size: 12px; }
+        .badge { display: inline-block; background-color: #e8f2fc; color: #003399; padding: 3px 8px; border-radius: 4px; font-size: 11px; font-weight: bold; }
         
         #printArea { display: none; }
 
@@ -61,11 +62,11 @@
             <h2>⚙️ ตั้งค่าก่อนพิมพ์</h2>
             <div class="flex-group form-group">
                 <div class="flex-item">
-                    <label>ขนาดตัวอักษรรหัสใต้บาร์โค้ด: <span id="fontVal">14</span>px</label>
+                    <label>ขนาดอักษรรหัส: <span id="fontVal">14</span>px</label>
                     <input type="range" id="fontSize" min="10" max="20" value="14" oninput="updateSettings()">
                 </div>
                 <div class="flex-item">
-                    <label>ความสูงแท่งบาร์โค้ด: <span id="heightVal">45</span>px</label>
+                    <label>ความสูงบาร์โค้ด: <span id="heightVal">45</span>px</label>
                     <input type="range" id="barHeight" min="30" max="80" value="45" oninput="updateSettings()">
                 </div>
             </div>
@@ -75,24 +76,26 @@
             <h2>📋 รายการบาร์โค้ดบนคลาวด์ชีต (<span id="totalItems">0</span>)</h2>
             <div class="controls-box">
                 <div style="flex:1;">
-                    <label style="font-size: 11px; font-weight: bold; margin-bottom: 3px; display:block;">กรองหมวดหมู่:</label>
+                    <label style="font-size: 12px; font-weight: bold; margin-bottom: 5px; display:block; color: #515154;">กรองตามหมวดหมู่ (Categories):</label>
                     <select id="filterCat" onchange="renderTable()">
                         <option value="ALL">-- ทั้งหมด --</option>
                     </select>
                 </div>
             </div>
-            <div style="overflow-x: auto; max-height: 500px; overflow-y: auto;">
+            <div style="overflow-x: auto; max-height: 550px; overflow-y: auto; border: 1px solid #e5e5e7; border-radius: 6px;">
                 <table>
-                    <thead>
+                    <thead style="position: sticky; top: 0; z-index: 1;">
                         <tr>
-                            <th width="20%">รหัส</th>
-                            <th width="45%">รายละเอียด</th>
-                            <th width="15%">ราคา</th>
-                            <th width="20%">จัดการ</th>
+                            <th width="12%">Code</th>
+                            <th width="30%">Description</th>
+                            <th width="15%">Model</th>
+                            <th width="15%">Categories</th>
+                            <th width="15%" style="text-align: right;">Price</th>
+                            <th width="13%" style="text-align: center;">จัดการ</th>
                         </tr>
                     </thead>
                     <tbody id="tableBody">
-                        <tr><td colspan="4" style="text-align: center; padding: 20px;">กำลังโหลดจากชีต...</td></tr>
+                        <tr><td colspan="6" style="text-align: center; padding: 30px; color:#86868b;">กำลังโหลดจากชีต...</td></tr>
                     </tbody>
                 </table>
             </div>
@@ -114,7 +117,7 @@
                     barcodeData = data;
                     updateCategoryDropdowns();
                     renderTable();
-                }).catch(err => alert("โหลดข้อมูลพลาด กรุณารีเฟรช"));
+                }).catch(err => alert("โหลดข้อมูลพลาด กรุณารีเฟรชหน้าเว็บอีกครั้ง"));
         }
 
         function updateCategoryDropdowns() {
@@ -126,20 +129,22 @@
             let filter = document.getElementById('filterCat').value;
             let displayData = filter === "ALL" ? barcodeData : barcodeData.filter(i => String(i.category || "ทั่วไป") === filter);
             
-            document.getElementById('totalItems').innerText = displayData.length;
+            document.getElementById('totalItems').innerText = displayData.length.toLocaleString();
             
             let tbody = document.getElementById('tableBody');
             tbody.innerHTML = "";
             if(displayData.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="4" style="text-align: center;">ไม่มีข้อมูล</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; padding: 30px; color:#86868b;">ไม่มีข้อมูล</td></tr>`;
             } else {
                 displayData.forEach((item) => {
                     let tr = document.createElement('tr');
                     tr.innerHTML = `
-                        <td><strong>${item.code || "-"}</strong></td>
-                        <td>${item.desc || "-"}</td>
-                        <td>${item.price ? parseFloat(item.price).toLocaleString() + ' ฿' : '-'}</td>
-                        <td><button class="btn-delete" onclick="deleteData('${item.code}')">ลบ</button></td>
+                        <td style="font-weight:bold; color:#515154;">${item.code || "-"}</td>
+                        <td style="color:#1d1d1f;">${item.desc || "-"}</td>
+                        <td><span class="badge" style="background:#f4e6fa; color:#8a2be2;">${item.model || "-"}</span></td>
+                        <td><span class="badge">${item.category || "-"}</span></td>
+                        <td style="text-align: right; color:#ff3b30; font-weight:bold;">${item.price ? parseFloat(item.price).toLocaleString() : '-'}</td>
+                        <td style="text-align: center;"><button class="btn-delete" onclick="deleteData('${item.code}')">ลบ</button></td>
                     `;
                     tbody.appendChild(tr);
                 });
@@ -158,11 +163,15 @@
 
                 displayData.forEach((item, index) => {
                     let tr = document.createElement('tr');
+                    // รวม Description กับ Model ไว้ในช่องเดียวกันตอนพิมพ์ให้ดูง่ายขึ้น
+                    let printDesc = item.desc || "";
+                    if(item.model) printDesc += ` (${item.model})`;
+
                     tr.innerHTML = `
                         <td class="col-1-barcode"><svg id="bc-${index}"></svg></td>
                         <td class="col-2-code">${item.code || ""}</td>
-                        <td class="col-3-desc">${item.desc || ""}</td>
-                        <td class="col-4-price">${item.price || ""}</td>
+                        <td class="col-3-desc">${printDesc}</td>
+                        <td class="col-4-price">${item.price ? parseFloat(item.price).toLocaleString() : ""}</td>
                     `;
                     printTbody.appendChild(tr);
                 });
@@ -171,7 +180,6 @@
                 printArea.appendChild(printTable);
 
                 displayData.forEach((item, index) => {
-                    // ป้องกัน Error จากตัวเลขล้วนตอนวาดบาร์โค้ด
                     let barcodeValue = String(item.code || "-"); 
                     JsBarcode("#bc-" + index, barcodeValue, { 
                         format: "CODE128", 
@@ -193,7 +201,7 @@
         }
         
         function deleteData(codeId) {
-            if(!confirm("ต้องการลบรายการนี้ใช่หรือไม่? (ลบออกจากฐานข้อมูลคลาวด์)")) return;
+            if(!confirm(`ต้องการลบรหัส ${codeId} ออกจากฐานข้อมูลใช่หรือไม่?`)) return;
             fetch(WEB_APP_URL, {
                 method: "POST",
                 body: JSON.stringify({ action: "deleteBarcode", code: codeId })

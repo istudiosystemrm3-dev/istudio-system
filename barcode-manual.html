@@ -29,10 +29,25 @@
         th { background-color: #f5f5f7; color: #515154; }
         .controls-box { background: #f5f5f7; padding: 15px; border-radius: 8px; margin-bottom: 15px; display: flex; gap: 10px; }
         .controls-box select { flex: 1; }
-        @media print { body * { visibility: hidden; } #printArea, #printArea * { visibility: visible; } #printArea { position: absolute; left: 0; top: 0; width: 100%; } .no-print { display: none !important; } }
-        .barcode-item { display: inline-block; text-align: center; margin: 10px; padding: 10px; border: 1px dashed #ccc; border-radius: 8px; }
-        .barcode-title { font-size: 12px; font-weight: bold; margin-bottom: 5px; max-width: 180px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-        .barcode-price { font-size: 14px; font-weight: bold; color: #ff3b30; margin-top: 5px; }
+        .btn-delete { background-color: #ff3b30; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-size: 12px; }
+        
+        /* ซ่อนพื้นที่พิมพ์ตอนอยู่บนหน้าจอเว็บปกติ */
+        #printArea { display: none; }
+
+        /* การตั้งค่าหน้าตาตอนกดปริ้นท์ (ให้ออกมาเป็นตาราง) */
+        @media print { 
+            body { background: white; margin: 0; padding: 0; }
+            .navbar, .container { display: none !important; } 
+            #printArea { display: block; visibility: visible; position: absolute; left: 0; top: 0; width: 100%; padding: 10px; box-sizing: border-box; }
+            .print-table { width: 100%; border-collapse: collapse; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; font-size: 14px; }
+            .print-table td { border: 1px solid #000; padding: 6px 10px; vertical-align: middle; }
+            .col-barcode { text-align: center; width: 25%; padding: 4px 0 !important; }
+            .col-code { text-align: center; font-weight: bold; width: 15%; font-size: 16px; }
+            .col-desc { width: 45%; }
+            .col-price { text-align: right; width: 15%; font-size: 16px; }
+            .col-barcode svg { max-width: 100%; height: auto; } 
+            @page { margin: 10mm; } /* ขอบกระดาษตอนปริ้นท์ */
+        }
     </style>
 </head>
 <body>
@@ -69,15 +84,15 @@
             <h2>⚙️ ตั้งค่าก่อนพิมพ์</h2>
             <div class="flex-group form-group">
                 <div class="flex-item">
-                    <label>ขนาดตัวอักษร: <span id="fontVal">12</span>px</label>
-                    <input type="range" id="fontSize" min="8" max="18" value="12" oninput="updateSettings()">
+                    <label>ขนาดตัวอักษรรหัสใต้บาร์โค้ด: <span id="fontVal">14</span>px</label>
+                    <input type="range" id="fontSize" min="10" max="20" value="14" oninput="updateSettings()">
                 </div>
                 <div class="flex-item">
-                    <label>ความสูงบาร์โค้ด: <span id="heightVal">40</span>px</label>
-                    <input type="range" id="barHeight" min="20" max="80" value="40" oninput="updateSettings()">
+                    <label>ความสูงแท่งบาร์โค้ด: <span id="heightVal">45</span>px</label>
+                    <input type="range" id="barHeight" min="30" max="80" value="45" oninput="updateSettings()">
                 </div>
             </div>
-            <button class="btn btn-print" onclick="window.print()">🖨️ สั่งพิมพ์บาร์โค้ดที่แสดง (Print)</button>
+            <button class="btn btn-print" onclick="window.print()">🖨️ สั่งพิมพ์บาร์โค้ดแบบตาราง (Print)</button>
         </div>
         <div class="card">
             <h2>📋 รายการบาร์โค้ดบนคลาวด์ชีต (<span id="totalItems">0</span>)</h2>
@@ -91,20 +106,21 @@
                 <table>
                     <thead>
                         <tr>
-                            <th width="25%">รหัส</th>
-                            <th width="50%">รายละเอียด</th>
-                            <th width="25%">ราคา</th>
+                            <th width="20%">รหัส</th>
+                            <th width="45%">รายละเอียด</th>
+                            <th width="15%">ราคา</th>
+                            <th width="20%">จัดการ</th>
                         </tr>
                     </thead>
                     <tbody id="tableBody">
-                        <tr><td colspan="3" style="text-align: center; padding: 20px;">กำลังโหลดจากชีต...</td></tr>
+                        <tr><td colspan="4" style="text-align: center; padding: 20px;">กำลังโหลดจากชีต...</td></tr>
                     </tbody>
                 </table>
             </div>
         </div>
     </div>
     
-    <div id="printArea" style="padding: 20px; text-align: center;"></div>
+    <div id="printArea"></div>
 
     <script>
         const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzGXPWcFPx5Oy_Ey0LtxzAvIBVS7sB6j8pvFWY_BcpEL2lmThw-iWfdZS10K-ylKII1fQ/exec";
@@ -133,37 +149,63 @@
             let displayData = filter === "ALL" ? barcodeData : barcodeData.filter(i => i.category === filter);
             
             document.getElementById('totalItems').innerText = displayData.length;
+            
+            // Render ตารางบนหน้าเว็บ (Web UI)
             let tbody = document.getElementById('tableBody');
-            let printArea = document.getElementById('printArea');
-            tbody.innerHTML = ""; printArea.innerHTML = "";
-
+            tbody.innerHTML = "";
             if(displayData.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="3" style="text-align: center;">ไม่มีข้อมูล</td></tr>`;
-                return;
+                tbody.innerHTML = `<tr><td colspan="4" style="text-align: center;">ไม่มีข้อมูล</td></tr>`;
+            } else {
+                displayData.forEach((item) => {
+                    let tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td><strong>${item.code}</strong></td>
+                        <td>${item.desc}</td>
+                        <td>${item.price ? parseFloat(item.price).toLocaleString() : '-'}</td>
+                        <td><button class="btn-delete" onclick="deleteData('${item.code}')">ลบ</button></td>
+                    `;
+                    tbody.appendChild(tr);
+                });
             }
 
-            let fontSize = document.getElementById('fontSize').value;
-            let barHeight = document.getElementById('barHeight').value;
+            // Render ตารางสำหรับสั่งปริ้นท์ (Print Area)
+            let printArea = document.getElementById('printArea');
+            printArea.innerHTML = "";
+            
+            if(displayData.length > 0) {
+                let printTable = document.createElement('table');
+                printTable.className = "print-table";
+                let printTbody = document.createElement('tbody');
+                
+                let fontSize = document.getElementById('fontSize').value;
+                let barHeight = document.getElementById('barHeight').value;
 
-            displayData.forEach((item, index) => {
-                let tr = document.createElement('tr');
-                tr.innerHTML = `
-                    <td><strong>${item.code}</strong></td>
-                    <td>${item.desc}</td>
-                    <td>${item.price ? parseFloat(item.price).toLocaleString() + ' ฿' : '-'}</td>
-                `;
-                tbody.appendChild(tr);
+                displayData.forEach((item, index) => {
+                    let tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td class="col-barcode"><svg id="bc-${index}"></svg></td>
+                        <td class="col-code">${item.code}</td>
+                        <td class="col-desc">${item.desc}</td>
+                        <td class="col-price">${item.price ? parseFloat(item.price).toLocaleString() : ''}</td>
+                    `;
+                    printTbody.appendChild(tr);
+                });
+                
+                printTable.appendChild(printTbody);
+                printArea.appendChild(printTable);
 
-                let printDiv = document.createElement('div');
-                printDiv.className = 'barcode-item';
-                printDiv.innerHTML = `
-                    <div class="barcode-title" style="font-size: ${fontSize}px;">${item.desc}</div>
-                    <svg id="bc-${index}"></svg>
-                    <div class="barcode-price" style="font-size: ${parseFloat(fontSize)+2}px;">${item.price ? parseFloat(item.price).toLocaleString() + ' ฿' : ''}</div>
-                `;
-                printArea.appendChild(printDiv);
-                JsBarcode("#bc-" + index, item.code, { format: "CODE128", width: 1.5, height: barHeight, displayValue: true, fontSize: fontSize, margin: 0 });
-            });
+                // สร้างรูปบาร์โค้ดฝังลงไปในตาราง
+                displayData.forEach((item, index) => {
+                    JsBarcode("#bc-" + index, item.code, { 
+                        format: "CODE128", 
+                        width: 1.5, 
+                        height: barHeight, 
+                        displayValue: true, // กำหนดให้โชว์ตัวหนังสือใต้บาร์โค้ด
+                        fontSize: fontSize, 
+                        margin: 5 
+                    });
+                });
+            }
         }
 
         function updateSettings() {
@@ -198,6 +240,14 @@
                 alert("บันทึกไม่สำเร็จ");
                 btn.innerText = "💾 บันทึกข้อมูลลง Cloud"; btn.disabled = false;
             });
+        }
+        
+        function deleteData(codeId) {
+            if(!confirm("ต้องการลบรายการนี้ใช่หรือไม่?")) return;
+            fetch(WEB_APP_URL, {
+                method: "POST",
+                body: JSON.stringify({ action: "deleteBarcode", code: codeId })
+            }).then(() => loadData());
         }
     </script>
 </body>

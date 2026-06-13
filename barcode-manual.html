@@ -29,10 +29,8 @@
         .controls-box select { flex: 1; padding: 10px; border: 1px solid #d2d2d7; border-radius: 6px; font-size: 14px; outline: none; }
         .btn-delete { background-color: #ff3b30; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-size: 12px; }
         
-        /* ซ่อนพื้นที่พิมพ์ตอนอยู่บนหน้าจอเว็บปกติ */
         #printArea { display: none; }
 
-        /* การตั้งค่าหน้าตาตอนกดปริ้นท์ (เรียง 4 คอลัมน์ตามรูปตัวอย่าง) */
         @media print { 
             body { background: white; margin: 0; padding: 0; }
             .navbar, .container { display: none !important; } 
@@ -41,7 +39,6 @@
             .print-table { width: 100%; border-collapse: collapse; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; color: #000; }
             .print-table td { border: 1px solid #000; padding: 8px 10px; vertical-align: middle; }
             
-            /* กำหนดขนาดแต่ละคอลัมน์ให้เหมือนรูปตัวอย่าง */
             .col-1-barcode { text-align: center; width: 22%; padding: 5px 0 !important; }
             .col-2-code { text-align: center; width: 15%; font-size: 15px; }
             .col-3-desc { text-align: left; width: 50%; font-size: 15px; }
@@ -121,17 +118,16 @@
         }
 
         function updateCategoryDropdowns() {
-            let cats = [...new Set(barcodeData.map(i => i.category || "ทั่วไป"))].sort();
+            let cats = [...new Set(barcodeData.map(i => String(i.category || "ทั่วไป")))].sort();
             document.getElementById('filterCat').innerHTML = `<option value="ALL">-- ทั้งหมด --</option>` + cats.map(c => `<option value="${c}">${c}</option>`).join('');
         }
 
         function renderTable() {
             let filter = document.getElementById('filterCat').value;
-            let displayData = filter === "ALL" ? barcodeData : barcodeData.filter(i => i.category === filter);
+            let displayData = filter === "ALL" ? barcodeData : barcodeData.filter(i => String(i.category || "ทั่วไป") === filter);
             
             document.getElementById('totalItems').innerText = displayData.length;
             
-            // Render ตารางบนหน้าเว็บ (Web UI)
             let tbody = document.getElementById('tableBody');
             tbody.innerHTML = "";
             if(displayData.length === 0) {
@@ -140,8 +136,8 @@
                 displayData.forEach((item) => {
                     let tr = document.createElement('tr');
                     tr.innerHTML = `
-                        <td><strong>${item.code}</strong></td>
-                        <td>${item.desc}</td>
+                        <td><strong>${item.code || "-"}</strong></td>
+                        <td>${item.desc || "-"}</td>
                         <td>${item.price ? parseFloat(item.price).toLocaleString() + ' ฿' : '-'}</td>
                         <td><button class="btn-delete" onclick="deleteData('${item.code}')">ลบ</button></td>
                     `;
@@ -149,7 +145,6 @@
                 });
             }
 
-            // Render ตารางสำหรับสั่งปริ้นท์ (Print Area แบบ 4 คอลัมน์)
             let printArea = document.getElementById('printArea');
             printArea.innerHTML = "";
             
@@ -163,7 +158,6 @@
 
                 displayData.forEach((item, index) => {
                     let tr = document.createElement('tr');
-                    // จัดเรียง 4 คอลัมน์: บาร์โค้ด | รหัส | รายละเอียด | ราคา
                     tr.innerHTML = `
                         <td class="col-1-barcode"><svg id="bc-${index}"></svg></td>
                         <td class="col-2-code">${item.code || ""}</td>
@@ -176,13 +170,14 @@
                 printTable.appendChild(printTbody);
                 printArea.appendChild(printTable);
 
-                // สร้างรูปบาร์โค้ดฝังลงไปในคอลัมน์แรก
                 displayData.forEach((item, index) => {
-                    JsBarcode("#bc-" + index, item.code, { 
+                    // ป้องกัน Error จากตัวเลขล้วนตอนวาดบาร์โค้ด
+                    let barcodeValue = String(item.code || "-"); 
+                    JsBarcode("#bc-" + index, barcodeValue, { 
                         format: "CODE128", 
                         width: 1.5, 
                         height: barHeight, 
-                        displayValue: true, // กำหนดให้โชว์ตัวหนังสือรหัสใต้แท่งบาร์โค้ด
+                        displayValue: true, 
                         fontSize: fontSize, 
                         fontOptions: "bold",
                         margin: 5 

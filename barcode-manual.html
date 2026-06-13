@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>สร้างบาร์โค้ดสินค้า (Manual) - iServe</title>
+    <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.0/dist/JsBarcode.all.min.js"></script>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; padding: 0; margin: 0; background-color: #f5f5f7; color: #1d1d1f; }
+        .navbar { background-color: #1d1d1f; padding: 15px 20px; text-align: center; }
+        .navbar a { color: #f5f5f7; text-decoration: none; padding: 10px 20px; margin: 0 5px; border-radius: 6px; font-size: 15px; font-weight: 500; transition: 0.3s; }
+        .navbar a:hover { background-color: #333336; }
+        .navbar a.active { background-color: #0071e3; color: white; }
+        .container { max-width: 1200px; margin: 40px auto; display: grid; grid-template-columns: 1fr 2fr; gap: 20px; }
+        @media (max-width: 768px) { .container { grid-template-columns: 1fr; } }
+        .card { background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+        h2 { margin-top: 0; border-bottom: 1px solid #e5e5e7; padding-bottom: 10px; font-size: 18px; margin-bottom: 15px; }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; font-size: 13px; color: #515154; }
+        input[type="text"], input[type="number"], select { width: 100%; padding: 10px; border: 1px solid #d2d2d7; border-radius: 6px; box-sizing: border-box; font-size: 14px; outline: none; }
+        .flex-group { display: flex; gap: 10px; }
+        .flex-item { flex: 1; }
+        .btn { background-color: #34c759; color: white; border: none; padding: 12px 15px; border-radius: 6px; cursor: pointer; font-size: 15px; font-weight: bold; width: 100%; transition: 0.2s; }
+        .btn:hover { background-color: #2eb050; }
+        .btn-print { background-color: #0071e3; margin-top: 10px; }
+        .btn-print:hover { background-color: #005bb5; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 13px; }
+        th, td { padding: 12px 10px; text-align: left; border-bottom: 1px solid #e5e5e7; }
+        th { background-color: #f5f5f7; color: #515154; }
+        .controls-box { background: #f5f5f7; padding: 15px; border-radius: 8px; margin-bottom: 15px; display: flex; gap: 10px; }
+        .controls-box select { flex: 1; }
+        @media print { body * { visibility: hidden; } #printArea, #printArea * { visibility: visible; } #printArea { position: absolute; left: 0; top: 0; width: 100%; } .no-print { display: none !important; } }
+        .barcode-item { display: inline-block; text-align: center; margin: 10px; padding: 10px; border: 1px dashed #ccc; border-radius: 8px; }
+        .barcode-title { font-size: 12px; font-weight: bold; margin-bottom: 5px; max-width: 180px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .barcode-price { font-size: 14px; font-weight: bold; color: #ff3b30; margin-top: 5px; }
+    </style>
+</head>
+<body>
+    <div class="navbar no-print">
+        <a href="calculate.html">1. คำนวณราคา</a>
+        <a href="search.html">2. ค้นหา & เพิ่มรุ่น</a>
+        <a href="price.html">3. ตารางราคา</a>
+        <a href="barcode-manual.html" class="active">🏷️ บาร์โค้ด (Manual)</a>
+    </div>
+    <div class="container no-print">
+        <div class="card">
+            <h2>➕ เพิ่มรายการคลาวด์ใหม่</h2>
+            <div class="form-group">
+                <label>รหัส (Code) *ใช้สำหรับสแกน</label>
+                <input type="text" id="code" placeholder="เช่น ACSH0123">
+            </div>
+            <div class="form-group">
+                <label>ชื่อรายละเอียด (Description)</label>
+                <input type="text" id="desc" placeholder="เช่น AppleCare PLUS iPhone...">
+            </div>
+            <div class="flex-group form-group">
+                <div class="flex-item">
+                    <label>หมวดหมู่ (Category)</label>
+                    <input type="text" id="category" placeholder="เช่น AppleCare, Battery..." list="catList">
+                    <datalist id="catList"></datalist>
+                </div>
+                <div class="flex-item">
+                    <label>ราคา (Price)</label>
+                    <input type="number" id="price" placeholder="เว้นว่างได้">
+                </div>
+            </div>
+            <button class="btn" onclick="saveData()" id="saveBtn">💾 บันทึกข้อมูลลง Cloud</button>
+            <hr style="margin: 25px 0; border: 0; border-top: 1px dashed #d2d2d7;">
+            <h2>⚙️ ตั้งค่าก่อนพิมพ์</h2>
+            <div class="flex-group form-group">
+                <div class="flex-item">
+                    <label>ขนาดตัวอักษร: <span id="fontVal">12</span>px</label>
+                    <input type="range" id="fontSize" min="8" max="18" value="12" oninput="updateSettings()">
+                </div>
+                <div class="flex-item">
+                    <label>ความสูงบาร์โค้ด: <span id="heightVal">40</span>px</label>
+                    <input type="range" id="barHeight" min="20" max="80" value="40" oninput="updateSettings()">
+                </div>
+            </div>
+            <button class="btn btn-print" onclick="window.print()">🖨️ สั่งพิมพ์บาร์โค้ดที่แสดง (Print)</button>
+        </div>
+        <div class="card">
+            <h2>📋 รายการบาร์โค้ดบนคลาวด์ชีต (<span id="totalItems">0</span>)</h2>
+            <div class="controls-box">
+                <div style="flex:1;">
+                    <label style="font-size: 11px; font-weight: bold; margin-bottom: 3px; display:block;">กรองหมวดหมู่:</label>
+                    <select id="filterCat" onchange="renderTable()"><option value="ALL">-- ทั้งหมด --</option></select>
+                </div>
+            </div>
+            <div style="overflow-x: auto; max-height: 500px; overflow-y: auto;">
+                <table>
+                    <thead>
+                        <tr>
+                            <th width="25%">รหัส</th>
+                            <th width="50%">รายละเอียด</th>
+                            <th width="25%">ราคา</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tableBody">
+                        <tr><td colspan="3" style="text-align: center; padding: 20px;">กำลังโหลดจากชีต...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    
+    <div id="printArea" style="padding: 20px; text-align: center;"></div>
+
+    <script>
+        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzGXPWcFPx5Oy_Ey0LtxzAvIBVS7sB6j8pvFWY_BcpEL2lmThw-iWfdZS10K-ylKII1fQ/exec";
+        let barcodeData = [];
+
+        window.onload = function() { loadData(); };
+
+        function loadData() {
+            fetch(WEB_APP_URL + "?action=getBarcodes")
+                .then(res => res.json())
+                .then(data => {
+                    barcodeData = data;
+                    updateCategoryDropdowns();
+                    renderTable();
+                }).catch(err => alert("โหลดข้อมูลพลาด กรุณารีเฟรช"));
+        }
+
+        function updateCategoryDropdowns() {
+            let cats = [...new Set(barcodeData.map(i => i.category || "ทั่วไป"))].sort();
+            document.getElementById('catList').innerHTML = cats.map(c => `<option value="${c}">`).join('');
+            document.getElementById('filterCat').innerHTML = `<option value="ALL">-- ทั้งหมด --</option>` + cats.map(c => `<option value="${c}">${c}</option>`).join('');
+        }
+
+        function renderTable() {
+            let filter = document.getElementById('filterCat').value;
+            let displayData = filter === "ALL" ? barcodeData : barcodeData.filter(i => i.category === filter);
+            
+            document.getElementById('totalItems').innerText = displayData.length;
+            let tbody = document.getElementById('tableBody');
+            let printArea = document.getElementById('printArea');
+            tbody.innerHTML = ""; printArea.innerHTML = "";
+
+            if(displayData.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="3" style="text-align: center;">ไม่มีข้อมูล</td></tr>`;
+                return;
+            }
+
+            let fontSize = document.getElementById('fontSize').value;
+            let barHeight = document.getElementById('barHeight').value;
+
+            displayData.forEach((item, index) => {
+                let tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td><strong>${item.code}</strong></td>
+                    <td>${item.desc}</td>
+                    <td>${item.price ? parseFloat(item.price).toLocaleString() + ' ฿' : '-'}</td>
+                `;
+                tbody.appendChild(tr);
+
+                let printDiv = document.createElement('div');
+                printDiv.className = 'barcode-item';
+                printDiv.innerHTML = `
+                    <div class="barcode-title" style="font-size: ${fontSize}px;">${item.desc}</div>
+                    <svg id="bc-${index}"></svg>
+                    <div class="barcode-price" style="font-size: ${parseFloat(fontSize)+2}px;">${item.price ? parseFloat(item.price).toLocaleString() + ' ฿' : ''}</div>
+                `;
+                printArea.appendChild(printDiv);
+                JsBarcode("#bc-" + index, item.code, { format: "CODE128", width: 1.5, height: barHeight, displayValue: true, fontSize: fontSize, margin: 0 });
+            });
+        }
+
+        function updateSettings() {
+            document.getElementById('fontVal').innerText = document.getElementById('fontSize').value;
+            document.getElementById('heightVal').innerText = document.getElementById('barHeight').value;
+            renderTable();
+        }
+
+        function saveData() {
+            let code = document.getElementById('code').value.trim();
+            let desc = document.getElementById('desc').value.trim();
+            let category = document.getElementById('category').value.trim() || "ทั่วไป";
+            let price = document.getElementById('price').value;
+
+            if(!code || !desc) { alert("กรุณากรอกรหัสและรายละเอียดให้ครบครับ"); return; }
+            
+            let btn = document.getElementById('saveBtn');
+            btn.innerText = "กำลังบันทึก..."; btn.disabled = true;
+
+            let payload = { action: "addBarcode", code: code, desc: desc, category: category, price: price };
+
+            fetch(WEB_APP_URL, {
+                method: "POST",
+                body: JSON.stringify(payload)
+            }).then(res => res.json()).then(res => {
+                if(res.status === "success") {
+                    document.getElementById('code').value = ""; document.getElementById('desc').value = ""; document.getElementById('price').value = "";
+                    loadData();
+                }
+                btn.innerText = "💾 บันทึกข้อมูลลง Cloud"; btn.disabled = false;
+            }).catch(() => {
+                alert("บันทึกไม่สำเร็จ");
+                btn.innerText = "💾 บันทึกข้อมูลลง Cloud"; btn.disabled = false;
+            });
+        }
+    </script>
+</body>
+</html>

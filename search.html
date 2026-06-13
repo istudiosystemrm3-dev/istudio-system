@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ค้นหารุ่นอุปกรณ์ - ระบบออนไลน์</title>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; padding: 0; margin: 0; background-color: #f5f5f7; color: #1d1d1f; }
+        .navbar { background-color: #1d1d1f; padding: 15px 20px; text-align: center; }
+        .navbar a { color: #f5f5f7; text-decoration: none; padding: 10px 20px; margin: 0 5px; border-radius: 6px; font-size: 15px; font-weight: 500; transition: 0.3s; }
+        .navbar a:hover { background-color: #333336; }
+        .navbar a.active { background-color: #0071e3; color: white; }
+        .container { max-width: 1100px; margin: 40px auto; display: grid; grid-template-columns: 1fr 2fr; gap: 20px; }
+        @media (max-width: 768px) { .container { grid-template-columns: 1fr; } }
+        .card { background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+        h2 { margin-top: 0; border-bottom: 1px solid #e5e5e7; padding-bottom: 10px; font-size: 18px; margin-bottom: 15px; }
+        .search-box { display: flex; gap: 10px; margin-bottom: 15px; }
+        .search-box input { flex: 1; border-color: #0071e3; background-color: #f5f5f7; padding: 12px; font-size: 15px; border: 1px solid #d2d2d7; border-radius: 6px; outline: none; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 13px; }
+        th, td { padding: 12px 10px; text-align: left; border-bottom: 1px solid #e5e5e7; }
+        th { background-color: #f5f5f7; color: #515154; font-weight: 600; }
+        tr:hover { background-color: #f9f9fa; }
+        .table-container { overflow-x: auto; max-height: 650px; overflow-y: auto; border: 1px solid #e5e5e7; border-radius: 6px; }
+        thead th { position: sticky; top: 0; z-index: 1; box-shadow: 0 1px 2px rgba(0,0,0,0.1); }
+        .info-box { background-color: #e8f2fc; padding: 15px; border-radius: 8px; border: 1px solid #c8e1fa; margin-top: 15px; }
+        .info-box p { margin: 0; font-size: 13px; color: #003399; line-height: 1.5; }
+        .status-badge { display: inline-block; padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: bold; background-color: #ff9500; color: white; }
+        .status-connected { background-color: #34c759; }
+    </style>
+</head>
+<body>
+    <div class="navbar">
+        <a href="calculate.html">1. คำนวณราคา</a>
+        <a href="search.html" class="active">2. ค้นหา & เพิ่มรุ่น</a>
+        <a href="price.html">3. ตารางราคา</a>
+        <a href="barcode-manual.html">🏷️ บาร์โค้ด (Manual)</a>
+    </div>
+    <div class="container">
+        <div class="card">
+            <h2>☁️ สถานะฐานข้อมูลออนไลน์</h2>
+            <div style="margin-bottom: 15px;">
+                สถานะระบบ: <span id="syncStatus" class="status-badge">กำลังเชื่อมต่อ...</span>
+            </div>
+            <div class="info-box">
+                <p>
+                    💡 <strong>การจัดการข้อมูลพาร์ท/รุ่น:</strong><br>
+                    หน้าเว็บนี้จะดึงข้อมูลจากกูเกิลชีตแท็บ <strong>"Model"</strong> มาแสดงผลออนไลน์ทันที<br><br>
+                    หากต้องการอัปเดตข้อมูลรุ่นสินค้า สามารถแก้ไขในหน้า Google Sheets ได้ทันทีเลยครับ
+                </p>
+            </div>
+        </div>
+        <div class="card">
+            <h2>🔍 ค้นหารุ่นอุปกรณ์ (<span id="totalCount">0</span>)</h2>
+            <div class="search-box">
+                <input type="text" id="searchInput" placeholder="พิมพ์ชื่อรุ่น หรือ รหัสพาร์ท..." onkeyup="filterTable()" autofocus>
+            </div>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th width="25%">รหัสพาร์ท</th>
+                            <th width="55%">ชื่อรายการ / รุ่น</th>
+                            <th width="20%">หมวดหมู่</th>
+                        </tr>
+                    </thead>
+                    <tbody id="dataTableBody">
+                        <tr><td colspan="3" style="text-align: center; padding: 30px; color: #86868b;">กำลังโหลดข้อมูลจาก Google Sheets...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzGXPWcFPx5Oy_Ey0LtxzAvIBVS7sB6j8pvFWY_BcpEL2lmThw-iWfdZS10K-ylKII1fQ/exec";
+        let modelsDatabase = [];
+
+        window.onload = function() {
+            loadOnlineData();
+        };
+
+        function loadOnlineData() {
+            fetch(WEB_APP_URL + "?action=getModels")
+                .then(response => response.json())
+                .then(data => {
+                    modelsDatabase = data;
+                    document.getElementById('syncStatus').innerText = "เชื่อมต่อคลาวด์สำเร็จ";
+                    document.getElementById('syncStatus').classList.add('status-connected');
+                    renderTable(modelsDatabase);
+                })
+                .catch(error => {
+                    document.getElementById('syncStatus').innerText = "การเชื่อมต่อผิดพลาด";
+                    document.getElementById('syncStatus').style.backgroundColor = "#ff3b30";
+                    document.getElementById('dataTableBody').innerHTML = `<tr><td colspan="3" style="text-align: center; color: #ff3b30; padding: 30px;">ไม่สามารถโหลดข้อมูลได้</td></tr>`;
+                });
+        }
+
+        function renderTable(dataArray) {
+            let tbody = document.getElementById('dataTableBody');
+            document.getElementById('totalCount').innerText = dataArray.length.toLocaleString();
+            tbody.innerHTML = "";
+
+            if (dataArray.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="3" style="text-align: center; color: #86868b; padding: 30px;">ไม่พบข้อมูลรุ่นอุปกรณ์ในระบบคลาวด์</td></tr>`;
+                return;
+            }
+
+            dataArray.forEach((item) => {
+                let tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td style="color: #515154; font-weight: bold;">${item.partNo || "-"}</td>
+                    <td style="color: #0071e3; font-weight: 500;">${item.name}</td>
+                    <td style="color: #86868b;">${item.typeLabel}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function filterTable() {
+            let keyword = document.getElementById('searchInput').value.toLowerCase();
+            let keywordsArray = keyword.split(" ").filter(k => k.trim() !== "");
+            
+            let filteredData = modelsDatabase.filter(item => {
+                let lowerName = item.name.toLowerCase();
+                let lowerPart = (item.partNo || "").toLowerCase();
+                return keywordsArray.every(k => lowerName.includes(k) || lowerPart.includes(k));
+            });
+            renderTable(filteredData);
+        }
+    </script>
+</body>
+</html>

@@ -52,7 +52,7 @@
         <div class="card">
             <h2>🔍 ค้นหารุ่นอุปกรณ์ (<span id="totalCount">0</span>)</h2>
             <div class="search-box">
-                <input type="text" id="searchInput" placeholder="พิมพ์ชื่อรุ่น หรือ รหัสพาร์ท..." onkeyup="filterTable()" autofocus>
+                <input type="text" id="searchInput" placeholder="พิมพ์ชื่อรุ่น, รหัสพาร์ท หรือ หมวดหมู่..." onkeyup="filterTable()" autofocus>
             </div>
             <div class="table-container">
                 <table>
@@ -121,11 +121,12 @@
             let keywordsArray = keyword.split(" ").filter(k => k.trim() !== "");
             
             let filteredData = modelsDatabase.filter(item => {
-                // อัปเดตบรรทัดนี้: บังคับแปลงเป็น String ป้องกัน Error จากตัวเลขล้วน
                 let lowerName = String(item.name || "").toLowerCase();
                 let lowerPart = String(item.partNo || "").toLowerCase();
+                let lowerCategory = String(item.typeLabel || "").toLowerCase(); // เพิ่มบรรทัดนี้ให้ดึงหมวดหมู่มาด้วย
                 
-                return keywordsArray.every(k => lowerName.includes(k) || lowerPart.includes(k));
+                // เช็คว่าคำที่ค้นหา ตรงกับชื่อ หรือ รหัส หรือ หมวดหมู่
+                return keywordsArray.every(k => lowerName.includes(k) || lowerPart.includes(k) || lowerCategory.includes(k));
             });
             renderTable(filteredData);
         }

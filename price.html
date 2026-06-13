@@ -52,13 +52,13 @@
                 </select>
             </div>
             <p style="font-size: 12px; color: #86868b; line-height: 1.5;">
-                💡 ระบบจะคำนวณ <strong>ราคาพาร์ท + ค่าบริการ</strong> ให้เป็นยอดรวมสุทธิโดยอัตโนมัติครับ
+                💡 ระบบจะคำนวณ <strong>Price + Service</strong> ให้เป็น Total Price โดยอัตโนมัติครับ
             </p>
         </div>
         <div class="card">
             <h2>📋 รายการตารางราคาซ่อม (แท็บ Price) - รวม <span id="totalCount">0</span> รายการ</h2>
             <div class="search-box">
-                <input type="text" id="searchInput" placeholder="ค้นหาชื่อรายการ, รหัสพาร์ท หรือหมวดหมู่..." onkeyup="filterTable()" autofocus>
+                <input type="text" id="searchInput" placeholder="ค้นหาชื่อรายการ, Code หรือ ID..." onkeyup="filterTable()" autofocus>
             </div>
             <div class="table-container">
                 <table>
@@ -67,9 +67,9 @@
                             <th width="8%">ID</th>
                             <th width="15%">Code</th>
                             <th width="37%">Description</th>
-                            <th width="12%" class="text-right">Part Price</th>
+                            <th width="12%" class="text-right">Price</th>
                             <th width="12%" class="text-right">Service</th>
-                            <th width="16%" class="text-right">Total (ยอดรวม)</th>
+                            <th width="16%" class="text-right">Total Price</th>
                         </tr>
                     </thead>
                     <tbody id="dataTableBody">
@@ -121,7 +121,6 @@
             }
 
             dataArray.forEach(item => {
-                // แปลงค่าให้เป็นตัวเลขเพื่อคำนวณ
                 let partVal = parseFloat(String(item.category).replace(/,/g, '')) || 0;
                 let servVal = parseFloat(String(item.price).replace(/,/g, '')) || 0;
                 let totalVal = partVal + servVal;

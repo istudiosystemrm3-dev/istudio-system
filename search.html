@@ -3,64 +3,84 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ค้นหารุ่นอุปกรณ์ - ระบบออนไลน์</title>
+    <title>ค้นหาพาร์ทและอะไหล่ - iServe</title>
     <style>
         body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; padding: 0; margin: 0; background-color: #f5f5f7; color: #1d1d1f; }
         .navbar { background-color: #1d1d1f; padding: 15px 20px; text-align: center; }
         .navbar a { color: #f5f5f7; text-decoration: none; padding: 10px 20px; margin: 0 5px; border-radius: 6px; font-size: 15px; font-weight: 500; transition: 0.3s; }
         .navbar a:hover { background-color: #333336; }
         .navbar a.active { background-color: #0071e3; color: white; }
-        .container { max-width: 1100px; margin: 40px auto; display: grid; grid-template-columns: 1fr 2fr; gap: 20px; }
-        @media (max-width: 768px) { .container { grid-template-columns: 1fr; } }
+        .container { max-width: 1200px; margin: 40px auto; padding: 0 20px; }
         .card { background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
         h2 { margin-top: 0; border-bottom: 1px solid #e5e5e7; padding-bottom: 10px; font-size: 18px; margin-bottom: 15px; }
-        .search-box { display: flex; gap: 10px; margin-bottom: 15px; }
-        .search-box input { flex: 1; border-color: #0071e3; background-color: #f5f5f7; padding: 12px; font-size: 15px; border: 1px solid #d2d2d7; border-radius: 6px; outline: none; }
+        
+        /* สไตล์กล่องค้นหาแบบใหม่ */
+        .search-panel { background: #e8f2fc; padding: 20px; border-radius: 8px; margin-bottom: 20px; border: 1px solid #c8e1fa; display: flex; flex-wrap: wrap; gap: 15px; align-items: flex-end; }
+        .search-group { flex: 1; min-width: 200px; }
+        .search-group label { display: block; font-size: 13px; font-weight: bold; color: #515154; margin-bottom: 6px; }
+        .search-group input, .search-group select { width: 100%; padding: 10px; border: 1px solid #d2d2d7; border-radius: 6px; font-size: 14px; outline: none; box-sizing: border-box; }
+        .search-group input:focus, .search-group select:focus { border-color: #0071e3; }
+        
+        .btn-reset { background-color: #ff3b30; color: white; border: none; padding: 10px 15px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 14px; height: 39px; }
+        .btn-reset:hover { background-color: #d70015; }
+
         table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 13px; }
-        th, td { padding: 12px 10px; text-align: left; border-bottom: 1px solid #e5e5e7; }
+        th, td { padding: 12px 8px; text-align: left; border-bottom: 1px solid #e5e5e7; }
         th { background-color: #f5f5f7; color: #515154; font-weight: 600; }
         tr:hover { background-color: #f9f9fa; }
-        .table-container { overflow-x: auto; max-height: 650px; overflow-y: auto; border: 1px solid #e5e5e7; border-radius: 6px; }
-        thead th { position: sticky; top: 0; z-index: 1; box-shadow: 0 1px 2px rgba(0,0,0,0.1); }
-        .info-box { background-color: #e8f2fc; padding: 15px; border-radius: 8px; border: 1px solid #c8e1fa; margin-top: 15px; }
-        .info-box p { margin: 0; font-size: 13px; color: #003399; line-height: 1.5; }
-        .status-badge { display: inline-block; padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: bold; background-color: #ff9500; color: white; }
-        .status-connected { background-color: #34c759; }
+        .badge { display: inline-block; padding: 4px 8px; border-radius: 4px; font-size: 11px; font-weight: bold; }
+        .badge-model { background-color: #f4e6fa; color: #8a2be2; }
+        .badge-cat { background-color: #e6f0fa; color: #0071e3; }
+        .price-text { font-weight: bold; color: #34c759; text-align: right; }
     </style>
 </head>
 <body>
     <div id="navbar-container"></div>
     <script src="navbar.js"></script>
+
     <div class="container">
         <div class="card">
-            <h2>☁️ สถานะฐานข้อมูลออนไลน์</h2>
-            <div style="margin-bottom: 15px;">
-                สถานะระบบ: <span id="syncStatus" class="status-badge">กำลังเชื่อมต่อ...</span>
+            <h2>🔍 ระบบค้นหาพาร์ทและอะไหล่ (Advanced Search)</h2>
+            
+            <div class="search-panel">
+                <div class="search-group" style="flex: 2;">
+                    <label>พิมพ์ค้นหาด่วน (รหัส, ชื่อ, หรือรายละเอียด)</label>
+                    <input type="text" id="searchInput" placeholder="🔍 พิมพ์คำค้นหาตรงนี้..." onkeyup="filterData()" autofocus>
+                </div>
+                <div class="search-group">
+                    <label>📁 หมวดหมู่สินค้า (Category)</label>
+                    <select id="catFilter" onchange="filterData()">
+                        <option value="ALL">-- กำลังโหลด... --</option>
+                    </select>
+                </div>
+                <div class="search-group">
+                    <label>📱 รุ่นอุปกรณ์ (Model)</label>
+                    <select id="modelFilter" onchange="filterData()">
+                        <option value="ALL">-- กำลังโหลด... --</option>
+                    </select>
+                </div>
+                <div>
+                    <button class="btn-reset" onclick="resetFilters()">ล้างค่า</button>
+                </div>
             </div>
-            <div class="info-box">
-                <p>
-                    💡 <strong>การจัดการข้อมูลพาร์ท/รุ่น:</strong><br>
-                    หน้าเว็บนี้จะดึงข้อมูลจากกูเกิลชีตแท็บ <strong>"Model"</strong> มาแสดงผลออนไลน์ทันที<br><br>
-                    หากต้องการอัปเดตข้อมูลรุ่นสินค้า สามารถแก้ไขในหน้า Google Sheets ได้ทันทีเลยครับ
-                </p>
+
+            <div style="margin-bottom: 10px; font-size: 13px; color: #86868b; font-weight: bold;">
+                รายการที่พบ: <span id="resultCount">0</span> รายการ
             </div>
-        </div>
-        <div class="card">
-            <h2>🔍 ค้นหารุ่นอุปกรณ์ (<span id="totalCount">0</span>)</h2>
-            <div class="search-box">
-                <input type="text" id="searchInput" placeholder="พิมพ์ชื่อรุ่น, รหัสพาร์ท หรือ หมวดหมู่..." onkeyup="filterTable()" autofocus>
-            </div>
-            <div class="table-container">
+
+            <div style="overflow-x: auto; max-height: 600px; overflow-y: auto; border: 1px solid #e5e5e7; border-radius: 6px;">
                 <table>
-                    <thead>
+                    <thead style="position: sticky; top: 0; z-index: 1;">
                         <tr>
-                            <th width="25%">รหัสพาร์ท</th>
-                            <th width="55%">ชื่อรายการ / รุ่น</th>
-                            <th width="20%">หมวดหมู่</th>
+                            <th width="15%">รหัสพาร์ท (Code)</th>
+                            <th width="35%">รายละเอียด (Description)</th>
+                            <th width="15%">รุ่นอุปกรณ์ (Model)</th>
+                            <th width="15%">หมวดหมู่ (Category)</th>
+                            <th width="20%" style="text-align: right;">ราคาอ้างอิง (บาท)</th>
                         </tr>
                     </thead>
-                    <tbody id="dataTableBody">
-                        <tr><td colspan="3" style="text-align: center; padding: 30px; color: #86868b;">กำลังโหลดข้อมูลจาก Google Sheets...</td></tr>
+                    <tbody id="tableBody">
+                        <tr><td colspan="5" style="text-align: center; padding: 40px; color:#86868b;">กำลังเชื่อมต่อฐานข้อมูล...</td></tr>
                     </tbody>
                 </table>
             </div>
@@ -69,86 +89,106 @@
 
     <script>
         const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzGXPWcFPx5Oy_Ey0LtxzAvIBVS7sB6j8pvFWY_BcpEL2lmThw-iWfdZS10K-ylKII1fQ/exec";
-        let modelsDatabase = [];
+        let allPartsData = [];
 
-        window.onload = function() {
-            loadOnlineData();
-        };
+        window.onload = function() { loadPartsData(); };
 
-        function loadOnlineData() {
-            fetch(WEB_APP_URL + "?action=getModels")
-                .then(response => response.json())
+        function loadPartsData() {
+            // ใช้ท่อ getBarcodes เพราะมีข้อมูลครบทั้ง รหัส, ชื่อ, รุ่น, หมวดหมู่ และราคา
+            fetch(WEB_APP_URL + "?action=getBarcodes")
+                .then(res => res.json())
                 .then(data => {
-                    modelsDatabase = data;
-                    document.getElementById('syncStatus').innerText = "เชื่อมต่อคลาวด์สำเร็จ";
-                    document.getElementById('syncStatus').classList.add('status-connected');
-                    renderTable(modelsDatabase);
+                    allPartsData = data;
+                    setupDropdownOptions();
+                    filterData(); // แสดงข้อมูลทั้งหมดตอนโหลดเสร็จ
                 })
-                .catch(error => {
-                    document.getElementById('syncStatus').innerText = "การเชื่อมต่อผิดพลาด";
-                    document.getElementById('syncStatus').style.backgroundColor = "#ff3b30";
-                    document.getElementById('dataTableBody').innerHTML = `<tr><td colspan="3" style="text-align: center; color: #ff3b30; padding: 30px;">ไม่สามารถโหลดข้อมูลได้</td></tr>`;
+                .catch(err => {
+                    document.getElementById('tableBody').innerHTML = `<tr><td colspan="5" style="text-align: center; color:#ff3b30; padding: 20px;">โหลดข้อมูลผิดพลาด กรุณารีเฟรช</td></tr>`;
                 });
         }
 
+        function setupDropdownOptions() {
+            // สกัดรายชื่อหมวดหมู่ที่ไม่ซ้ำกัน
+            let categories = [...new Set(allPartsData.map(item => String(item.category || "ไม่ได้ระบุหมวดหมู่").trim()))];
+            categories = categories.filter(c => c !== "").sort();
+            
+            // สกัดรายชื่อรุ่นที่ไม่ซ้ำกัน
+            let models = [...new Set(allPartsData.map(item => String(item.model || "ไม่ได้ระบุรุ่น").trim()))];
+            models = models.filter(m => m !== "").sort();
+
+            // นำไปใส่ใน Dropdown หมวดหมู่
+            let catHTML = `<option value="ALL">-- แสดงทั้งหมด --</option>`;
+            categories.forEach(c => catHTML += `<option value="${c}">${c}</option>`);
+            document.getElementById('catFilter').innerHTML = catHTML;
+
+            // นำไปใส่ใน Dropdown รุ่น
+            let modelHTML = `<option value="ALL">-- แสดงทั้งหมด --</option>`;
+            models.forEach(m => modelHTML += `<option value="${m}">${m}</option>`);
+            document.getElementById('modelFilter').innerHTML = modelHTML;
+        }
+
+        function filterData() {
+            let keyword = document.getElementById('searchInput').value.toLowerCase().trim();
+            let keywordsArray = keyword.split(" ").filter(k => k !== "");
+            
+            let selectedCat = document.getElementById('catFilter').value;
+            let selectedModel = document.getElementById('modelFilter').value;
+
+            // เริ่มการกรองข้อมูลแบบ 3 ชั้น
+            let displayData = allPartsData.filter(item => {
+                let itemCat = String(item.category || "ไม่ได้ระบุหมวดหมู่").trim();
+                let itemModel = String(item.model || "ไม่ได้ระบุรุ่น").trim();
+                let combinedText = (String(item.code || "") + " " + String(item.desc || "")).toLowerCase();
+
+                // 1. กรองด้วยหมวดหมู่
+                if (selectedCat !== "ALL" && itemCat !== selectedCat) return false;
+                
+                // 2. กรองด้วยรุ่น
+                if (selectedModel !== "ALL" && itemModel !== selectedModel) return false;
+
+                // 3. กรองด้วยคำค้นหา (ต้องเจอทุกคำที่พิมพ์เว้นวรรค)
+                if (keywordsArray.length > 0) {
+                    let isMatch = keywordsArray.every(k => combinedText.includes(k) || itemModel.toLowerCase().includes(k));
+                    if (!isMatch) return false;
+                }
+
+                return true;
+            });
+
+            // อัปเดตตัวเลขแสดงจำนวนที่หาเจอ
+            document.getElementById('resultCount').innerText = displayData.length.toLocaleString();
+
+            renderTable(displayData);
+        }
+
         function renderTable(dataArray) {
-            let tbody = document.getElementById('dataTableBody');
-            document.getElementById('totalCount').innerText = dataArray.length.toLocaleString();
+            let tbody = document.getElementById('tableBody');
             tbody.innerHTML = "";
 
             if (dataArray.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="3" style="text-align: center; color: #86868b; padding: 30px;">ไม่พบข้อมูลที่ค้นหา</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; padding: 40px; color:#86868b;">ไม่พบพาร์ทที่ค้นหา ลองเปลี่ยนเงื่อนไขการกรองดูนะครับ</td></tr>`;
                 return;
             }
 
-            dataArray.forEach((item) => {
+            dataArray.forEach(item => {
                 let tr = document.createElement('tr');
                 tr.innerHTML = `
-                    <td style="color: #515154; font-weight: bold;">${item.partNo || "-"}</td>
-                    <td style="color: #0071e3; font-weight: 500;">${item.name || "-"}</td>
-                    <td style="color: #86868b;">${item.typeLabel || "-"}</td>
+                    <td style="font-weight: bold; color: #1d1d1f;">${item.code || "-"}</td>
+                    <td style="color: #515154;">${item.desc || "-"}</td>
+                    <td><span class="badge badge-model">${item.model || "-"}</span></td>
+                    <td><span class="badge badge-cat">${item.category || "-"}</span></td>
+                    <td class="price-text">${item.price ? parseFloat(item.price).toLocaleString() : "-"}</td>
                 `;
                 tbody.appendChild(tr);
             });
         }
 
-        function filterTable() {
-            let rawKeyword = document.getElementById('searchInput').value;
-            let keyword = rawKeyword.toLowerCase().trim();
-            let keywordsArray = keyword.split(" ").filter(k => k.trim() !== "");
-            
-            if (keywordsArray.length === 0) {
-                renderTable(modelsDatabase);
-                return;
-            }
-
-            // 1. ค้นหาปกติ: ต้องมีคำครบทุกคำที่พิมพ์
-            let filteredData = modelsDatabase.filter(item => {
-                let combinedText = String(item.partNo || "") + " " + String(item.name || "") + " " + String(item.typeLabel || "");
-                return keywordsArray.every(k => combinedText.toLowerCase().includes(k));
-            });
-
-            // 2. ระบบ AI ช่วยเรียง: ดันผลลัพธ์ที่ตรงกับที่พิมพ์ "เป๊ะๆ" ขึ้นบนสุด
-            filteredData.sort((a, b) => {
-                let catA = String(a.typeLabel || "").toLowerCase();
-                let catB = String(b.typeLabel || "").toLowerCase();
-                let combinedA = (String(a.partNo || "") + " " + String(a.name || "") + " " + String(a.typeLabel || "")).toLowerCase();
-                let combinedB = (String(b.partNo || "") + " " + String(b.name || "") + " " + String(b.typeLabel || "")).toLowerCase();
-
-                let scoreA = 0;
-                let scoreB = 0;
-
-                // ให้คะแนนถ้าหมวดหมู่ตรงเป๊ะ หรือข้อความเรียงติดกันเป๊ะๆ
-                if (catA === keyword) scoreA += 3;
-                else if (combinedA.includes(keyword)) scoreA += 1;
-
-                if (catB === keyword) scoreB += 3;
-                else if (combinedB.includes(keyword)) scoreB += 1;
-
-                return scoreB - scoreA; // เรียงจากคะแนนมากไปน้อย
-            });
-
-            renderTable(filteredData);
+        function resetFilters() {
+            document.getElementById('searchInput').value = "";
+            document.getElementById('catFilter').value = "ALL";
+            document.getElementById('modelFilter').value = "ALL";
+            filterData();
+            document.getElementById('searchInput').focus();
         }
     </script>
 </body>

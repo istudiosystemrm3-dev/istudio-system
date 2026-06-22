@@ -15,7 +15,6 @@
         .card { background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
         h2 { margin-top: 0; border-bottom: 1px solid #e5e5e7; padding-bottom: 10px; font-size: 18px; margin-bottom: 15px; }
         
-        /* สไตล์กล่องค้นหาแบบใหม่ มี Dropdown 2 อัน */
         .search-panel { background: #e8f2fc; padding: 15px; border-radius: 8px; margin-bottom: 15px; border: 1px solid #c8e1fa; display: flex; flex-wrap: wrap; gap: 15px; align-items: flex-end; }
         .search-group { flex: 1; min-width: 150px; }
         .search-group label { display: block; font-size: 13px; font-weight: bold; color: #515154; margin-bottom: 6px; }
@@ -64,7 +63,7 @@
                 </div>
                 <div class="search-group">
                     <label>📁 หมวดหมู่หลัก</label>
-                    <select id="mainCatFilter" onchange="filterTable()">
+                    <select id="mainCatFilter" onchange="onMainCatChange()">
                         <option value="ALL">-- ทั้งหมด --</option>
                     </select>
                 </div>
@@ -110,7 +109,7 @@
                     document.getElementById('syncStatus').innerText = "เชื่อมต่อคลาวด์สำเร็จ";
                     document.getElementById('syncStatus').classList.add('status-connected');
                     
-                    setupDropdowns();
+                    setupMainDropdown();
                     renderTable(modelsDatabase);
                 })
                 .catch(error => {
@@ -120,24 +119,54 @@
                 });
         }
 
-        function setupDropdowns() {
-            // ดึงหมวดหมู่หลักแบบไม่ซ้ำ
+        // จัดการ Dropdown หมวดหมู่หลักอย่างเดียวตอนโหลดเว็บ
+        function setupMainDropdown() {
             let mainCats = [...new Set(modelsDatabase.map(item => String(item.mainCat || "ไม่ได้ระบุ").trim()))];
             mainCats = mainCats.filter(t => t !== "").sort();
             
-            // ดึงหมวดหมู่ย่อยแบบไม่ซ้ำ
-            let subCats = [...new Set(modelsDatabase.map(item => String(item.subCat || "ไม่ได้ระบุ").trim()))];
-            subCats = subCats.filter(t => t !== "").sort();
-            
-            // ยัดใส่ Dropdown หมวดหมู่หลัก
             let mainHTML = `<option value="ALL">-- หมวดหมู่หลักทั้งหมด --</option>`;
             mainCats.forEach(t => mainHTML += `<option value="${t}">${t}</option>`);
             document.getElementById('mainCatFilter').innerHTML = mainHTML;
 
-            // ยัดใส่ Dropdown หมวดหมู่ย่อย
+            // เรียกให้ไปอัปเดตหมวดหมู่ย่อยครั้งแรกด้วย
+            updateSubCategoryDropdown();
+        }
+
+        // ฟังก์ชันใหม่: กรองหมวดหมู่ย่อยให้สัมพันธ์กับหมวดหมู่หลัก
+        function updateSubCategoryDropdown() {
+            let selectedMain = document.getElementById('mainCatFilter').value;
+            let availableSubCats = [];
+
+            if (selectedMain === "ALL") {
+                // ถ้าหมวดหลักเป็น ALL ให้ดึงหมวดหมู่ย่อยทั้งหมดมาแสดง
+                availableSubCats = [...new Set(modelsDatabase.map(item => String(item.subCat || "ไม่ได้ระบุ").trim()))];
+            } else {
+                // ถ้าเจาะจงหมวดหลัก (เช่น iPhone) ให้ดึงเฉพาะหมวดหมู่ย่อยที่อยู่ใน iPhone
+                let filteredModels = modelsDatabase.filter(item => String(item.mainCat || "ไม่ได้ระบุ").trim() === selectedMain);
+                availableSubCats = [...new Set(filteredModels.map(item => String(item.subCat || "ไม่ได้ระบุ").trim()))];
+            }
+            
+            availableSubCats = availableSubCats.filter(t => t !== "").sort();
+
+            let subSelect = document.getElementById('subCatFilter');
+            let currentSubVal = subSelect.value; // เก็บค่าเดิมที่ลูกค้าอาจจะเลือกค้างไว้
+
             let subHTML = `<option value="ALL">-- หมวดหมู่ย่อยทั้งหมด --</option>`;
-            subCats.forEach(t => subHTML += `<option value="${t}">${t}</option>`);
-            document.getElementById('subCatFilter').innerHTML = subHTML;
+            availableSubCats.forEach(t => subHTML += `<option value="${t}">${t}</option>`);
+            subSelect.innerHTML = subHTML;
+
+            // ตรวจสอบว่าถ้าค่าเดิมที่เลือกไว้ยังมีให้เลือกอยู่ ก็คงไว้ ถ้าไม่มีให้รีเซ็ตกลับเป็น ALL
+            if (availableSubCats.includes(currentSubVal)) {
+                subSelect.value = currentSubVal;
+            } else {
+                subSelect.value = "ALL";
+            }
+        }
+
+        // เมื่อหมวดหมู่หลักถูกเปลี่ยน จะทำ 2 อย่างพร้อมกัน
+        function onMainCatChange() {
+            updateSubCategoryDropdown(); // 1. เปลี่ยนตัวเลือกลิสต์ในหมวดหมู่ย่อย
+            filterTable();               // 2. จัดเรียงตารางใหม่
         }
 
         function renderTable(dataArray) {

@@ -7,7 +7,8 @@ document.addEventListener("DOMContentLoaded", function() {
             <a href="price.html" id="nav-price">3. ตารางราคา</a>
             <a href="barcode-manual.html" id="nav-barcode">🏷️ บาร์โค้ด (Manual)</a>
             <a href="stock.html" id="nav-stock">📦 สต๊อกสินค้า</a>
-            <a href="firmware.html" id="nav-firmware">📱 เช็คเฟิร์มแวร์ (IPSW)</a>
+            <a href="firmware.html" id="nav-firmware">📱 เช็คตามรุ่น</a>
+            <a href="firmware-latest.html" id="nav-fw-latest">⬇️ ลิงก์โหลดรวม (ไม่ซ้ำรุ่น)</a>
         </div>
     `;
 
@@ -33,6 +34,9 @@ document.addEventListener("DOMContentLoaded", function() {
         if(el) el.classList.add('active');
     } else if (currentPath === "firmware.html") {
         let el = document.getElementById('nav-firmware');
+        if(el) el.classList.add('active');
+    } else if (currentPath === "firmware-latest.html") {
+        let el = document.getElementById('nav-fw-latest');
         if(el) el.classList.add('active');
     }
 });

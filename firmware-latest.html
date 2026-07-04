@@ -16,11 +16,9 @@
         .header-box h2 { margin: 0 0 10px 0; font-size: 22px; color: #1d1d1f; }
         .status-badge { display: inline-block; padding: 6px 12px; border-radius: 20px; font-size: 13px; font-weight: bold; background-color: #ff9500; color: white; transition: 0.3s; }
         
-        /* สไตล์การ์ดจัดกลุ่มเวอร์ชัน */
         .version-card { background: white; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); margin-bottom: 25px; overflow: hidden; }
         .version-header { background: #1d1d1f; color: white; padding: 15px 20px; font-size: 18px; font-weight: bold; display: flex; justify-content: space-between; align-items: center; }
         
-        /* สไตล์กล่องไฟล์ดาวน์โหลด */
         .file-row { display: flex; justify-content: space-between; align-items: center; padding: 20px; border-bottom: 1px solid #e5e5e7; transition: 0.2s; }
         .file-row:hover { background-color: #f9f9fa; }
         .file-row:last-child { border-bottom: none; }
@@ -57,7 +55,7 @@
 
     <script>
         const IPSW_API_URL = "https://api.ipsw.me/v4/devices";
-        const delay = ms => new Promise(res => setTimeout(res, ms)); // ฟังก์ชันสำหรับหน่วงเวลา
+        const delay = ms => new Promise(res => setTimeout(res, ms));
 
         window.onload = function() {
             fetchFirmwares();
@@ -79,9 +77,9 @@
 
                 let versionMap = {};
                 let total = targetDevices.length;
-                let batchSize = 15; // แบ่งโหลดทีละ 15 รุ่นเพื่อป้องกัน Rate Limit
+                // ปรับลด Batch Size ลงเหลือ 5 และเพิ่มเวลาหน่วง เพื่อความปลอดภัยสูงสุด
+                let batchSize = 5; 
 
-                // ลูปสแกนเจาะลึก
                 for (let i = 0; i < total; i += batchSize) {
                     let batch = targetDevices.slice(i, i + batchSize);
                     let promises = batch.map(device => 
@@ -97,12 +95,10 @@
                             let signedFws = deviceInfo.firmwares.filter(fw => fw.signed === true);
                             
                             signedFws.forEach(fw => {
-                                // ถ้ายังไม่มีเวอร์ชันนี้ในระบบ ให้สร้างหัวข้อใหม่
                                 if (!versionMap[fw.version]) {
                                     versionMap[fw.version] = {};
                                 }
                                 
-                                // จัดกลุ่มตาม URL (ถ้ารุ่นไหนใช้ไฟล์เดียวกัน มันจะถูกยุบรวมในนี้)
                                 if (!versionMap[fw.version][fw.url]) {
                                     versionMap[fw.version][fw.url] = {
                                         build: fw.buildid,
@@ -112,7 +108,6 @@
                                     };
                                 }
                                 
-                                // เอาชื่ออุปกรณ์ใส่เข้าไปในกล่องไฟล์นั้นๆ โดยเช็คไม่ให้ซ้ำ
                                 if (!versionMap[fw.version][fw.url].devices.includes(deviceInfo.name)) {
                                     versionMap[fw.version][fw.url].devices.push(deviceInfo.name);
                                 }
@@ -120,7 +115,6 @@
                         }
                     });
                     
-                    // อัปเดต % หน้าจอ
                     let percent = Math.round((Math.min(i + batch.length, total) / total) * 100);
                     document.getElementById('apiStatus').innerText = `⏳ กำลังสแกนไฟล์... ${percent}%`;
                     document.getElementById('loadingMsg').innerHTML = `
@@ -128,11 +122,10 @@
                         <div class="progress-subtext">โปรดรอสักครู่ ระบบกำลังดึงข้อมูลอย่างระมัดระวัง...</div>
                     `;
 
-                    // หน่วงเวลา 400 มิลลิวินาที ป้องกัน Apple Server บล็อก
-                    await delay(400);
+                    // เพิ่มเวลาหน่วงเป็น 600ms เพื่อให้ Server Apple ไม่บล็อกเรา
+                    await delay(600);
                 }
 
-                // เมื่อเสร็จแล้ว นำข้อมูลไปวาดลงหน้าเว็บ
                 renderUI(versionMap);
 
             } catch (error) {
@@ -154,7 +147,6 @@
             let container = document.getElementById('contentContainer');
             container.innerHTML = "";
 
-            // เรียงลำดับเวอร์ชันจากใหม่ล่าสุด (เลขมาก) ไปหาเก่า (เลขน้อย)
             let sortedVersions = Object.keys(versionMap).sort((a, b) => b.localeCompare(a, undefined, { numeric: true, sensitivity: 'base' }));
 
             if (sortedVersions.length === 0) {
@@ -163,7 +155,6 @@
             }
 
             sortedVersions.forEach(version => {
-                // สร้างการ์ดของแต่ละเวอร์ชัน
                 let cardHTML = `
                     <div class="version-card">
                         <div class="version-header">
@@ -173,7 +164,6 @@
 
                 let files = Object.values(versionMap[version]);
                 
-                // จัดเรียงกล่องไฟล์ให้เรียงตามชื่ออุปกรณ์ตัวแรก
                 files.sort((a, b) => a.devices[0].localeCompare(b.devices[0]));
 
                 files.forEach(file => {
@@ -197,7 +187,6 @@
                 container.innerHTML += cardHTML;
             });
 
-            // อัปเดตสถานะเมื่อเสร็จสิ้น
             let badge = document.getElementById('apiStatus');
             badge.innerText = "✅ ข้อมูลอัปเดตล่าสุดตรงจาก Apple";
             badge.style.backgroundColor = "#34c759";

@@ -3,39 +3,38 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>คลังไฟล์เฟิร์มแวร์ล่าสุด (ไม่ซ้ำรุ่น) - iServe</title>
+    <title>คลังดาวน์โหลด Firmware (ล่าสุด) - iServe</title>
     <style>
         body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; padding: 0; margin: 0; background-color: #f5f5f7; color: #1d1d1f; }
         .navbar { background-color: #1d1d1f; padding: 15px 20px; text-align: center; }
         .navbar a { color: #f5f5f7; text-decoration: none; padding: 10px 20px; margin: 0 5px; border-radius: 6px; font-size: 15px; font-weight: 500; transition: 0.3s; }
         .navbar a:hover { background-color: #333336; }
         .navbar a.active { background-color: #0071e3; color: white; }
-        .container { max-width: 1200px; margin: 40px auto; padding: 0 20px; }
-        .card { background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
-        h2 { margin-top: 0; border-bottom: 1px solid #e5e5e7; padding-bottom: 10px; font-size: 18px; margin-bottom: 15px; }
+        .container { max-width: 1000px; margin: 40px auto; padding: 0 20px; }
         
-        .search-panel { background: #e8f2fc; padding: 15px; border-radius: 8px; margin-bottom: 15px; border: 1px solid #c8e1fa; display: flex; flex-wrap: wrap; gap: 15px; align-items: flex-end; }
-        .search-group { flex: 1; min-width: 200px; }
-        .search-group label { display: block; font-size: 13px; font-weight: bold; color: #515154; margin-bottom: 6px; }
-        .search-group input, .search-group select { width: 100%; padding: 10px; border: 1px solid #d2d2d7; border-radius: 6px; font-size: 14px; outline: none; box-sizing: border-box; }
-        .search-group input:focus, .search-group select:focus { border-color: #0071e3; }
+        .header-box { background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); margin-bottom: 25px; text-align: center; }
+        .header-box h2 { margin: 0 0 10px 0; font-size: 22px; color: #1d1d1f; }
+        .status-badge { display: inline-block; padding: 6px 12px; border-radius: 20px; font-size: 13px; font-weight: bold; background-color: #ff9500; color: white; transition: 0.3s; }
         
-        table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 13px; }
-        th, td { padding: 12px 10px; text-align: left; border-bottom: 1px solid #e5e5e7; border-right: 1px solid #e5e5e7; }
-        th { background-color: #f5f5f7; color: #515154; font-weight: 600; }
-        td:last-child, th:last-child { border-right: none; }
-        tr:hover { background-color: #f9f9fa; }
-        .table-container { overflow-x: auto; max-height: 700px; overflow-y: auto; border: 1px solid #e5e5e7; border-radius: 6px; }
-        thead th { position: sticky; top: 0; z-index: 1; box-shadow: 0 1px 2px rgba(0,0,0,0.1); }
+        /* สไตล์การ์ดจัดกลุ่มเวอร์ชัน */
+        .version-card { background: white; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); margin-bottom: 25px; overflow: hidden; }
+        .version-header { background: #1d1d1f; color: white; padding: 15px 20px; font-size: 18px; font-weight: bold; display: flex; justify-content: space-between; align-items: center; }
+        .version-build { font-size: 13px; color: #86868b; background: #333336; padding: 4px 8px; border-radius: 6px; }
         
-        .status-badge { display: inline-block; padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: bold; background-color: #ff9500; color: white; transition: 0.3s; }
+        /* สไตล์กล่องไฟล์ดาวน์โหลด */
+        .file-row { display: flex; justify-content: space-between; align-items: center; padding: 20px; border-bottom: 1px solid #e5e5e7; transition: 0.2s; }
+        .file-row:hover { background-color: #f9f9fa; }
+        .file-row:last-child { border-bottom: none; }
         
-        .btn-download { background-color: #34c759; color: white; text-decoration: none; padding: 8px 14px; border-radius: 6px; font-size: 13px; font-weight: bold; display: inline-block; text-align: center; }
+        .device-list { flex: 1; padding-right: 20px; }
+        .device-chip { display: inline-block; background-color: #e8f2fc; color: #0071e3; padding: 5px 10px; border-radius: 6px; font-size: 13px; margin: 3px; font-weight: 500; border: 1px solid #c8e1fa; }
+        
+        .file-info { text-align: right; min-width: 150px; }
+        .file-size { font-size: 13px; color: #86868b; margin-bottom: 8px; font-weight: bold; }
+        .btn-download { background-color: #34c759; color: white; text-decoration: none; padding: 10px 15px; border-radius: 8px; font-size: 14px; font-weight: bold; display: block; text-align: center; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
         .btn-download:hover { background-color: #28a745; }
         
-        .device-chip { display: inline-block; background-color: #f5f5f7; color: #1d1d1f; padding: 4px 8px; border-radius: 6px; font-size: 12px; margin: 2px; border: 1px solid #d2d2d7; font-weight: 500; }
-        .version-text { font-size: 16px; font-weight: bold; color: #0071e3; }
-        .build-text { font-size: 11px; color: #86868b; background: #e6f0fa; padding: 2px 4px; border-radius: 4px; margin-left: 5px; font-weight: bold;}
+        #loadingMsg { text-align: center; padding: 50px; font-size: 16px; color: #86868b; }
     </style>
 </head>
 <body>
@@ -43,199 +42,123 @@
     <script src="navbar.js"></script>
 
     <div class="container">
-        <div class="card">
-            <h2>⬇️ ศูนย์ดาวน์โหลดเฟิร์มแวร์ล่าสุด (คัดเฉพาะไฟล์ที่ไม่ซ้ำกัน)</h2>
-            <div style="margin-bottom: 15px; font-size: 13px; color: #515154;">
-                สถานะระบบ: <span id="apiStatus" class="status-badge">กำลังเตรียมเชื่อมต่อ Server...</span>
-            </div>
-            
-            <div class="search-panel">
-                <div class="search-group" style="flex: 2;">
-                    <label>🔍 ค้นหาตามชื่อรุ่นอุปกรณ์ (ระบบจะคัดหาไฟล์ที่รองรับให้ทันที)</label>
-                    <input type="text" id="searchInput" placeholder="พิมพ์ชื่อรุ่น เช่น iPhone 13, iPad Air เพื่อหาไฟล์..." onkeyup="filterTable()" autofocus>
-                </div>
-                <div class="search-group">
-                    <label>📱 เลือกกลุ่มอุปกรณ์</label>
-                    <select id="typeFilter" onchange="filterTable()">
-                        <option value="ALL">-- แสดงทั้งหมด --</option>
-                        <option value="iPhone">iPhone</option>
-                        <option value="iPad">iPad</option>
-                        <option value="Mac">Mac</option>
-                    </select>
-                </div>
-            </div>
+        <div class="header-box">
+            <h2>⬇️ คลังดาวน์โหลด Firmware (อัปเดตอัตโนมัติ)</h2>
+            <div id="apiStatus" class="status-badge">⏳ กำลังเชื่อมต่อข้อมูลจาก Apple Server...</div>
+        </div>
 
-            <div style="margin-bottom: 10px; font-size: 13px; font-weight: bold; color: #515154;">
-                จำนวนไฟล์เฟิร์มแวร์เดี่ยวในคลัง: <span id="totalCount">0</span> ไฟล์
-            </div>
-
-            <div class="table-container">
-                <table>
-                    <thead>
-                        <tr>
-                            <th width="20%">เวอร์ชันเฟิร์มแวร์ (OS Version)</th>
-                            <th width="50%">รุ่นอุปกรณ์ที่ใช้ไฟล์ร่วมกัน (Supported Devices)</th>
-                            <th width="12%">ขนาดไฟล์</th>
-                            <th width="18%" style="text-align: center;">ดาวน์โหลด (IPSW)</th>
-                        </tr>
-                    </thead>
-                    <tbody id="dataTableBody">
-                        <tr><td colspan="4" style="text-align: center; padding: 40px; color: #86868b;">กำลังรอการสแกนข้อมูล...</td></tr>
-                    </tbody>
-                </table>
-            </div>
+        <div id="contentContainer">
+            <div id="loadingMsg">🔄 กำลังรวบรวมไฟล์และจัดกลุ่มอุปกรณ์...</div>
         </div>
     </div>
 
     <script>
         const IPSW_API_URL = "https://api.ipsw.me/v4/devices";
-        let uniqueFirmwaresList = []; 
 
         window.onload = function() {
-            loadAndDeduplicateData();
+            fetchFirmwares();
         };
 
-        async function loadAndDeduplicateData() {
+        async function fetchFirmwares() {
             try {
-                document.getElementById('apiStatus').innerText = `ดึงข้อมูลรายชื่ออุปกรณ์ทั้งหมด...`;
-                document.getElementById('dataTableBody').innerHTML = `<tr><td colspan="4" style="text-align: center; padding: 40px; color: #0071e3;">🔄 กำลังโหลดรายชื่ออุปกรณ์จากคลาวด์...</td></tr>`;
-
+                // ดึงข้อมูลรวดเดียวจบ (ไม่โดนบล็อก)
                 let response = await fetch(IPSW_API_URL);
-                let allDevices = await response.json();
+                let devices = await response.json();
                 
-                // คัดมาเฉพาะ iPhone, iPad และ Mac เพื่อลดภาระการโหลด
-                let targetDevices = allDevices.filter(d => 
-                    d.identifier.includes("iPhone") || 
-                    d.identifier.includes("iPad") || 
-                    d.identifier.includes("Mac")
-                );
+                // ตัวแปรสำหรับจัดกลุ่ม { "17.5.1": { "url_1": { devices: [], size, build }, "url_2": ... } }
+                let versionMap = {};
 
-                let uniqueMap = new Map();
-                let total = targetDevices.length;
-                let batchSize = 15; // โหลดเจาะลึกทีละ 15 รุ่น
+                devices.forEach(device => {
+                    // กรองเอาเฉพาะ iPhone และ iPad
+                    if (!device.identifier.includes("iPhone") && !device.identifier.includes("iPad")) return;
 
-                for (let i = 0; i < total; i += batchSize) {
-                    let batch = targetDevices.slice(i, i + batchSize);
-                    let promises = batch.map(device => 
-                        fetch("https://api.ipsw.me/v4/device/" + device.identifier)
-                            .then(res => res.json())
-                            .catch(err => null)
-                    );
-                    
-                    let results = await Promise.all(promises);
-                    
-                    results.forEach(deviceInfo => {
-                        if(deviceInfo && deviceInfo.firmwares) {
-                            // ดึงเฉพาะตัวที่เปิด Sign อยู่
-                            let signedFws = deviceInfo.firmwares.filter(fw => fw.signed === true);
+                    if (device.firmwares) {
+                        // เอาเฉพาะตัวที่ Apple เปิด Sign
+                        let signedFws = device.firmwares.filter(fw => fw.signed === true);
+                        
+                        signedFws.forEach(fw => {
+                            if (!versionMap[fw.version]) {
+                                versionMap[fw.version] = {};
+                            }
                             
-                            let type = "Other";
-                            if (deviceInfo.identifier.includes("iPhone")) type = "iPhone";
-                            else if (deviceInfo.identifier.includes("iPad")) type = "iPad";
-                            else if (deviceInfo.identifier.includes("Mac")) type = "Mac";
-
-                            signedFws.forEach(fw => {
-                                // เช็คว่ามี URL ไฟล์นี้หรือยัง
-                                if (!uniqueMap.has(fw.url)) {
-                                    uniqueMap.set(fw.url, {
-                                        version: fw.version,
-                                        buildid: fw.buildid,
-                                        filesize: fw.filesize,
-                                        url: fw.url,
-                                        type: type,
-                                        devices: [deviceInfo.name]
-                                    });
-                                } else {
-                                    let existing = uniqueMap.get(fw.url);
-                                    if (!existing.devices.includes(deviceInfo.name)) {
-                                        existing.devices.push(deviceInfo.name);
-                                    }
-                                }
-                            });
-                        }
-                    });
-                    
-                    // อัปเดต % ให้ดูบนหน้าจอ
-                    let percent = Math.round((Math.min(i + batch.length, total) / total) * 100);
-                    document.getElementById('apiStatus').innerText = `⏳ กำลังสแกนหาไฟล์ซ้ำและจัดกลุ่ม... ${percent}%`;
-                    document.getElementById('dataTableBody').innerHTML = `<tr><td colspan="4" style="text-align: center; padding: 40px; color: #ff9500; font-weight: bold;">⏳ สแกนและจัดกลุ่มไฟล์ไปแล้ว ${percent}% (โปรดรอสักครู่)...</td></tr>`;
-                }
-
-                // สแกนเสร็จเรียบร้อย
-                uniqueFirmwaresList = Array.from(uniqueMap.values());
-
-                uniqueFirmwaresList.sort((a, b) => {
-                    if (a.type !== b.type) return a.type.localeCompare(b.type); 
-                    return b.version.localeCompare(a.version, undefined, { numeric: true, sensitivity: 'base' });
+                            // จัดกลุ่มตาม URL (ถ้ารุ่นไหนใช้ไฟล์เดียวกัน มันจะถูกยุบรวมในนี้)
+                            if (!versionMap[fw.version][fw.url]) {
+                                versionMap[fw.version][fw.url] = {
+                                    build: fw.buildid,
+                                    size: fw.filesize,
+                                    url: fw.url,
+                                    devices: []
+                                };
+                            }
+                            
+                            // เอาชื่ออุปกรณ์ใส่เข้าไปในกล่องไฟล์นั้นๆ
+                            versionMap[fw.version][fw.url].devices.push(device.name);
+                        });
+                    }
                 });
 
-                document.getElementById('apiStatus').innerText = `✅ สแกนและจัดกลุ่มไฟล์ล่าสุดเสร็จสมบูรณ์`;
-                document.getElementById('apiStatus').style.backgroundColor = "#34c759";
-                
-                filterTable();
+                renderUI(versionMap);
 
             } catch (error) {
-                document.getElementById('apiStatus').innerText = `❌ การเชื่อมต่อล้มเหลว`;
+                document.getElementById('apiStatus').innerText = "❌ การเชื่อมต่อล้มเหลว";
                 document.getElementById('apiStatus').style.backgroundColor = "#ff3b30";
-                document.getElementById('dataTableBody').innerHTML = `<tr><td colspan="4" style="text-align: center; color: #ff3b30; padding: 30px;">ดึงข้อมูลผิดพลาด กรุณารีเฟรชหน้าเว็บอีกครั้ง</td></tr>`;
+                document.getElementById('contentContainer').innerHTML = "<div id='loadingMsg' style='color:#ff3b30;'>ไม่สามารถดึงข้อมูลได้ กรุณารีเฟรชหน้าเว็บอีกครั้ง</div>";
             }
         }
 
-        function formatBytes(bytes, decimals = 2) {
+        function formatBytes(bytes) {
             if (!+bytes) return '0 Bytes';
             const k = 1024;
-            const dm = decimals < 0 ? 0 : decimals;
             const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
             const i = Math.floor(Math.log(bytes) / Math.log(k));
-            return `${parseFloat((bytes / Math.pow(k, i)).toFixed(dm))} ${sizes[i]}`;
+            return `${parseFloat((bytes / Math.pow(k, i)).toFixed(2))} ${sizes[i]}`;
         }
 
-        function renderTable(dataArray) {
-            let tbody = document.getElementById('dataTableBody');
-            document.getElementById('totalCount').innerText = dataArray.length.toLocaleString();
-            tbody.innerHTML = "";
+        function renderUI(versionMap) {
+            let container = document.getElementById('contentContainer');
+            container.innerHTML = "";
 
-            if (dataArray.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="4" style="text-align: center; color: #86868b; padding: 40px;">ไม่พบไฟล์เฟิร์มแวร์ที่ตรงกับคำค้นหา</td></tr>`;
-                return;
-            }
+            // เรียงลำดับเวอร์ชันจากใหม่ล่าสุด (เลขมาก) ไปหาเก่า (เลขน้อย)
+            let sortedVersions = Object.keys(versionMap).sort((a, b) => b.localeCompare(a, undefined, { numeric: true, sensitivity: 'base' }));
 
-            dataArray.forEach((fw) => {
-                let devicesChips = fw.devices.map(d => `<span class="device-chip">${d}</span>`).join('');
-                
-                let tr = document.createElement('tr');
-                tr.innerHTML = `
-                    <td>
-                        <span class="version-text">${fw.type} ${fw.version}</span>
-                        <span class="build-text">${fw.buildid}</span>
-                    </td>
-                    <td><div style="max-height: 80px; overflow-y: auto;">${devicesChips}</div></td>
-                    <td style="color: #515154; font-weight: 500;">${formatBytes(fw.filesize)}</td>
-                    <td style="text-align: center;">
-                        <a href="${fw.url}" class="btn-download" target="_blank">⬇️ ดาวน์โหลดไฟล์</a>
-                    </td>
+            sortedVersions.forEach(version => {
+                // สร้างการ์ดของแต่ละเวอร์ชัน
+                let cardHTML = `
+                    <div class="version-card">
+                        <div class="version-header">
+                            <span>🍏 ระบบปฏิบัติการเวอร์ชัน ${version}</span>
+                        </div>
                 `;
-                tbody.appendChild(tr);
-            });
-        }
 
-        function filterTable() {
-            let keyword = document.getElementById('searchInput').value.toLowerCase().trim();
-            let selectedType = document.getElementById('typeFilter').value;
-            
-            let filteredData = uniqueFirmwaresList.filter(fw => {
-                if (selectedType !== "ALL" && fw.type !== selectedType) return false;
-
-                if (keyword !== "") {
-                    let matchDevice = fw.devices.some(d => d.toLowerCase().includes(keyword));
-                    let matchVersion = fw.version.toLowerCase().includes(keyword);
-                    if (!matchDevice && !matchVersion) return false;
-                }
+                let files = Object.values(versionMap[version]);
                 
-                return true;
+                // จัดเรียงกล่องไฟล์ให้เรียงตามชื่ออุปกรณ์
+                files.sort((a, b) => a.devices[0].localeCompare(b.devices[0]));
+
+                files.forEach(file => {
+                    let chips = file.devices.map(d => `<span class="device-chip">${d}</span>`).join('');
+                    
+                    cardHTML += `
+                        <div class="file-row">
+                            <div class="device-list">
+                                <div style="margin-bottom: 8px; font-size: 14px; font-weight: bold; color: #1d1d1f;">รองรับอุปกรณ์:</div>
+                                ${chips}
+                            </div>
+                            <div class="file-info">
+                                <div class="file-size">ขนาด: ${formatBytes(file.size)} | Build: ${file.build}</div>
+                                <a href="${file.url}" class="btn-download" target="_blank">⬇️ ดาวน์โหลด (IPSW)</a>
+                            </div>
+                        </div>
+                    `;
+                });
+
+                cardHTML += `</div>`;
+                container.innerHTML += cardHTML;
             });
-            
-            renderTable(filteredData);
+
+            // อัปเดตสถานะเมื่อเสร็จสิ้น
+            document.getElementById('apiStatus').innerText = "✅ ข้อมูลอัปเดตล่าสุดตรงจาก Apple";
+            document.getElementById('apiStatus').style.backgroundColor = "#34c759";
         }
     </script>
 </body>

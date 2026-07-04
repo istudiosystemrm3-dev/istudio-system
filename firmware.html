@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>เช็คเฟิร์มแวร์ (Firmware / IPSW) - iServe</title>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; padding: 0; margin: 0; background-color: #f5f5f7; color: #1d1d1f; }
+        .navbar { background-color: #1d1d1f; padding: 15px 20px; text-align: center; }
+        .navbar a { color: #f5f5f7; text-decoration: none; padding: 10px 20px; margin: 0 5px; border-radius: 6px; font-size: 15px; font-weight: 500; transition: 0.3s; }
+        .navbar a:hover { background-color: #333336; }
+        .navbar a.active { background-color: #0071e3; color: white; }
+        .container { max-width: 1200px; margin: 40px auto; padding: 0 20px; }
+        .card { background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+        h2 { margin-top: 0; border-bottom: 1px solid #e5e5e7; padding-bottom: 10px; font-size: 18px; margin-bottom: 15px; }
+        
+        .search-panel { background: #f4e6fa; padding: 15px; border-radius: 8px; margin-bottom: 15px; border: 1px solid #d7bce6; display: flex; flex-wrap: wrap; gap: 15px; align-items: flex-end; }
+        .search-group { flex: 1; min-width: 200px; }
+        .search-group label { display: block; font-size: 13px; font-weight: bold; color: #515154; margin-bottom: 6px; }
+        .search-group input, .search-group select { width: 100%; padding: 10px; border: 1px solid #d2d2d7; border-radius: 6px; font-size: 14px; outline: none; box-sizing: border-box; }
+        .search-group input:focus, .search-group select:focus { border-color: #8a2be2; }
+        
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 13px; }
+        th, td { padding: 12px 10px; text-align: left; border-bottom: 1px solid #e5e5e7; }
+        th { background-color: #f5f5f7; color: #515154; font-weight: 600; }
+        tr:hover { background-color: #f9f9fa; }
+        .table-container { overflow-x: auto; max-height: 650px; overflow-y: auto; border: 1px solid #e5e5e7; border-radius: 6px; }
+        thead th { position: sticky; top: 0; z-index: 1; box-shadow: 0 1px 2px rgba(0,0,0,0.1); }
+        
+        .status-badge { display: inline-block; padding: 4px 8px; border-radius: 4px; font-size: 11px; font-weight: bold; }
+        .signed-true { background-color: #34c759; color: white; }
+        .signed-false { background-color: #ff3b30; color: white; }
+        
+        .btn-download { background-color: #0071e3; color: white; text-decoration: none; padding: 6px 12px; border-radius: 4px; font-size: 12px; font-weight: bold; display: inline-block; }
+        .btn-download:hover { background-color: #005bb5; }
+        
+        .type-badge { display: inline-block; background-color: #e6f0fa; color: #0071e3; padding: 3px 6px; border-radius: 4px; font-size: 11px; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <div id="navbar-container"></div>
+    <script src="navbar.js"></script>
+
+    <div class="container">
+        <div class="card">
+            <h2>☁️ อัปเดตข้อมูลตรงจาก IPSW.me (Real-time)</h2>
+            <div style="margin-bottom: 15px; font-size: 13px; color: #515154;">
+                สถานะการเชื่อมต่อ API: <span id="apiStatus" class="status-badge" style="background-color: #ff9500; color: white;">กำลังโหลดข้อมูล...</span>
+            </div>
+            
+            <div class="search-panel">
+                <div class="search-group" style="flex: 2;">
+                    <label>🔍 ค้นหารุ่นอุปกรณ์ (เช่น iPhone 15, iPad Pro, Mac)</label>
+                    <input type="text" id="searchInput" placeholder="พิมพ์ชื่ออุปกรณ์เพื่อค้นหา..." onkeyup="filterTable()" autofocus>
+                </div>
+                <div class="search-group">
+                    <label>📱 เลือกประเภทอุปกรณ์</label>
+                    <select id="typeFilter" onchange="filterTable()">
+                        <option value="ALL">-- แสดงทั้งหมด --</option>
+                        <option value="iPhone">iPhone</option>
+                        <option value="iPad">iPad</option>
+                        <option value="Mac">Mac</option>
+                        <option value="Watch">Apple Watch</option>
+                        <option value="AudioAccessory">HomePod</option>
+                        <option value="AppleTV">Apple TV</option>
+                    </select>
+                </div>
+            </div>
+
+            <div style="margin-bottom: 10px; font-size: 13px; font-weight: bold; color: #515154;">
+                พบอุปกรณ์: <span id="totalCount">0</span> รุ่น
+            </div>
+
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th width="30%">ชื่ออุปกรณ์ (Device Name)</th>
+                            <th width="15%">รหัสโมเดล (Identifier)</th>
+                            <th width="20%">Firmware ล่าสุด (Signed)</th>
+                            <th width="15%">ขนาดไฟล์</th>
+                            <th width="20%" style="text-align: center;">ลิงก์ดาวน์โหลด (IPSW)</th>
+                        </tr>
+                    </thead>
+                    <tbody id="dataTableBody">
+                        <tr><td colspan="5" style="text-align: center; padding: 40px; color: #86868b;">กำลังดึงข้อมูลจาก Server Apple...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const IPSW_API_URL = "https://api.ipsw.me/v4/devices";
+        let allDevices = [];
+
+        window.onload = function() {
+            loadFirmwareData();
+        };
+
+        function loadFirmwareData() {
+            fetch(IPSW_API_URL)
+                .then(response => response.json())
+                .then(data => {
+                    // กรองเอาเฉพาะอุปกรณ์ที่มีข้อมูลเฟิร์มแวร์
+                    allDevices = data.filter(device => device.firmwares && device.firmwares.length > 0);
+                    
+                    document.getElementById('apiStatus').innerText = "เชื่อมต่อและอัปเดตข้อมูลล่าสุดสำเร็จแล้ว";
+                    document.getElementById('apiStatus').style.backgroundColor = "#34c759";
+                    
+                    filterTable();
+                })
+                .catch(error => {
+                    document.getElementById('apiStatus').innerText = "การเชื่อมต่อ API ผิดพลาด";
+                    document.getElementById('apiStatus').style.backgroundColor = "#ff3b30";
+                    document.getElementById('dataTableBody').innerHTML = `<tr><td colspan="5" style="text-align: center; color: #ff3b30; padding: 30px;">ไม่สามารถดึงข้อมูลได้ กรุณาลองใหม่อีกครั้ง</td></tr>`;
+                });
+        }
+
+        // ฟังก์ชันช่วยจัดรูปแบบขนาดไฟล์ (Byte -> GB)
+        function formatBytes(bytes, decimals = 2) {
+            if (!+bytes) return '0 Bytes';
+            const k = 1024;
+            const dm = decimals < 0 ? 0 : decimals;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return `${parseFloat((bytes / Math.pow(k, i)).toFixed(dm))} ${sizes[i]}`;
+        }
+
+        function getDeviceType(identifier) {
+            if (identifier.includes("iPhone")) return "iPhone";
+            if (identifier.includes("iPad")) return "iPad";
+            if (identifier.includes("Mac") || identifier.includes("MacBook")) return "Mac";
+            if (identifier.includes("Watch")) return "Watch";
+            if (identifier.includes("AudioAccessory")) return "AudioAccessory";
+            if (identifier.includes("AppleTV")) return "AppleTV";
+            return "Other";
+        }
+
+        function renderTable(dataArray) {
+            let tbody = document.getElementById('dataTableBody');
+            document.getElementById('totalCount').innerText = dataArray.length.toLocaleString();
+            tbody.innerHTML = "";
+
+            if (dataArray.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: #86868b; padding: 40px;">ไม่พบอุปกรณ์ที่ค้นหา</td></tr>`;
+                return;
+            }
+
+            dataArray.forEach((device) => {
+                // หาเฟิร์มแวร์ล่าสุดที่เปิดให้ Sign อยู่ (Signed = true)
+                let latestSigned = device.firmwares.find(fw => fw.signed === true);
+                
+                // ถ้าไม่มีตัวที่ Sign แล้ว ให้เอาตัวบนสุด (ล่าสุด) แทน
+                if (!latestSigned) latestSigned = device.firmwares[0]; 
+
+                let typeLabel = getDeviceType(device.identifier);
+                let fwVersion = latestSigned ? latestSigned.version : "-";
+                let fwSize = latestSigned ? formatBytes(latestSigned.filesize) : "-";
+                let isSigned = latestSigned ? latestSigned.signed : false;
+                let downloadUrl = latestSigned ? latestSigned.url : "#";
+
+                let signedBadge = isSigned 
+                    ? `<span class="status-badge signed-true">✅ เปิด Sign (${fwVersion})</span>` 
+                    : `<span class="status-badge signed-false">❌ ปิด Sign แล้ว</span>`;
+
+                let tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td style="color: #1d1d1f; font-weight: bold;">
+                        ${device.name} <br>
+                        <span class="type-badge" style="margin-top: 4px;">${typeLabel}</span>
+                    </td>
+                    <td style="color: #515154;">${device.identifier}</td>
+                    <td>${signedBadge}</td>
+                    <td style="color: #86868b; font-size: 12px;">${fwSize}</td>
+                    <td style="text-align: center;">
+                        ${isSigned ? `<a href="${downloadUrl}" class="btn-download" target="_blank">⬇️ โหลด IPSW</a>` : `<span style="color:#86868b; font-size: 11px;">งดดาวน์โหลด</span>`}
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function filterTable() {
+            let keyword = document.getElementById('searchInput').value.toLowerCase().trim();
+            let keywordsArray = keyword.split(" ").filter(k => k !== "");
+            let selectedType = document.getElementById('typeFilter').value;
+            
+            let filteredData = allDevices.filter(device => {
+                let devType = getDeviceType(device.identifier);
+                
+                // 1. กรองตามประเภทอุปกรณ์
+                if (selectedType !== "ALL" && devType !== selectedType) return false;
+
+                // 2. กรองตามคำค้นหา
+                if (keywordsArray.length > 0) {
+                    let lowerName = device.name.toLowerCase();
+                    let lowerId = device.identifier.toLowerCase();
+                    let matchText = keywordsArray.every(k => lowerName.includes(k) || lowerId.includes(k));
+                    if (!matchText) return false;
+                }
+                
+                return true;
+            });
+            
+            renderTable(filteredData);
+        }
+    </script>
+</body>
+</html>

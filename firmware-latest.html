@@ -41,7 +41,7 @@
 
     <div class="container">
         <div class="header-box">
-            <h2>⬇️ คลังดาวน์โหลด Firmware (อัปเดตอัตโนมัติ)</h2>
+            <h2>⬇️ คลังดาวน์โหลด Firmware (คัดเฉพาะเวอร์ชันล่าสุด)</h2>
             <div id="apiStatus" class="status-badge">⏳ เริ่มต้นเตรียมการเชื่อมต่อ...</div>
         </div>
 
@@ -77,8 +77,7 @@
 
                 let versionMap = {};
                 let total = targetDevices.length;
-                // ปรับลด Batch Size ลงเหลือ 5 และเพิ่มเวลาหน่วง เพื่อความปลอดภัยสูงสุด
-                let batchSize = 5; 
+                let batchSize = 5; // แบ่งสแกนทีละ 5 เครื่อง
 
                 for (let i = 0; i < total; i += batchSize) {
                     let batch = targetDevices.slice(i, i + batchSize);
@@ -92,9 +91,12 @@
                     
                     results.forEach(deviceInfo => {
                         if (deviceInfo && deviceInfo.firmwares) {
-                            let signedFws = deviceInfo.firmwares.filter(fw => fw.signed === true);
+                            // การเปลี่ยนแปลงสำคัญ: ดึงเฉพาะตัวแรกสุดที่เปิด Sign (เวอร์ชันใหม่สุดของรุ่นนั้น)
+                            let latestSignedFw = deviceInfo.firmwares.find(fw => fw.signed === true);
                             
-                            signedFws.forEach(fw => {
+                            if (latestSignedFw) {
+                                let fw = latestSignedFw;
+                                
                                 if (!versionMap[fw.version]) {
                                     versionMap[fw.version] = {};
                                 }
@@ -111,19 +113,18 @@
                                 if (!versionMap[fw.version][fw.url].devices.includes(deviceInfo.name)) {
                                     versionMap[fw.version][fw.url].devices.push(deviceInfo.name);
                                 }
-                            });
+                            }
                         }
                     });
                     
                     let percent = Math.round((Math.min(i + batch.length, total) / total) * 100);
-                    document.getElementById('apiStatus').innerText = `⏳ กำลังสแกนไฟล์... ${percent}%`;
+                    document.getElementById('apiStatus').innerText = `⏳ กำลังสแกนไฟล์ล่าสุด... ${percent}%`;
                     document.getElementById('loadingMsg').innerHTML = `
                         🔄 กำลังสแกนไฟล์และจัดกลุ่มไปแล้ว <span style="color:#ff9500;">${percent}%</span>
-                        <div class="progress-subtext">โปรดรอสักครู่ ระบบกำลังดึงข้อมูลอย่างระมัดระวัง...</div>
+                        <div class="progress-subtext">โปรดรอสักครู่ ระบบกำลังคัดเลือกเฉพาะเวอร์ชันล่าสุด...</div>
                     `;
 
-                    // เพิ่มเวลาหน่วงเป็น 600ms เพื่อให้ Server Apple ไม่บล็อกเรา
-                    await delay(600);
+                    await delay(600); // หน่วงเวลา 600ms
                 }
 
                 renderUI(versionMap);
@@ -188,7 +189,7 @@
             });
 
             let badge = document.getElementById('apiStatus');
-            badge.innerText = "✅ ข้อมูลอัปเดตล่าสุดตรงจาก Apple";
+            badge.innerText = "✅ ดึงข้อมูลเวอร์ชันล่าสุดสำเร็จ";
             badge.style.backgroundColor = "#34c759";
         }
     </script>

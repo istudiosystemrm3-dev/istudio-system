@@ -36,7 +36,6 @@
         
         .type-badge { display: inline-block; background-color: #e6f0fa; color: #0071e3; padding: 3px 6px; border-radius: 4px; font-size: 11px; font-weight: bold; }
 
-        /* Modal สำหรับแสดง Firmware */
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); justify-content: center; align-items: center; z-index: 1000; }
         .modal-content { background: white; padding: 25px; border-radius: 12px; width: 450px; max-width: 90%; }
         .btn-cancel { background-color: #e5e5e7; color: #333; border: none; padding: 10px; border-radius: 6px; width: 100%; margin-top: 15px; cursor: pointer; font-weight: bold; }
@@ -115,10 +114,28 @@
             fetch(IPSW_API_URL)
                 .then(response => response.json())
                 .then(data => {
-                    // เก็บข้อมูลทุกรุ่นที่ดึงมาได้
+                    // --- ระบบเรียงลำดับใหม่ล่าสุดให้อยู่ด้านบน ---
+                    data.sort((a, b) => {
+                        // แยกตัวอักษรและตัวเลขออกจาก Identifier เช่น "iPhone15,2" -> "iPhone", "15", "2"
+                        let regex = /^([a-zA-Z]+)(\d+),(\d+)/;
+                        let matchA = a.identifier.match(regex);
+                        let matchB = b.identifier.match(regex);
+                        
+                        if (matchA && matchB) {
+                            // จัดกลุ่มแยกประเภทกันก่อน (iPhone อยู่กับ iPhone, Mac อยู่กับ Mac)
+                            if (matchA[1] !== matchB[1]) return matchA[1].localeCompare(matchB[1]);
+                            // เทียบตัวเลขเจเนอเรชันหลัก (เลขมากอยู่บน)
+                            if (parseInt(matchA[2]) !== parseInt(matchB[2])) return parseInt(matchB[2]) - parseInt(matchA[2]);
+                            // เทียบตัวเลขเจเนอเรชันย่อย (เลขมากอยู่บน)
+                            return parseInt(matchB[3]) - parseInt(matchA[3]);
+                        }
+                        // ถ้าพาร์ทไหนไม่มีตัวเลข ให้เรียงตามตัวอักษรปกติ
+                        return b.identifier.localeCompare(a.identifier);
+                    });
+
                     allDevices = data; 
                     
-                    document.getElementById('apiStatus').innerText = "เชื่อมต่อรายชื่ออุปกรณ์สำเร็จแล้ว";
+                    document.getElementById('apiStatus').innerText = "เชื่อมต่อและจัดเรียงรายชื่ออุปกรณ์ล่าสุดเรียบร้อย";
                     document.getElementById('apiStatus').style.backgroundColor = "#34c759";
                     
                     filterTable();
@@ -139,7 +156,6 @@
             return `${parseFloat((bytes / Math.pow(k, i)).toFixed(dm))} ${sizes[i]}`;
         }
 
-        // ฟังก์ชันจัดหมวดหมู่ให้แม่นยำขึ้น รองรับตระกูล Mac ทุกตัว
         function getDeviceType(identifier) {
             let id = identifier.toLowerCase();
             if (id.includes("iphone")) return "iPhone";
@@ -186,10 +202,8 @@
             let filteredData = allDevices.filter(device => {
                 let devType = getDeviceType(device.identifier);
                 
-                // 1. กรองตามประเภทอุปกรณ์
                 if (selectedType !== "ALL" && devType !== selectedType) return false;
 
-                // 2. กรองตามคำค้นหา
                 if (keywordsArray.length > 0) {
                     let lowerName = device.name.toLowerCase();
                     let lowerId = device.identifier.toLowerCase();
@@ -203,7 +217,6 @@
             renderTable(filteredData);
         }
 
-        // --- ระบบป๊อปอัปโหลดลิงก์ Firmware ของรุ่นนั้นๆ ---
         function checkFirmware(identifier, name) {
             document.getElementById('fwModalTitle').innerText = name;
             document.getElementById('fwModalBody').innerHTML = "<p style='text-align:center;'>⏳ กำลังเชื่อมต่อข้อมูล Firmware จาก Apple...</p>";
@@ -214,7 +227,6 @@
                 .then(data => {
                     let firmwares = data.firmwares || [];
                     
-                    // หาเวอร์ชันล่าสุดที่ Sign อยู่
                     let signedFws = firmwares.filter(fw => fw.signed === true);
                     let latestFw = signedFws.length > 0 ? signedFws[0] : firmwares[0];
 

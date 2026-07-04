@@ -28,7 +28,7 @@
         .table-container { overflow-x: auto; max-height: 700px; overflow-y: auto; border: 1px solid #e5e5e7; border-radius: 6px; }
         thead th { position: sticky; top: 0; z-index: 1; box-shadow: 0 1px 2px rgba(0,0,0,0.1); }
         
-        .status-badge { display: inline-block; padding: 4px 8px; border-radius: 4px; font-size: 11px; font-weight: bold; background-color: #34c759; color: white; }
+        .status-badge { display: inline-block; padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: bold; background-color: #ff9500; color: white; transition: 0.3s; }
         
         .btn-download { background-color: #34c759; color: white; text-decoration: none; padding: 8px 14px; border-radius: 6px; font-size: 13px; font-weight: bold; display: inline-block; text-align: center; }
         .btn-download:hover { background-color: #28a745; }
@@ -46,7 +46,7 @@
         <div class="card">
             <h2>⬇️ ศูนย์ดาวน์โหลดเฟิร์มแวร์ล่าสุด (คัดเฉพาะไฟล์ที่ไม่ซ้ำกัน)</h2>
             <div style="margin-bottom: 15px; font-size: 13px; color: #515154;">
-                สถานะระบบ: <span class="status-badge">✅ ดึงข้อมูลเวอร์ชันเปิด Sign ล่าสุดแบบเรียลไทม์</span>
+                สถานะระบบ: <span id="apiStatus" class="status-badge">กำลังเตรียมเชื่อมต่อ Server...</span>
             </div>
             
             <div class="search-panel">
@@ -60,6 +60,7 @@
                         <option value="ALL">-- แสดงทั้งหมด --</option>
                         <option value="iPhone">iPhone</option>
                         <option value="iPad">iPad</option>
+                        <option value="Mac">Mac</option>
                     </select>
                 </div>
             </div>
@@ -79,7 +80,7 @@
                         </tr>
                     </thead>
                     <tbody id="dataTableBody">
-                        <tr><td colspan="4" style="text-align: center; padding: 40px; color: #86868b;">🔄 กำลังจัดกลุ่มและประมวลผลไฟล์เฟิร์มแวร์ที่ไม่ซ้ำกัน...</td></tr>
+                        <tr><td colspan="4" style="text-align: center; padding: 40px; color: #86868b;">กำลังรอการสแกนข้อมูล...</td></tr>
                     </tbody>
                 </table>
             </div>
@@ -88,34 +89,53 @@
 
     <script>
         const IPSW_API_URL = "https://api.ipsw.me/v4/devices";
-        let uniqueFirmwaresList = []; // เก็บรายชื่อไฟล์ที่ไม่ซ้ำกันเลย
+        let uniqueFirmwaresList = []; 
 
         window.onload = function() {
             loadAndDeduplicateData();
         };
 
-        function loadAndDeduplicateData() {
-            fetch(IPSW_API_URL)
-                .then(response => response.json())
-                .then(data => {
-                    let uniqueMap = new Map(); // ใช้ Map ในการดักจับ URL ซ้ำ
+        async function loadAndDeduplicateData() {
+            try {
+                document.getElementById('apiStatus').innerText = `ดึงข้อมูลรายชื่ออุปกรณ์ทั้งหมด...`;
+                document.getElementById('dataTableBody').innerHTML = `<tr><td colspan="4" style="text-align: center; padding: 40px; color: #0071e3;">🔄 กำลังโหลดรายชื่ออุปกรณ์จากคลาวด์...</td></tr>`;
 
-                    // 1. วิ่งไล่ดูอุปกรณ์ทุกรุ่น
-                    data.forEach(device => {
-                        let id = device.identifier.toLowerCase();
-                        // คัดเอาเฉพาะตระกูล iPhone และ iPad ตามหน้างานหลัก
-                        let type = "";
-                        if (id.includes("iphone")) type = "iPhone";
-                        else if (id.includes("ipad")) type = "iPad";
-                        else return; // ข้ามอุปกรณ์อื่นๆ เช่น Mac, Watch ไปก่อน
+                let response = await fetch(IPSW_API_URL);
+                let allDevices = await response.json();
+                
+                // คัดมาเฉพาะ iPhone, iPad และ Mac เพื่อลดภาระการโหลด
+                let targetDevices = allDevices.filter(d => 
+                    d.identifier.includes("iPhone") || 
+                    d.identifier.includes("iPad") || 
+                    d.identifier.includes("Mac")
+                );
 
-                        // 2. วิ่งดูเฟิร์มแวร์ของรุ่นนั้นๆ
-                        if (device.firmwares) {
-                            // หาเฉพาะตัวที่เปิด Sign อยู่ (เพื่อความปลอดภัยในการโหลดไปใช้งาน)
-                            let signedFws = device.firmwares.filter(fw => fw.signed === true);
+                let uniqueMap = new Map();
+                let total = targetDevices.length;
+                let batchSize = 15; // โหลดเจาะลึกทีละ 15 รุ่น
+
+                for (let i = 0; i < total; i += batchSize) {
+                    let batch = targetDevices.slice(i, i + batchSize);
+                    let promises = batch.map(device => 
+                        fetch("https://api.ipsw.me/v4/device/" + device.identifier)
+                            .then(res => res.json())
+                            .catch(err => null)
+                    );
+                    
+                    let results = await Promise.all(promises);
+                    
+                    results.forEach(deviceInfo => {
+                        if(deviceInfo && deviceInfo.firmwares) {
+                            // ดึงเฉพาะตัวที่เปิด Sign อยู่
+                            let signedFws = deviceInfo.firmwares.filter(fw => fw.signed === true);
                             
+                            let type = "Other";
+                            if (deviceInfo.identifier.includes("iPhone")) type = "iPhone";
+                            else if (deviceInfo.identifier.includes("iPad")) type = "iPad";
+                            else if (deviceInfo.identifier.includes("Mac")) type = "Mac";
+
                             signedFws.forEach(fw => {
-                                // ใช้ URL ดาวน์โหลดเป็น Key หลักในการเช็คความซ้ำ
+                                // เช็คว่ามี URL ไฟล์นี้หรือยัง
                                 if (!uniqueMap.has(fw.url)) {
                                     uniqueMap.set(fw.url, {
                                         version: fw.version,
@@ -123,33 +143,42 @@
                                         filesize: fw.filesize,
                                         url: fw.url,
                                         type: type,
-                                        devices: [device.name] // เริ่มต้นเก็บชื่อรุ่นแรกที่เจอ
+                                        devices: [deviceInfo.name]
                                     });
                                 } else {
-                                    // ถ้าเจอไฟล์ซ้ำ (URL เดียวกัน) ให้แอดชื่อรุ่นเพิ่มเข้าไปในลิสต์ย่อย
                                     let existing = uniqueMap.get(fw.url);
-                                    if (!existing.devices.includes(device.name)) {
-                                        existing.devices.push(device.name);
+                                    if (!existing.devices.includes(deviceInfo.name)) {
+                                        existing.devices.push(deviceInfo.name);
                                     }
                                 }
                             });
                         }
                     });
+                    
+                    // อัปเดต % ให้ดูบนหน้าจอ
+                    let percent = Math.round((Math.min(i + batch.length, total) / total) * 100);
+                    document.getElementById('apiStatus').innerText = `⏳ กำลังสแกนหาไฟล์ซ้ำและจัดกลุ่ม... ${percent}%`;
+                    document.getElementById('dataTableBody').innerHTML = `<tr><td colspan="4" style="text-align: center; padding: 40px; color: #ff9500; font-weight: bold;">⏳ สแกนและจัดกลุ่มไฟล์ไปแล้ว ${percent}% (โปรดรอสักครู่)...</td></tr>`;
+                }
 
-                    // 3. แปลงจาก Map ออกมาเป็น Array รายการ
-                    uniqueFirmwaresList = Array.from(uniqueMap.values());
+                // สแกนเสร็จเรียบร้อย
+                uniqueFirmwaresList = Array.from(uniqueMap.values());
 
-                    // 4. จัดเรียงลำดับ เอา OS เวอร์ชันใหม่ล่าสุดขึ้นก่อน
-                    uniqueFirmwaresList.sort((a, b) => {
-                        if (a.type !== b.type) return a.type.localeCompare(b.type); // แยกกลุ่ม iPhone / iPad
-                        return b.version.localeCompare(a.version, undefined, { numeric: true, sensitivity: 'base' });
-                    });
-
-                    filterTable();
-                })
-                .catch(error => {
-                    document.getElementById('dataTableBody').innerHTML = `<tr><td colspan="4" style="text-align: center; color: #ff3b30; padding: 30px;">❌ ดึงข้อมูลผิดพลาด กรุณารีเฟรชหน้าเว็บอีกครั้ง</td></tr>`;
+                uniqueFirmwaresList.sort((a, b) => {
+                    if (a.type !== b.type) return a.type.localeCompare(b.type); 
+                    return b.version.localeCompare(a.version, undefined, { numeric: true, sensitivity: 'base' });
                 });
+
+                document.getElementById('apiStatus').innerText = `✅ สแกนและจัดกลุ่มไฟล์ล่าสุดเสร็จสมบูรณ์`;
+                document.getElementById('apiStatus').style.backgroundColor = "#34c759";
+                
+                filterTable();
+
+            } catch (error) {
+                document.getElementById('apiStatus').innerText = `❌ การเชื่อมต่อล้มเหลว`;
+                document.getElementById('apiStatus').style.backgroundColor = "#ff3b30";
+                document.getElementById('dataTableBody').innerHTML = `<tr><td colspan="4" style="text-align: center; color: #ff3b30; padding: 30px;">ดึงข้อมูลผิดพลาด กรุณารีเฟรชหน้าเว็บอีกครั้ง</td></tr>`;
+            }
         }
 
         function formatBytes(bytes, decimals = 2) {
@@ -172,7 +201,6 @@
             }
 
             dataArray.forEach((fw) => {
-                // สร้างชิปรายชื่อรุ่นที่ใช้ร่วมกัน
                 let devicesChips = fw.devices.map(d => `<span class="device-chip">${d}</span>`).join('');
                 
                 let tr = document.createElement('tr');
@@ -196,10 +224,8 @@
             let selectedType = document.getElementById('typeFilter').value;
             
             let filteredData = uniqueFirmwaresList.filter(fw => {
-                // 1. กรองคัดแยกประเภทอุปกรณ์
                 if (selectedType !== "ALL" && fw.type !== selectedType) return false;
 
-                // 2. กรองตามคำค้นหา (พิมพ์หาจากชื่อรุ่นที่ปนอยู่ในชิปได้เลย)
                 if (keyword !== "") {
                     let matchDevice = fw.devices.some(d => d.toLowerCase().includes(keyword));
                     let matchVersion = fw.version.toLowerCase().includes(keyword);

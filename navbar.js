@@ -1,5 +1,5 @@
 document.addEventListener("DOMContentLoaded", function() {
-    // 1. โครงสร้างเมนู HTML (แก้ที่นี่ที่เดียว อัปเดตทุกหน้า)
+    // 1. โครงสร้างเมนู HTML
     const menuHTML = `
         <div class="navbar no-print">
             <a href="calculate.html" id="nav-calculate">1. คำนวณราคา</a>
@@ -7,6 +7,7 @@ document.addEventListener("DOMContentLoaded", function() {
             <a href="price.html" id="nav-price">3. ตารางราคา</a>
             <a href="barcode-manual.html" id="nav-barcode">🏷️ บาร์โค้ด (Manual)</a>
             <a href="stock.html" id="nav-stock">📦 สต๊อกสินค้า</a>
+            <a href="firmware.html" id="nav-firmware">📱 เช็คเฟิร์มแวร์ (IPSW)</a>
         </div>
     `;
 
@@ -16,7 +17,7 @@ document.addEventListener("DOMContentLoaded", function() {
         container.innerHTML = menuHTML;
     }
 
-    // 3. ระบบไฮไลท์ปุ่มอัตโนมัติ (เช็คว่ากำลังเปิดหน้าไหนอยู่)
+    // 3. ระบบไฮไลท์ปุ่มอัตโนมัติ (Active)
     const currentPath = window.location.pathname.split("/").pop();
     
     if (currentPath === "calculate.html" || currentPath === "") {
@@ -28,6 +29,10 @@ document.addEventListener("DOMContentLoaded", function() {
     } else if (currentPath === "barcode-manual.html") {
         document.getElementById('nav-barcode').classList.add('active');
     } else if (currentPath === "stock.html") {
-        document.getElementById('nav-stock').classList.add('active');
+        let el = document.getElementById('nav-stock');
+        if(el) el.classList.add('active');
+    } else if (currentPath === "firmware.html") {
+        let el = document.getElementById('nav-firmware');
+        if(el) el.classList.add('active');
     }
 });

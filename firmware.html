@@ -10,7 +10,7 @@
         .navbar a { color: #f5f5f7; text-decoration: none; padding: 10px 20px; margin: 0 5px; border-radius: 6px; font-size: 15px; font-weight: 500; transition: 0.3s; }
         .navbar a:hover { background-color: #333336; }
         .navbar a.active { background-color: #0071e3; color: white; }
-        .container { max-width: 1200px; margin: 40px auto; padding: 0 20px; }
+        .container { max-width: 1000px; margin: 40px auto; padding: 0 20px; }
         .card { background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
         h2 { margin-top: 0; border-bottom: 1px solid #e5e5e7; padding-bottom: 10px; font-size: 18px; margin-bottom: 15px; }
         
@@ -31,10 +31,15 @@
         .signed-true { background-color: #34c759; color: white; }
         .signed-false { background-color: #ff3b30; color: white; }
         
-        .btn-download { background-color: #0071e3; color: white; text-decoration: none; padding: 6px 12px; border-radius: 4px; font-size: 12px; font-weight: bold; display: inline-block; }
+        .btn-download { background-color: #0071e3; color: white; text-decoration: none; padding: 8px 12px; border-radius: 6px; font-size: 13px; font-weight: bold; display: inline-block; cursor: pointer; border: none; }
         .btn-download:hover { background-color: #005bb5; }
         
         .type-badge { display: inline-block; background-color: #e6f0fa; color: #0071e3; padding: 3px 6px; border-radius: 4px; font-size: 11px; font-weight: bold; }
+
+        /* Modal สำหรับแสดง Firmware */
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); justify-content: center; align-items: center; z-index: 1000; }
+        .modal-content { background: white; padding: 25px; border-radius: 12px; width: 450px; max-width: 90%; }
+        .btn-cancel { background-color: #e5e5e7; color: #333; border: none; padding: 10px; border-radius: 6px; width: 100%; margin-top: 15px; cursor: pointer; font-weight: bold; }
     </style>
 </head>
 <body>
@@ -43,15 +48,15 @@
 
     <div class="container">
         <div class="card">
-            <h2>☁️ อัปเดตข้อมูลตรงจาก IPSW.me (Real-time)</h2>
+            <h2>☁️ ค้นหาไฟล์อัปเดต (IPSW) ตรงจาก Server Apple</h2>
             <div style="margin-bottom: 15px; font-size: 13px; color: #515154;">
-                สถานะการเชื่อมต่อ API: <span id="apiStatus" class="status-badge" style="background-color: #ff9500; color: white;">กำลังโหลดข้อมูล...</span>
+                สถานะฐานข้อมูล: <span id="apiStatus" class="status-badge" style="background-color: #ff9500; color: white;">กำลังดึงรายชื่อรุ่นอุปกรณ์...</span>
             </div>
             
             <div class="search-panel">
                 <div class="search-group" style="flex: 2;">
                     <label>🔍 ค้นหารุ่นอุปกรณ์ (เช่น iPhone 15, iPad Pro, Mac)</label>
-                    <input type="text" id="searchInput" placeholder="พิมพ์ชื่ออุปกรณ์เพื่อค้นหา..." onkeyup="filterTable()" autofocus>
+                    <input type="text" id="searchInput" placeholder="พิมพ์ชื่ออุปกรณ์ หรือ รหัสโมเดล เพื่อค้นหา..." onkeyup="filterTable()" autofocus>
                 </div>
                 <div class="search-group">
                     <label>📱 เลือกประเภทอุปกรณ์</label>
@@ -61,8 +66,8 @@
                         <option value="iPad">iPad</option>
                         <option value="Mac">Mac</option>
                         <option value="Watch">Apple Watch</option>
-                        <option value="AudioAccessory">HomePod</option>
-                        <option value="AppleTV">Apple TV</option>
+                        <option value="HomePod">HomePod</option>
+                        <option value="Apple TV">Apple TV</option>
                     </select>
                 </div>
             </div>
@@ -75,18 +80,26 @@
                 <table>
                     <thead>
                         <tr>
-                            <th width="30%">ชื่ออุปกรณ์ (Device Name)</th>
-                            <th width="15%">รหัสโมเดล (Identifier)</th>
-                            <th width="20%">Firmware ล่าสุด (Signed)</th>
-                            <th width="15%">ขนาดไฟล์</th>
-                            <th width="20%" style="text-align: center;">ลิงก์ดาวน์โหลด (IPSW)</th>
+                            <th width="45%">ชื่ออุปกรณ์ (Device Name)</th>
+                            <th width="30%">รหัสโมเดล (Identifier)</th>
+                            <th width="25%" style="text-align: center;">จัดการ</th>
                         </tr>
                     </thead>
                     <tbody id="dataTableBody">
-                        <tr><td colspan="5" style="text-align: center; padding: 40px; color: #86868b;">กำลังดึงข้อมูลจาก Server Apple...</td></tr>
+                        <tr><td colspan="3" style="text-align: center; padding: 40px; color: #86868b;">กำลังดึงข้อมูลจาก Server Apple...</td></tr>
                     </tbody>
                 </table>
             </div>
+        </div>
+    </div>
+
+    <div id="fwModal" class="modal">
+        <div class="modal-content">
+            <h3 id="fwModalTitle" style="margin-top:0; color:#1d1d1f; border-bottom:1px solid #e5e5e7; padding-bottom:10px;">กำลังโหลด...</h3>
+            <div id="fwModalBody" style="font-size: 14px; color: #515154; line-height: 1.6;">
+                <p style="text-align: center;">⏳ กำลังเชื่อมต่อข้อมูลเฟิร์มแวร์...</p>
+            </div>
+            <button class="btn-cancel" onclick="closeFwModal()">ปิดหน้าต่าง</button>
         </div>
     </div>
 
@@ -102,10 +115,10 @@
             fetch(IPSW_API_URL)
                 .then(response => response.json())
                 .then(data => {
-                    // กรองเอาเฉพาะอุปกรณ์ที่มีข้อมูลเฟิร์มแวร์
-                    allDevices = data.filter(device => device.firmwares && device.firmwares.length > 0);
+                    // เก็บข้อมูลทุกรุ่นที่ดึงมาได้
+                    allDevices = data; 
                     
-                    document.getElementById('apiStatus').innerText = "เชื่อมต่อและอัปเดตข้อมูลล่าสุดสำเร็จแล้ว";
+                    document.getElementById('apiStatus').innerText = "เชื่อมต่อรายชื่ออุปกรณ์สำเร็จแล้ว";
                     document.getElementById('apiStatus').style.backgroundColor = "#34c759";
                     
                     filterTable();
@@ -113,11 +126,10 @@
                 .catch(error => {
                     document.getElementById('apiStatus').innerText = "การเชื่อมต่อ API ผิดพลาด";
                     document.getElementById('apiStatus').style.backgroundColor = "#ff3b30";
-                    document.getElementById('dataTableBody').innerHTML = `<tr><td colspan="5" style="text-align: center; color: #ff3b30; padding: 30px;">ไม่สามารถดึงข้อมูลได้ กรุณาลองใหม่อีกครั้ง</td></tr>`;
+                    document.getElementById('dataTableBody').innerHTML = `<tr><td colspan="3" style="text-align: center; color: #ff3b30; padding: 30px;">ไม่สามารถดึงข้อมูลได้ กรุณาลองใหม่อีกครั้ง</td></tr>`;
                 });
         }
 
-        // ฟังก์ชันช่วยจัดรูปแบบขนาดไฟล์ (Byte -> GB)
         function formatBytes(bytes, decimals = 2) {
             if (!+bytes) return '0 Bytes';
             const k = 1024;
@@ -127,13 +139,15 @@
             return `${parseFloat((bytes / Math.pow(k, i)).toFixed(dm))} ${sizes[i]}`;
         }
 
+        // ฟังก์ชันจัดหมวดหมู่ให้แม่นยำขึ้น รองรับตระกูล Mac ทุกตัว
         function getDeviceType(identifier) {
-            if (identifier.includes("iPhone")) return "iPhone";
-            if (identifier.includes("iPad")) return "iPad";
-            if (identifier.includes("Mac") || identifier.includes("MacBook")) return "Mac";
-            if (identifier.includes("Watch")) return "Watch";
-            if (identifier.includes("AudioAccessory")) return "AudioAccessory";
-            if (identifier.includes("AppleTV")) return "AppleTV";
+            let id = identifier.toLowerCase();
+            if (id.includes("iphone")) return "iPhone";
+            if (id.includes("ipad")) return "iPad";
+            if (id.includes("mac") || id.includes("imac")) return "Mac";
+            if (id.includes("watch")) return "Watch";
+            if (id.includes("audio")) return "HomePod";
+            if (id.includes("appletv")) return "Apple TV";
             return "Other";
         }
 
@@ -143,27 +157,12 @@
             tbody.innerHTML = "";
 
             if (dataArray.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: #86868b; padding: 40px;">ไม่พบอุปกรณ์ที่ค้นหา</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="3" style="text-align: center; color: #86868b; padding: 40px;">ไม่พบอุปกรณ์ที่ค้นหา</td></tr>`;
                 return;
             }
 
             dataArray.forEach((device) => {
-                // หาเฟิร์มแวร์ล่าสุดที่เปิดให้ Sign อยู่ (Signed = true)
-                let latestSigned = device.firmwares.find(fw => fw.signed === true);
-                
-                // ถ้าไม่มีตัวที่ Sign แล้ว ให้เอาตัวบนสุด (ล่าสุด) แทน
-                if (!latestSigned) latestSigned = device.firmwares[0]; 
-
                 let typeLabel = getDeviceType(device.identifier);
-                let fwVersion = latestSigned ? latestSigned.version : "-";
-                let fwSize = latestSigned ? formatBytes(latestSigned.filesize) : "-";
-                let isSigned = latestSigned ? latestSigned.signed : false;
-                let downloadUrl = latestSigned ? latestSigned.url : "#";
-
-                let signedBadge = isSigned 
-                    ? `<span class="status-badge signed-true">✅ เปิด Sign (${fwVersion})</span>` 
-                    : `<span class="status-badge signed-false">❌ ปิด Sign แล้ว</span>`;
-
                 let tr = document.createElement('tr');
                 tr.innerHTML = `
                     <td style="color: #1d1d1f; font-weight: bold;">
@@ -171,10 +170,8 @@
                         <span class="type-badge" style="margin-top: 4px;">${typeLabel}</span>
                     </td>
                     <td style="color: #515154;">${device.identifier}</td>
-                    <td>${signedBadge}</td>
-                    <td style="color: #86868b; font-size: 12px;">${fwSize}</td>
                     <td style="text-align: center;">
-                        ${isSigned ? `<a href="${downloadUrl}" class="btn-download" target="_blank">⬇️ โหลด IPSW</a>` : `<span style="color:#86868b; font-size: 11px;">งดดาวน์โหลด</span>`}
+                        <button class="btn-download" onclick="checkFirmware('${device.identifier}', '${device.name}')">🔍 เช็ค Firmware</button>
                     </td>
                 `;
                 tbody.appendChild(tr);
@@ -205,6 +202,51 @@
             
             renderTable(filteredData);
         }
+
+        // --- ระบบป๊อปอัปโหลดลิงก์ Firmware ของรุ่นนั้นๆ ---
+        function checkFirmware(identifier, name) {
+            document.getElementById('fwModalTitle').innerText = name;
+            document.getElementById('fwModalBody').innerHTML = "<p style='text-align:center;'>⏳ กำลังเชื่อมต่อข้อมูล Firmware จาก Apple...</p>";
+            document.getElementById('fwModal').style.display = 'flex';
+
+            fetch("https://api.ipsw.me/v4/device/" + identifier)
+                .then(res => res.json())
+                .then(data => {
+                    let firmwares = data.firmwares || [];
+                    
+                    // หาเวอร์ชันล่าสุดที่ Sign อยู่
+                    let signedFws = firmwares.filter(fw => fw.signed === true);
+                    let latestFw = signedFws.length > 0 ? signedFws[0] : firmwares[0];
+
+                    if (!latestFw) {
+                        document.getElementById('fwModalBody').innerHTML = "<p style='color:#ff3b30; text-align:center;'>⚠️ ไม่พบข้อมูล Firmware ของอุปกรณ์รุ่นนี้</p>";
+                        return;
+                    }
+
+                    let sizeStr = formatBytes(latestFw.filesize);
+                    let badge = latestFw.signed 
+                        ? `<span class="status-badge signed-true">✅ เปิด Sign (ใช้ Restore ได้)</span>` 
+                        : `<span class="status-badge signed-false">❌ ปิด Sign แล้ว</span>`;
+
+                    document.getElementById('fwModalBody').innerHTML = `
+                        <div style="background: #f5f5f7; padding: 15px; border-radius: 8px; margin-bottom: 15px; border: 1px solid #e5e5e7;">
+                            <div style="margin-bottom: 8px;"><strong>เวอร์ชันล่าสุด:</strong> <span style="font-size:16px; color:#0071e3; font-weight:bold;">${latestFw.version}</span></div>
+                            <div style="margin-bottom: 8px;"><strong>Build:</strong> ${latestFw.buildid}</div>
+                            <div style="margin-bottom: 8px;"><strong>สถานะ:</strong> ${badge}</div>
+                            <div><strong>ขนาดไฟล์:</strong> ${sizeStr}</div>
+                        </div>
+                        ${latestFw.signed 
+                            ? `<a href="${latestFw.url}" style="display:block; text-align:center; padding:12px; background-color:#34c759; color:white; text-decoration:none; border-radius:6px; font-weight:bold; font-size:15px;" target="_blank">⬇️ ดาวน์โหลดไฟล์ IPSW (ตรงจาก Apple)</a>` 
+                            : `<p style="color:#ff3b30; font-size:13px; text-align:center;">⚠️ Apple ปิดการ Sign เวอร์ชันนี้แล้ว ไม่สามารถดาวน์โหลดได้</p>`
+                        }
+                    `;
+                })
+                .catch(err => {
+                    document.getElementById('fwModalBody').innerHTML = "<p style='color:#ff3b30; text-align:center;'>ดึงข้อมูลล้มเหลว กรุณาลองใหม่อีกครั้ง</p>";
+                });
+        }
+
+        function closeFwModal() { document.getElementById('fwModal').style.display = 'none'; }
     </script>
 </body>
 </html>

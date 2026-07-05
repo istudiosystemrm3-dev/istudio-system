@@ -24,7 +24,6 @@
         .fw-link:hover { text-decoration: underline; }
         .version-badge { background-color: #e8f2fc; color: #0071e3; padding: 4px 8px; border-radius: 6px; font-weight: bold; font-size: 13px; display: inline-block; }
         
-        /* เพิ่ม max-height ให้ลิสต์รุ่น เผื่อ Mac รุ่นมันเยอะจะได้เลื่อนดูได้ ไม่กินที่ */
         .device-list { margin: 0; padding-left: 20px; color: #333; line-height: 1.6; max-height: 150px; overflow-y: auto; }
         .device-list li { margin-bottom: 4px; }
 
@@ -73,8 +72,8 @@
                     <thead>
                         <tr>
                             <th width="15%">เวอร์ชัน</th>
-                            <th width="40%">รุ่นที่รองรับ (ใช้ไฟล์ร่วมกัน)</th>
-                            <th width="45%">ลิงก์ดาวน์โหลด (IPSW)</th>
+                            <th width="40%">กลุ่มอุปกรณ์ที่รองรับ</th>
+                            <th width="45%">ลิงก์ดาวน์โหลด (Universal IPSW)</th>
                         </tr>
                     </thead>
                     <tbody id="macTableBody"></tbody>
@@ -92,18 +91,23 @@
                 let response = await fetch(IPSW_API_URL);
                 let allDevices = await response.json();
                 
-                // คัดมาเฉพาะ iPhone, iPad และ Mac
+                // 1. คัดเฉพาะ iPhone และ iPad มาทั้งหมด
                 let targetDevices = allDevices.filter(d => {
                     let idLower = d.identifier.toLowerCase();
-                    return idLower.includes("iphone") || idLower.includes("ipad") || idLower.includes("mac");
+                    return idLower.includes("iphone") || idLower.includes("ipad");
                 });
+
+                // 2. ดึง Mac มาแค่ "1 รุ่นเป็นตัวแทน" เพื่อหลีกเลี่ยงการโดนบล็อก (เพราะ Mac ทุกรุ่นใช้ไฟล์เดียวกัน)
+                let macRep = allDevices.find(d => d.identifier === "Mac14,2") || allDevices.find(d => d.identifier.toLowerCase().includes("mac"));
+                if (macRep) {
+                    targetDevices.push(macRep); // นำ Mac ตัวแทนไปต่อท้ายคิวโหลด
+                }
 
                 let batchSize = 10;
                 let iphones = [];
                 let ipads = [];
                 let macs = [];
 
-                // 1. ดึงข้อมูล
                 for (let i = 0; i < targetDevices.length; i += batchSize) {
                     let batch = targetDevices.slice(i, i + batchSize);
                     let promises = batch.map(device => 
@@ -114,18 +118,27 @@
                     
                     let results = await Promise.all(promises);
                     
-                    results.forEach(deviceInfo => {
+                    results.forEach((deviceInfo, index) => {
                         if (deviceInfo && deviceInfo.firmwares) {
                             let latestFw = deviceInfo.firmwares.find(fw => fw.signed === true);
                             if (latestFw) {
                                 let idLower = deviceInfo.identifier.toLowerCase();
-                                let type = "Mac"; // ค่าเริ่มต้นสำหรับกลุ่มนี้
-                                if (idLower.includes("iphone")) type = "iPhone";
-                                else if (idLower.includes("ipad")) type = "iPad";
+                                let type = "Mac";
+                                let deviceName = deviceInfo.name;
+                                
+                                if (idLower.includes("iphone")) {
+                                    type = "iPhone";
+                                } else if (idLower.includes("ipad")) {
+                                    type = "iPad";
+                                } else {
+                                    type = "Mac";
+                                    // เปลี่ยนชื่อรุ่น Mac ให้ครอบคลุมทุกซีรีส์แบบที่ต้องการ
+                                    deviceName = "💻 ชิป Apple Silicon (M1-M4) ทุกรุ่นใช้ไฟล์นี้ร่วมกันทั้งหมด";
+                                }
                                 
                                 let item = {
                                     version: latestFw.version,
-                                    name: deviceInfo.name,
+                                    name: deviceName,
                                     url: latestFw.url,
                                     filename: latestFw.url.split('/').pop()
                                 };
@@ -140,10 +153,10 @@
                     let percent = Math.round((Math.min(i + batch.length, targetDevices.length) / targetDevices.length) * 100);
                     document.getElementById('statusMsg').innerText = `⏳ กำลังโหลดและจัดกลุ่มไฟล์... ${percent}%`;
 
-                    await delay(400); 
+                    await delay(500); // หน่วงเวลาเพิ่มนิดหน่อยให้โหลดลื่นๆ ไม่โดนแบน
                 }
 
-                // 2. ฟังก์ชันหาเวอร์ชันสูงสุด
+                // ฟังก์ชันหาเวอร์ชันสูงสุด
                 function getMaxVersion(arr) {
                     let maxVer = "0";
                     arr.forEach(item => {
@@ -158,12 +171,12 @@
                 let maxIpadVer = getMaxVersion(ipads);
                 let maxMacVer = getMaxVersion(macs);
 
-                // 3. กรองเอาเฉพาะเวอร์ชันสูงสุด
+                // กรองเอาเฉพาะเวอร์ชันสูงสุด
                 let latestIphones = iphones.filter(item => item.version === maxIphoneVer);
                 let latestIpads = ipads.filter(item => item.version === maxIpadVer);
-                let latestMacs = macs.filter(item => item.version === maxMacVer);
+                let latestMacs = macs.filter(item => item.version === maxMacVer); // Mac จะมีแค่ 1 ตัวแทนอยู่แล้ว
 
-                // 4. ฟังก์ชันยุบรวมรุ่นที่ใช้ URL เดียวกัน
+                // ฟังก์ชันยุบรวมรุ่นที่ใช้ URL เดียวกัน
                 function groupByUrl(arr) {
                     let grouped = {};
                     arr.forEach(item => {
@@ -177,7 +190,6 @@
                         }
                         grouped[item.url].devices.push(item.name);
                     });
-                    // แปลงเป็น Array แล้วเรียงลำดับตามชื่อรุ่น
                     return Object.values(grouped).sort((a, b) => a.devices[0].localeCompare(b.devices[0]));
                 }
 
@@ -185,18 +197,15 @@
                 let groupedIpads = groupByUrl(latestIpads);
                 let groupedMacs = groupByUrl(latestMacs);
 
-                // 5. วาดตาราง
+                // วาดตาราง
                 function renderTable(data, tableId) {
                     let tbody = document.getElementById(tableId);
                     if (data.length === 0) {
                         tbody.innerHTML = `<tr><td colspan="3" style="text-align:center; color:#86868b; padding:30px;">ไม่พบข้อมูลไฟล์ Firmware ในขณะนี้</td></tr>`;
                         return;
                     }
-                    
                     data.forEach(group => {
-                        // สร้างลิสต์รายชื่อรุ่น
                         let devicesHTML = `<ul class="device-list">` + group.devices.map(d => `<li>${d}</li>`).join('') + `</ul>`;
-                        
                         let tr = document.createElement('tr');
                         tr.innerHTML = `
                             <td><span class="version-badge">${group.version}</span></td>
@@ -211,7 +220,6 @@
                 renderTable(groupedIpads, 'ipadTableBody');
                 renderTable(groupedMacs, 'macTableBody');
 
-                // ปิดข้อความโหลด เปิดตาราง
                 document.getElementById('statusMsg').style.display = "none";
                 document.getElementById('contentContainer').style.display = "block";
 

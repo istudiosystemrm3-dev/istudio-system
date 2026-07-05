@@ -3,46 +3,23 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>แหล่งดาวน์โหลด Firmware ตรงจาก Apple (สไตล์ iClarified) - iServe</title>
+    <title>Latest Firmware - iServe</title>
     <style>
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; padding: 0; margin: 0; background-color: #f5f5f7; color: #1d1d1f; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; padding: 0; margin: 0; background-color: #ffffff; color: #333333; }
         .navbar { background-color: #1d1d1f; padding: 15px 20px; text-align: center; }
         .navbar a { color: #f5f5f7; text-decoration: none; padding: 10px 20px; margin: 0 5px; border-radius: 6px; font-size: 15px; font-weight: 500; transition: 0.3s; }
         .navbar a:hover { background-color: #333336; }
         .navbar a.active { background-color: #0071e3; color: white; }
-        .container { max-width: 1000px; margin: 40px auto; padding: 0 20px; }
-        .card { background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
-        h1 { margin-top: 0; font-size: 24px; color: #1d1d1f; border-bottom: 2px solid #e5e5e7; padding-bottom: 15px; margin-bottom: 25px; }
         
-        .search-box { width: 100%; padding: 12px 15px; border: 1px solid #d2d2d7; border-radius: 8px; font-size: 16px; outline: none; box-sizing: border-box; margin-bottom: 25px; background-color: #fafafa; }
-        .search-box:focus { border-color: #0071e3; background-color: #fff; }
+        .container { max-width: 1200px; margin: 30px auto; padding: 0 20px; }
+        h3 { font-size: 18px; margin-bottom: 15px; color: #111; }
         
-        .device-group { margin-bottom: 10px; border: 1px solid #e5e5e7; border-radius: 8px; overflow: hidden; }
-        .device-header { background-color: #f9f9fa; padding: 15px 20px; font-size: 16px; font-weight: bold; color: #1d1d1f; cursor: pointer; display: flex; justify-content: space-between; align-items: center; transition: 0.2s; }
-        .device-header:hover { background-color: #f1f1f2; }
-        .device-identifier { font-size: 13px; color: #86868b; font-weight: normal; margin-left: 10px; }
+        /* สไตล์ให้เหมือนภาพเป๊ะๆ */
+        .fw-line { font-size: 15px; line-height: 1.6; margin-bottom: 4px; }
+        .fw-line a { color: #0071e3; text-decoration: none; }
+        .fw-line a:hover { text-decoration: underline; }
         
-        .firmware-container { display: none; padding: 0; background-color: white; border-top: 1px solid #e5e5e7; }
-        .fw-list { list-style: none; padding: 0; margin: 0; }
-        .fw-item { padding: 12px 20px; border-bottom: 1px solid #f1f1f2; display: flex; align-items: center; font-size: 14px; }
-        .fw-item:last-child { border-bottom: none; }
-        .fw-item:hover { background-color: #fdfdfd; }
-        
-        .fw-status { width: 12px; height: 12px; border-radius: 50%; display: inline-block; margin-right: 15px; }
-        .status-signed { background-color: #34c759; box-shadow: 0 0 5px rgba(52,199,89,0.5); }
-        .status-unsigned { background-color: #ff3b30; }
-        
-        .fw-version { font-weight: bold; color: #1d1d1f; width: 120px; }
-        .fw-build { color: #86868b; font-family: monospace; font-size: 13px; width: 100px; }
-        .fw-size { color: #515154; width: 100px; text-align: right; margin-right: 20px; }
-        
-        .fw-link { color: #0071e3; text-decoration: none; font-weight: bold; }
-        .fw-link:hover { text-decoration: underline; }
-        
-        .loading-text { padding: 20px; text-align: center; color: #86868b; font-size: 14px; }
-        
-        /* สัญลักษณ์ + / - */
-        .toggle-icon { font-size: 20px; font-weight: normal; color: #86868b; }
+        #statusMsg { color: #ff9500; font-weight: bold; margin-bottom: 20px; font-size: 14px; }
     </style>
 </head>
 <body>
@@ -50,165 +27,75 @@
     <script src="navbar.js"></script>
 
     <div class="container">
-        <div class="card">
-            <h1>📥 Where to Download Apple Firmware Files From</h1>
-            <p style="font-size: 14px; color: #515154; margin-bottom: 20px; line-height: 1.6;">
-                รวมลิงก์ดาวน์โหลดไฟล์เฟิร์มแวร์ (IPSW) ตรงจากเซิร์ฟเวอร์ Apple<br>
-                <span style="color:#34c759;">🟢 สีเขียว</span> = เปิด Sign (สามารถใช้ Restore ได้) | <span style="color:#ff3b30;">🔴 สีแดง</span> = ปิด Sign แล้ว
-            </p>
-
-            <input type="text" id="searchInput" class="search-box" placeholder="🔍 ค้นหาชื่อรุ่น (เช่น iPhone 15 Pro, iPad Air)..." onkeyup="filterDevices()">
-
-            <div id="deviceListContainer">
-                <div style="text-align: center; padding: 40px; color: #86868b;">⏳ กำลังดึงข้อมูลรายชื่ออุปกรณ์ทั้งหมด...</div>
-            </div>
-        </div>
+        <h3>Latest Firmware</h3>
+        <div id="statusMsg">⏳ ระบบกำลังโหลดรายชื่อไฟล์... (โปรดรอสักครู่)</div>
+        
+        <!-- จุดที่ข้อความลิสต์จะมาเรียงกันตรงนี้ -->
+        <div id="listContainer"></div>
     </div>
 
     <script>
         const IPSW_API_URL = "https://api.ipsw.me/v4/devices";
-        let allDevices = [];
+        const delay = ms => new Promise(res => setTimeout(res, ms));
 
-        window.onload = function() {
-            loadDeviceList();
-        };
-
-        async function loadDeviceList() {
+        window.onload = async function() {
             try {
                 let response = await fetch(IPSW_API_URL);
-                let data = await response.json();
+                let allDevices = await response.json();
                 
-                // คัดมาเฉพาะ iPhone และ iPad เป็นหลัก
-                allDevices = data.filter(d => d.identifier.includes("iPhone") || d.identifier.includes("iPad"));
-                
-                // จัดเรียงรุ่นใหม่ล่าสุดอยู่ด้านบน
-                const typeWeights = { "iPhone": 1, "iPad": 2 };
-                allDevices.sort((a, b) => {
-                    let typeA = a.identifier.includes("iPhone") ? "iPhone" : "iPad";
-                    let typeB = b.identifier.includes("iPhone") ? "iPhone" : "iPad";
+                // คัดมาเฉพาะตระกูลที่ต้องใช้ (ตัดพวก Apple TV, Watch ออกให้ดูง่ายๆ)
+                let targetDevices = allDevices.filter(d => 
+                    d.identifier.includes("iPhone") || 
+                    d.identifier.includes("iPad") || 
+                    d.identifier.includes("Mac")
+                );
+
+                let listContainer = document.getElementById('listContainer');
+                let batchSize = 10; // โหลดทีละ 10 รุ่นเพื่อไม่ให้ Server Apple บล็อก
+
+                for (let i = 0; i < targetDevices.length; i += batchSize) {
+                    let batch = targetDevices.slice(i, i + batchSize);
+                    let promises = batch.map(device => 
+                        fetch("https://api.ipsw.me/v4/device/" + device.identifier)
+                            .then(res => res.json())
+                            .catch(err => null)
+                    );
                     
-                    if (typeWeights[typeA] !== typeWeights[typeB]) {
-                        return typeWeights[typeA] - typeWeights[typeB];
-                    }
+                    let results = await Promise.all(promises);
                     
-                    let matchA = a.identifier.match(/\d+/g);
-                    let matchB = b.identifier.match(/\d+/g);
-                    if (matchA && matchB) {
-                        if (parseInt(matchA[0]) !== parseInt(matchB[0])) return parseInt(matchB[0]) - parseInt(matchA[0]);
-                        let minorA = matchA[1] ? parseInt(matchA[1]) : 0;
-                        let minorB = matchB[1] ? parseInt(matchB[1]) : 0;
-                        return minorB - minorA;
-                    }
-                    return b.name.localeCompare(a.name);
-                });
-
-                renderDevices(allDevices);
-            } catch (error) {
-                document.getElementById('deviceListContainer').innerHTML = `<div style="color:#ff3b30; text-align:center;">❌ โหลดข้อมูลผิดพลาด กรุณารีเฟรช</div>`;
-            }
-        }
-
-        function renderDevices(devices) {
-            let container = document.getElementById('deviceListContainer');
-            container.innerHTML = "";
-
-            devices.forEach(device => {
-                // สร้าง ID เฉพาะสำหรับคอนเทนเนอร์เก็บเฟิร์มแวร์
-                let fwContainerId = `fw_${device.identifier}`;
-                
-                let groupHTML = `
-                    <div class="device-group" id="group_${device.identifier}">
-                        <div class="device-header" onclick="toggleFirmware('${device.identifier}', '${fwContainerId}', this)">
-                            <div>
-                                ${device.name} <span class="device-identifier">(${device.identifier})</span>
-                            </div>
-                            <div class="toggle-icon">+</div>
-                        </div>
-                        <div class="firmware-container" id="${fwContainerId}">
-                            </div>
-                    </div>
-                `;
-                container.innerHTML += groupHTML;
-            });
-        }
-
-        function filterDevices() {
-            let keyword = document.getElementById('searchInput').value.toLowerCase().trim();
-            let keywordsArray = keyword.split(" ").filter(k => k !== "");
-            
-            let filtered = allDevices.filter(device => {
-                if (keywordsArray.length === 0) return true;
-                let lowerName = device.name.toLowerCase();
-                let lowerId = device.identifier.toLowerCase();
-                return keywordsArray.every(k => lowerName.includes(k) || lowerId.includes(k));
-            });
-            
-            renderDevices(filtered);
-        }
-
-        // ฟังก์ชันดึงและกางลิสต์ Firmware เฉพาะรุ่นที่กด (ไม่โดนบล็อกแน่นอน)
-        async function toggleFirmware(identifier, containerId, headerElement) {
-            let container = document.getElementById(containerId);
-            let icon = headerElement.querySelector('.toggle-icon');
-
-            // ถ้ากางอยู่ ให้หุบเก็บ
-            if (container.style.display === "block") {
-                container.style.display = "none";
-                icon.innerText = "+";
-                return;
-            }
-
-            // ถ้ายังไม่เคยกาง (ไม่มีข้อมูล) ให้ไปดึงจาก Server
-            if (container.innerHTML.trim() === "") {
-                container.innerHTML = `<div class="loading-text">⏳ กำลังดึงลิสต์ไฟล์จาก Apple...</div>`;
-                container.style.display = "block";
-                icon.innerText = "-";
-
-                try {
-                    let response = await fetch("https://api.ipsw.me/v4/device/" + identifier);
-                    let data = await response.json();
-                    
-                    if (!data.firmwares || data.firmwares.length === 0) {
-                        container.innerHTML = `<div class="loading-text">ไม่พบไฟล์สำหรับรุ่นนี้</div>`;
-                        return;
-                    }
-
-                    // สร้างตารางลิสต์แบบ iClarified
-                    let listHTML = `<ul class="fw-list">`;
-                    data.firmwares.forEach(fw => {
-                        let statusClass = fw.signed ? "status-signed" : "status-unsigned";
-                        let sizeStr = formatBytes(fw.filesize);
-                        
-                        listHTML += `
-                            <li class="fw-item">
-                                <span class="fw-status ${statusClass}" title="${fw.signed ? 'เปิด Sign' : 'ปิด Sign'}"></span>
-                                <span class="fw-version">${fw.version}</span>
-                                <span class="fw-build">${fw.buildid}</span>
-                                <span class="fw-size">${sizeStr}</span>
-                                <a href="${fw.url}" class="fw-link" target="_blank">Download</a>
-                            </li>
-                        `;
+                    results.forEach(deviceInfo => {
+                        if (deviceInfo && deviceInfo.firmwares) {
+                            // ดึงเฉพาะไฟล์ล่าสุดที่เปิด Sign
+                            let latestFw = deviceInfo.firmwares.find(fw => fw.signed === true);
+                            
+                            if (latestFw) {
+                                // สกัดเอาเฉพาะ "ชื่อไฟล์" ออกมาจาก URL ยาวๆ
+                                let filename = latestFw.url.split('/').pop();
+                                
+                                // สร้างบรรทัดข้อความตาม Format เป๊ะๆ: เวอร์ชัน (ชื่อรุ่น): ไฟล์.ipsw
+                                let line = document.createElement('div');
+                                line.className = 'fw-line';
+                                line.innerHTML = \`\${latestFw.version} (\${deviceInfo.name}): <a href="\${latestFw.url}" target="_blank">\${filename}</a>\`;
+                                
+                                listContainer.appendChild(line);
+                            }
+                        }
                     });
-                    listHTML += `</ul>`;
-                    container.innerHTML = listHTML;
+                    
+                    let percent = Math.round((Math.min(i + batch.length, targetDevices.length) / targetDevices.length) * 100);
+                    document.getElementById('statusMsg').innerText = \`⏳ กำลังโหลดไฟล์... \${percent}%\`;
 
-                } catch (error) {
-                    container.innerHTML = `<div class="loading-text" style="color:#ff3b30;">❌ ดึงข้อมูลล้มเหลว ลองกดใหม่อีกครั้ง</div>`;
+                    await delay(400); // หน่วงเวลาดึงข้อมูลนิดหน่อยเพื่อความปลอดภัย
                 }
-            } else {
-                // ถ้าเคยดึงมาแล้ว แค่เปิดโชว์เฉยๆ
-                container.style.display = "block";
-                icon.innerText = "-";
-            }
-        }
 
-        function formatBytes(bytes) {
-            if (!+bytes) return '0 MB';
-            const k = 1024;
-            const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
-            const i = Math.floor(Math.log(bytes) / Math.log(k));
-            return `${parseFloat((bytes / Math.pow(k, i)).toFixed(2))} ${sizes[i]}`;
-        }
+                // โหลดเสร็จ ซ่อนข้อความสถานะทิ้งไป
+                document.getElementById('statusMsg').style.display = "none";
+
+            } catch (error) {
+                document.getElementById('statusMsg').innerText = "❌ เกิดข้อผิดพลาดในการโหลดข้อมูล";
+                document.getElementById('statusMsg').style.color = "red";
+            }
+        };
     </script>
 </body>
 </html>

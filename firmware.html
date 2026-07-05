@@ -14,7 +14,7 @@
         .container { max-width: 1200px; margin: 30px auto; padding: 0 20px; }
         h3 { font-size: 18px; margin-bottom: 15px; color: #111; }
         
-        /* สไตล์ให้เหมือนภาพเป๊ะๆ */
+        /* สไตล์ข้อความลิสต์ดิบๆ ตามภาพ */
         .fw-line { font-size: 15px; line-height: 1.6; margin-bottom: 4px; }
         .fw-line a { color: #0071e3; text-decoration: none; }
         .fw-line a:hover { text-decoration: underline; }
@@ -28,9 +28,8 @@
 
     <div class="container">
         <h3>Latest Firmware</h3>
-        <div id="statusMsg">⏳ ระบบกำลังโหลดรายชื่อไฟล์... (โปรดรอสักครู่)</div>
+        <div id="statusMsg">⏳ ระบบกำลังดึงข้อมูลและคัดกรองเฉพาะเวอร์ชันล่าสุด... (โปรดรอสักครู่)</div>
         
-        <!-- จุดที่ข้อความลิสต์จะมาเรียงกันตรงนี้ -->
         <div id="listContainer"></div>
     </div>
 
@@ -43,16 +42,16 @@
                 let response = await fetch(IPSW_API_URL);
                 let allDevices = await response.json();
                 
-                // คัดมาเฉพาะตระกูลที่ต้องใช้ (ตัดพวก Apple TV, Watch ออกให้ดูง่ายๆ)
+                // คัดมาเฉพาะ iPhone และ iPad (หรือจะเพิ่ม Mac ด้วยก็ได้)
                 let targetDevices = allDevices.filter(d => 
                     d.identifier.includes("iPhone") || 
-                    d.identifier.includes("iPad") || 
-                    d.identifier.includes("Mac")
+                    d.identifier.includes("iPad")
                 );
 
-                let listContainer = document.getElementById('listContainer');
-                let batchSize = 10; // โหลดทีละ 10 รุ่นเพื่อไม่ให้ Server Apple บล็อก
+                let batchSize = 10;
+                let allFirmwares = [];
 
+                // 1. ดึงข้อมูลเฟิร์มแวร์ของทุกรุ่นมากองรวมกันก่อน
                 for (let i = 0; i < targetDevices.length; i += batchSize) {
                     let batch = targetDevices.slice(i, i + batchSize);
                     let promises = batch.map(device => 
@@ -65,30 +64,47 @@
                     
                     results.forEach(deviceInfo => {
                         if (deviceInfo && deviceInfo.firmwares) {
-                            // ดึงเฉพาะไฟล์ล่าสุดที่เปิด Sign
                             let latestFw = deviceInfo.firmwares.find(fw => fw.signed === true);
-                            
                             if (latestFw) {
-                                // สกัดเอาเฉพาะ "ชื่อไฟล์" ออกมาจาก URL ยาวๆ
-                                let filename = latestFw.url.split('/').pop();
-                                
-                                // สร้างบรรทัดข้อความตาม Format เป๊ะๆ: เวอร์ชัน (ชื่อรุ่น): ไฟล์.ipsw
-                                let line = document.createElement('div');
-                                line.className = 'fw-line';
-                                line.innerHTML = \`\${latestFw.version} (\${deviceInfo.name}): <a href="\${latestFw.url}" target="_blank">\${filename}</a>\`;
-                                
-                                listContainer.appendChild(line);
+                                allFirmwares.push({
+                                    version: latestFw.version,
+                                    deviceName: deviceInfo.name,
+                                    url: latestFw.url,
+                                    filename: latestFw.url.split('/').pop()
+                                });
                             }
                         }
                     });
                     
                     let percent = Math.round((Math.min(i + batch.length, targetDevices.length) / targetDevices.length) * 100);
-                    document.getElementById('statusMsg').innerText = \`⏳ กำลังโหลดไฟล์... \${percent}%\`;
+                    document.getElementById('statusMsg').innerText = `⏳ กำลังโหลดและคัดกรองไฟล์... ${percent}%`;
 
-                    await delay(400); // หน่วงเวลาดึงข้อมูลนิดหน่อยเพื่อความปลอดภัย
+                    await delay(400); // หน่วงเวลาป้องกันการโดนบล็อก
                 }
 
-                // โหลดเสร็จ ซ่อนข้อความสถานะทิ้งไป
+                // 2. หาว่า "เวอร์ชันอะไรคือเวอร์ชันที่สูงที่สุด (ใหม่ล่าสุด) ในตอนนี้"
+                let maxVersion = "0";
+                allFirmwares.forEach(fw => {
+                    // เทียบเลขเวอร์ชันว่าใครสูงกว่ากัน
+                    if (fw.version.localeCompare(maxVersion, undefined, { numeric: true, sensitivity: 'base' }) > 0) {
+                        maxVersion = fw.version;
+                    }
+                });
+
+                // 3. กรองเอาเฉพาะรุ่นที่ "เวอร์ชันเท่ากับเวอร์ชันสูงสุด" เท่านั้น (รุ่นเก่าโดนตัดทิ้งหมด)
+                let latestOnlyList = allFirmwares.filter(fw => fw.version === maxVersion);
+
+                // 4. นำมาแสดงผลบนหน้าเว็บ
+                let listContainer = document.getElementById('listContainer');
+                
+                latestOnlyList.forEach(fw => {
+                    let line = document.createElement('div');
+                    line.className = 'fw-line';
+                    // Format: 26.5.2 (iPad Pro...): ลิงก์ไฟล์.ipsw
+                    line.innerHTML = `${fw.version} (${fw.deviceName}): <a href="${fw.url}" target="_blank">${fw.filename}</a>`;
+                    listContainer.appendChild(line);
+                });
+
                 document.getElementById('statusMsg').style.display = "none";
 
             } catch (error) {

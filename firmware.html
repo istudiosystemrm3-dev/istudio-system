@@ -3,23 +3,31 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Latest Firmware - iServe</title>
+    <title>Latest Firmware (Grouped) - iServe</title>
     <style>
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; padding: 0; margin: 0; background-color: #ffffff; color: #333333; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; padding: 0; margin: 0; background-color: #f5f5f7; color: #1d1d1f; }
         .navbar { background-color: #1d1d1f; padding: 15px 20px; text-align: center; }
         .navbar a { color: #f5f5f7; text-decoration: none; padding: 10px 20px; margin: 0 5px; border-radius: 6px; font-size: 15px; font-weight: 500; transition: 0.3s; }
         .navbar a:hover { background-color: #333336; }
         .navbar a.active { background-color: #0071e3; color: white; }
         
-        .container { max-width: 1200px; margin: 30px auto; padding: 0 20px; }
-        h3 { font-size: 18px; margin-bottom: 15px; color: #111; }
+        .container { max-width: 1200px; margin: 40px auto; padding: 0 20px; }
+        .card { background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); margin-bottom: 30px; }
+        h2 { margin-top: 0; border-bottom: 2px solid #e5e5e7; padding-bottom: 10px; font-size: 20px; margin-bottom: 20px; display: flex; align-items: center; gap: 10px; }
         
-        /* สไตล์ข้อความลิสต์ดิบๆ ตามภาพ */
-        .fw-line { font-size: 15px; line-height: 1.6; margin-bottom: 4px; }
-        .fw-line a { color: #0071e3; text-decoration: none; }
-        .fw-line a:hover { text-decoration: underline; }
+        table { width: 100%; border-collapse: collapse; font-size: 14px; }
+        th, td { padding: 15px 12px; text-align: left; border-bottom: 1px solid #e5e5e7; }
+        th { background-color: #f9f9fa; color: #515154; font-weight: 600; font-size: 13px; }
+        tr:hover { background-color: #f4f4f5; }
         
-        #statusMsg { color: #ff9500; font-weight: bold; margin-bottom: 20px; font-size: 14px; }
+        .fw-link { color: #0071e3; text-decoration: none; font-weight: 500; word-break: break-all; }
+        .fw-link:hover { text-decoration: underline; }
+        .version-badge { background-color: #e8f2fc; color: #0071e3; padding: 4px 8px; border-radius: 6px; font-weight: bold; font-size: 13px; }
+        
+        .device-list { margin: 0; padding-left: 20px; color: #333; line-height: 1.6; }
+        .device-list li { margin-bottom: 4px; }
+
+        #statusMsg { color: #ff9500; font-weight: bold; text-align: center; font-size: 16px; margin: 30px 0; background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
     </style>
 </head>
 <body>
@@ -27,10 +35,37 @@
     <script src="navbar.js"></script>
 
     <div class="container">
-        <h3>Latest Firmware</h3>
-        <div id="statusMsg">⏳ ระบบกำลังดึงข้อมูลและคัดกรองเฉพาะเวอร์ชันล่าสุด... (โปรดรอสักครู่)</div>
+        <div id="statusMsg">⏳ ระบบกำลังโหลดและจัดกลุ่มไฟล์เฟิร์มแวร์ล่าสุด... (โปรดรอสักครู่)</div>
         
-        <div id="listContainer"></div>
+        <div id="contentContainer" style="display: none;">
+            <div class="card">
+                <h2>📱 iPhone (เวอร์ชันล่าสุด)</h2>
+                <table>
+                    <thead>
+                        <tr>
+                            <th width="15%">เวอร์ชัน</th>
+                            <th width="40%">รุ่นที่รองรับ (ใช้ไฟล์ร่วมกัน)</th>
+                            <th width="45%">ลิงก์ดาวน์โหลด (IPSW)</th>
+                        </tr>
+                    </thead>
+                    <tbody id="iphoneTableBody"></tbody>
+                </table>
+            </div>
+
+            <div class="card">
+                <h2>🖥️ iPad (เวอร์ชันล่าสุด)</h2>
+                <table>
+                    <thead>
+                        <tr>
+                            <th width="15%">เวอร์ชัน</th>
+                            <th width="40%">รุ่นที่รองรับ (ใช้ไฟล์ร่วมกัน)</th>
+                            <th width="45%">ลิงก์ดาวน์โหลด (IPSW)</th>
+                        </tr>
+                    </thead>
+                    <tbody id="ipadTableBody"></tbody>
+                </table>
+            </div>
+        </div>
     </div>
 
     <script>
@@ -42,16 +77,17 @@
                 let response = await fetch(IPSW_API_URL);
                 let allDevices = await response.json();
                 
-                // คัดมาเฉพาะ iPhone และ iPad (หรือจะเพิ่ม Mac ด้วยก็ได้)
+                // คัดมาเฉพาะ iPhone และ iPad
                 let targetDevices = allDevices.filter(d => 
                     d.identifier.includes("iPhone") || 
                     d.identifier.includes("iPad")
                 );
 
                 let batchSize = 10;
-                let allFirmwares = [];
+                let iphones = [];
+                let ipads = [];
 
-                // 1. ดึงข้อมูลเฟิร์มแวร์ของทุกรุ่นมากองรวมกันก่อน
+                // 1. ดึงข้อมูล
                 for (let i = 0; i < targetDevices.length; i += batchSize) {
                     let batch = targetDevices.slice(i, i + batchSize);
                     let promises = batch.map(device => 
@@ -66,49 +102,90 @@
                         if (deviceInfo && deviceInfo.firmwares) {
                             let latestFw = deviceInfo.firmwares.find(fw => fw.signed === true);
                             if (latestFw) {
-                                allFirmwares.push({
+                                let type = deviceInfo.identifier.includes("iPhone") ? "iPhone" : "iPad";
+                                let item = {
                                     version: latestFw.version,
-                                    deviceName: deviceInfo.name,
+                                    name: deviceInfo.name,
                                     url: latestFw.url,
                                     filename: latestFw.url.split('/').pop()
-                                });
+                                };
+                                if (type === "iPhone") iphones.push(item);
+                                else ipads.push(item);
                             }
                         }
                     });
                     
                     let percent = Math.round((Math.min(i + batch.length, targetDevices.length) / targetDevices.length) * 100);
-                    document.getElementById('statusMsg').innerText = `⏳ กำลังโหลดและคัดกรองไฟล์... ${percent}%`;
+                    document.getElementById('statusMsg').innerText = `⏳ กำลังโหลดและจัดกลุ่มไฟล์... ${percent}%`;
 
-                    await delay(400); // หน่วงเวลาป้องกันการโดนบล็อก
+                    await delay(400); 
                 }
 
-                // 2. หาว่า "เวอร์ชันอะไรคือเวอร์ชันที่สูงที่สุด (ใหม่ล่าสุด) ในตอนนี้"
-                let maxVersion = "0";
-                allFirmwares.forEach(fw => {
-                    // เทียบเลขเวอร์ชันว่าใครสูงกว่ากัน
-                    if (fw.version.localeCompare(maxVersion, undefined, { numeric: true, sensitivity: 'base' }) > 0) {
-                        maxVersion = fw.version;
-                    }
-                });
+                // 2. ฟังก์ชันหาเวอร์ชันสูงสุด
+                function getMaxVersion(arr) {
+                    let maxVer = "0";
+                    arr.forEach(item => {
+                        if (item.version.localeCompare(maxVer, undefined, { numeric: true, sensitivity: 'base' }) > 0) {
+                            maxVer = item.version;
+                        }
+                    });
+                    return maxVer;
+                }
 
-                // 3. กรองเอาเฉพาะรุ่นที่ "เวอร์ชันเท่ากับเวอร์ชันสูงสุด" เท่านั้น (รุ่นเก่าโดนตัดทิ้งหมด)
-                let latestOnlyList = allFirmwares.filter(fw => fw.version === maxVersion);
+                let maxIphoneVer = getMaxVersion(iphones);
+                let maxIpadVer = getMaxVersion(ipads);
 
-                // 4. นำมาแสดงผลบนหน้าเว็บ
-                let listContainer = document.getElementById('listContainer');
-                
-                latestOnlyList.forEach(fw => {
-                    let line = document.createElement('div');
-                    line.className = 'fw-line';
-                    // Format: 26.5.2 (iPad Pro...): ลิงก์ไฟล์.ipsw
-                    line.innerHTML = `${fw.version} (${fw.deviceName}): <a href="${fw.url}" target="_blank">${fw.filename}</a>`;
-                    listContainer.appendChild(line);
-                });
+                // 3. กรองเอาเฉพาะเวอร์ชันสูงสุด
+                let latestIphones = iphones.filter(item => item.version === maxIphoneVer);
+                let latestIpads = ipads.filter(item => item.version === maxIpadVer);
 
+                // 4. ฟังก์ชันยุบรวมรุ่นที่ใช้ URL เดียวกัน
+                function groupByUrl(arr) {
+                    let grouped = {};
+                    arr.forEach(item => {
+                        if (!grouped[item.url]) {
+                            grouped[item.url] = {
+                                version: item.version,
+                                filename: item.filename,
+                                url: item.url,
+                                devices: []
+                            };
+                        }
+                        grouped[item.url].devices.push(item.name);
+                    });
+                    // แปลงเป็น Array แล้วเรียงลำดับตามชื่อรุ่นให้ดูสวยงาม
+                    return Object.values(grouped).sort((a, b) => a.devices[0].localeCompare(b.devices[0]));
+                }
+
+                let groupedIphones = groupByUrl(latestIphones);
+                let groupedIpads = groupByUrl(latestIpads);
+
+                // 5. วาดตาราง
+                function renderTable(data, tableId) {
+                    let tbody = document.getElementById(tableId);
+                    data.forEach(group => {
+                        // สร้างลิสต์รายชื่อรุ่น
+                        let devicesHTML = `<ul class="device-list">` + group.devices.map(d => `<li>${d}</li>`).join('') + `</ul>`;
+                        
+                        let tr = document.createElement('tr');
+                        tr.innerHTML = `
+                            <td><span class="version-badge">${group.version}</span></td>
+                            <td>${devicesHTML}</td>
+                            <td><a href="${group.url}" class="fw-link" target="_blank">${group.filename}</a></td>
+                        `;
+                        tbody.appendChild(tr);
+                    });
+                }
+
+                renderTable(groupedIphones, 'iphoneTableBody');
+                renderTable(groupedIpads, 'ipadTableBody');
+
+                // ปิดข้อความโหลด เปิดตาราง
                 document.getElementById('statusMsg').style.display = "none";
+                document.getElementById('contentContainer').style.display = "block";
 
             } catch (error) {
-                document.getElementById('statusMsg').innerText = "❌ เกิดข้อผิดพลาดในการโหลดข้อมูล";
+                document.getElementById('statusMsg').innerText = "❌ เกิดข้อผิดพลาดในการเชื่อมต่อข้อมูล";
                 document.getElementById('statusMsg').style.color = "red";
             }
         };

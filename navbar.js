@@ -1,5 +1,4 @@
 document.addEventListener("DOMContentLoaded", function() {
-    // 1. โครงสร้างเมนู HTML
     const menuHTML = `
         <div class="navbar no-print">
             <a href="calculate.html" id="nav-calculate">คำนวณราคาอะไหล่ และ ทำใบเสนอราคา</a>
@@ -8,16 +7,15 @@ document.addEventListener("DOMContentLoaded", function() {
             <a href="barcode-manual.html" id="nav-barcode">บาร์โค้ด สำหรับใช้หน้าร้าน</a>
             <a href="stock.html" id="nav-stock">สต๊อกสินค้า</a>
             <a href="firmware.html" id="nav-firmware">เฟิร์มแวร์ล่าสุด (IPSW)</a>
+            <a href="macos.html" id="nav-macos">💻 macOS Bootable</a>
         </div>
     `;
 
-    // 2. นำเมนูไปแทรกในหน้าเว็บ
     const container = document.getElementById('navbar-container');
     if (container) {
         container.innerHTML = menuHTML;
     }
 
-    // 3. ระบบไฮไลท์ปุ่มอัตโนมัติ (Active)
     const currentPath = window.location.pathname.split("/").pop();
     
     if (currentPath === "calculate.html" || currentPath === "") {
@@ -33,6 +31,9 @@ document.addEventListener("DOMContentLoaded", function() {
         if(el) el.classList.add('active');
     } else if (currentPath === "firmware.html") {
         let el = document.getElementById('nav-firmware');
+        if(el) el.classList.add('active');
+    } else if (currentPath === "macos.html") {
+        let el = document.getElementById('nav-macos');
         if(el) el.classList.add('active');
     }
 });

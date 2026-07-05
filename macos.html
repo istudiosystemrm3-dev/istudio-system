@@ -31,6 +31,9 @@
         
         .instruction-step { margin-bottom: 15px; font-size: 15px; line-height: 1.6; }
         .highlight { font-weight: bold; color: #e30000; }
+        
+        .protip-box { background-color: #e8f2fc; border: 1px solid #c8e1fa; padding: 25px; border-radius: 12px; }
+        .protip-title { margin-top: 0; color: #0071e3; font-size: 18px; margin-bottom: 15px; display: flex; align-items: center; gap: 8px; }
     </style>
 </head>
 <body>
@@ -132,16 +135,33 @@
             </table>
         </div>
         
-        <div class="card" style="background-color: #e8f2fc; border: 1px solid #c8e1fa;">
-            <h3 style="margin-top: 0; color: #0071e3;">💡 ทริคสำหรับช่าง (Pro Tip)</h3>
-            <p style="font-size: 14px; line-height: 1.6; color: #1d1d1f;">
-                หากคุณเปิดหน้าเว็บนี้บนเครื่อง Mac ที่ใช้ Apple Silicon (M1, M2, ฯลฯ) แล้วกดโหลดจาก App Store ไม่ได้ คุณสามารถใช้คำสั่ง Terminal ด้านล่างนี้ เพื่อสั่งให้เครื่องดึงไฟล์ตัวติดตั้งตัวเต็มลงมาที่โฟลเดอร์ Applications ได้ทันทีครับ:
+        <div class="protip-box">
+            <h3 class="protip-title">💡 ทริคสำหรับช่าง (ดาวน์โหลดตัวเต็มผ่าน Terminal ไม่ต้องง้อ App Store)</h3>
+            <p style="font-size: 14px; line-height: 1.6; color: #1d1d1f; margin-bottom: 10px;">
+                หากเปิดหน้าเว็บนี้บนเครื่อง Mac รุ่นใหม่ๆ แล้วกดโหลดจาก App Store ไม่ได้ หรือหาเวอร์ชันเก่าไม่เจอ คุณสามารถใช้ Terminal โหลดไฟล์ตัวติดตั้ง (.app) ตรงจาก Apple ได้เลย โดยทำตาม 2 ขั้นตอนนี้ครับ:
             </p>
-            <div class="terminal-box" style="background-color: #000; margin-bottom: 10px;">
-                softwareupdate --fetch-full-installer --full-installer-version 14.5
+            
+            <div style="margin-bottom: 15px;">
+                <b style="font-size: 14px; color: #1d1d1f;">สเต็ปที่ 1: เช็คว่าปัจจุบันมีเวอร์ชันอะไรให้โหลดบ้าง</b><br>
+                <span style="font-size: 13px; color: #515154;">พิมพ์คำสั่งนี้ลงไป ระบบจะแสดงรายชื่อเวอร์ชันที่มีทั้งหมด (เช่น 14.5, 13.6.6)</span>
+                <div class="terminal-box" style="background-color: #000; margin-top: 5px; padding: 10px 15px;">
+                    softwareupdate --list-full-installers
+                </div>
             </div>
-            <p style="font-size: 13px; color: #515154; margin: 0;"><i>* เปลี่ยนตัวเลข 14.5 เป็นเวอร์ชันที่คุณต้องการดาวน์โหลด</i></p>
+
+            <div>
+                <b style="font-size: 14px; color: #1d1d1f;">สเต็ปที่ 2: สั่งดาวน์โหลดเวอร์ชันที่ต้องการ</b><br>
+                <span style="font-size: 13px; color: #515154;">นำเลขเวอร์ชันจากสเต็ปที่ 1 มาใส่แทนคำว่า <code>[ใส่เลขเวอร์ชันตรงนี้]</code> ตัวอย่างเช่น: <code>14.5</code></span>
+                <div class="terminal-box" style="background-color: #000; margin-top: 5px; padding: 10px 15px;">
+                    softwareupdate --fetch-full-installer --full-installer-version [ใส่เลขเวอร์ชันตรงนี้]
+                </div>
+            </div>
+            
+            <p style="font-size: 13px; color: #86868b; margin-top: 15px; margin-bottom: 0;">
+                <i>* เมื่อโหลดเสร็จแล้ว ไฟล์ตัวติดตั้งจะไปอยู่ในโฟลเดอร์ Applications ให้อัตโนมัติ สามารถนำไปใช้ทำ Bootable USB ต่อได้เลย</i>
+            </p>
         </div>
+        <br><br>
     </div>
 </body>
 </html>

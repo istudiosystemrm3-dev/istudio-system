@@ -24,7 +24,7 @@
         .fw-link:hover { text-decoration: underline; }
         .version-badge { background-color: #e8f2fc; color: #0071e3; padding: 4px 8px; border-radius: 6px; font-weight: bold; font-size: 13px; display: inline-block; }
         
-        .device-list { margin: 0; padding-left: 20px; color: #333; line-height: 1.6; max-height: 150px; overflow-y: auto; }
+        .device-list { margin: 0; padding-left: 20px; color: #333; line-height: 1.6; max-height: 200px; overflow-y: auto; }
         .device-list li { margin-bottom: 4px; }
 
         #statusMsg { color: #ff9500; font-weight: bold; text-align: center; font-size: 16px; margin: 30px 0; background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
@@ -91,16 +91,14 @@
                 let response = await fetch(IPSW_API_URL);
                 let allDevices = await response.json();
                 
-                // 1. คัดเฉพาะ iPhone และ iPad มาทั้งหมด
                 let targetDevices = allDevices.filter(d => {
                     let idLower = d.identifier.toLowerCase();
                     return idLower.includes("iphone") || idLower.includes("ipad");
                 });
 
-                // 2. ดึง Mac มาแค่ "1 รุ่นเป็นตัวแทน" เพื่อหลีกเลี่ยงการโดนบล็อก (เพราะ Mac ทุกรุ่นใช้ไฟล์เดียวกัน)
                 let macRep = allDevices.find(d => d.identifier === "Mac14,2") || allDevices.find(d => d.identifier.toLowerCase().includes("mac"));
                 if (macRep) {
-                    targetDevices.push(macRep); // นำ Mac ตัวแทนไปต่อท้ายคิวโหลด
+                    targetDevices.push(macRep);
                 }
 
                 let batchSize = 10;
@@ -118,7 +116,7 @@
                     
                     let results = await Promise.all(promises);
                     
-                    results.forEach((deviceInfo, index) => {
+                    results.forEach((deviceInfo) => {
                         if (deviceInfo && deviceInfo.firmwares) {
                             let latestFw = deviceInfo.firmwares.find(fw => fw.signed === true);
                             if (latestFw) {
@@ -132,7 +130,6 @@
                                     type = "iPad";
                                 } else {
                                     type = "Mac";
-                                    // เปลี่ยนชื่อรุ่น Mac ให้ครอบคลุมทุกซีรีส์แบบที่ต้องการ
                                     deviceName = "💻 ชิป Apple Silicon (M1-M4) ทุกรุ่นใช้ไฟล์นี้ร่วมกันทั้งหมด";
                                 }
                                 
@@ -153,10 +150,9 @@
                     let percent = Math.round((Math.min(i + batch.length, targetDevices.length) / targetDevices.length) * 100);
                     document.getElementById('statusMsg').innerText = `⏳ กำลังโหลดและจัดกลุ่มไฟล์... ${percent}%`;
 
-                    await delay(500); // หน่วงเวลาเพิ่มนิดหน่อยให้โหลดลื่นๆ ไม่โดนแบน
+                    await delay(500); 
                 }
 
-                // ฟังก์ชันหาเวอร์ชันสูงสุด
                 function getMaxVersion(arr) {
                     let maxVer = "0";
                     arr.forEach(item => {
@@ -171,33 +167,41 @@
                 let maxIpadVer = getMaxVersion(ipads);
                 let maxMacVer = getMaxVersion(macs);
 
-                // กรองเอาเฉพาะเวอร์ชันสูงสุด
                 let latestIphones = iphones.filter(item => item.version === maxIphoneVer);
                 let latestIpads = ipads.filter(item => item.version === maxIpadVer);
-                let latestMacs = macs.filter(item => item.version === maxMacVer); // Mac จะมีแค่ 1 ตัวแทนอยู่แล้ว
+                let latestMacs = macs.filter(item => item.version === maxMacVer);
 
-                // ฟังก์ชันยุบรวมรุ่นที่ใช้ URL เดียวกัน
+                // ฟังก์ชันจัดกลุ่ม URL + ตัวกรองลบคำซ้ำ
                 function groupByUrl(arr) {
                     let grouped = {};
                     arr.forEach(item => {
+                        // 1. ตัดคำว่า "1TB Model" หรือ "2TB Model" และลูกน้ำข้างหน้าทิ้ง
+                        let cleanName = item.name.replace(/,?\s*[1-2]TB Model/ig, '').trim();
+
                         if (!grouped[item.url]) {
                             grouped[item.url] = {
                                 version: item.version,
                                 filename: item.filename,
                                 url: item.url,
-                                devices: []
+                                devices: new Set() // ใช้ Set แทน Array เพื่อป้องกันการเพิ่มชื่อซ้ำ
                             };
                         }
-                        grouped[item.url].devices.push(item.name);
+                        
+                        // 2. โยนชื่อที่คลีนแล้วเข้าไป (ถ้ามีซ้ำแล้ว Set จะปัดทิ้งอัตโนมัติ)
+                        grouped[item.url].devices.add(cleanName);
                     });
-                    return Object.values(grouped).sort((a, b) => a.devices[0].localeCompare(b.devices[0]));
+                    
+                    // แปลง Set กลับเป็น Array และจัดเรียงตัวอักษร
+                    return Object.values(grouped).map(group => {
+                        group.devices = Array.from(group.devices).sort();
+                        return group;
+                    }).sort((a, b) => a.devices[0].localeCompare(b.devices[0]));
                 }
 
                 let groupedIphones = groupByUrl(latestIphones);
                 let groupedIpads = groupByUrl(latestIpads);
                 let groupedMacs = groupByUrl(latestMacs);
 
-                // วาดตาราง
                 function renderTable(data, tableId) {
                     let tbody = document.getElementById(tableId);
                     if (data.length === 0) {

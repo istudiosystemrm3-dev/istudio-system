@@ -10,7 +10,7 @@ document.addEventListener("DOMContentLoaded", function() {
             <a href="macos.html" id="nav-macos">💻 macOS Bootable</a>
         </div>
     `;
-
+ 
     const container = document.getElementById('navbar-container');
     if (container) {
         container.innerHTML = menuHTML;

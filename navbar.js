@@ -1,13 +1,13 @@
 document.addEventListener("DOMContentLoaded", function() {
-    // 1. โครงสร้างเมนู HTML (เวอร์ชันคลีน เอาหน้า firmware-latest ออกแล้ว)
+    // 1. โครงสร้างเมนู HTML
     const menuHTML = `
         <div class="navbar no-print">
-            <a href="calculate.html" id="nav-calculate">1. คำนวณราคา</a>
-            <a href="search.html" id="nav-search">2. ค้นหา & เพิ่มรุ่น</a>
-            <a href="price.html" id="nav-price">3. ตารางราคา</a>
-            <a href="barcode-manual.html" id="nav-barcode">🏷️ บาร์โค้ด (Manual)</a>
-            <a href="stock.html" id="nav-stock">📦 สต๊อกสินค้า</a>
-            <a href="firmware.html" id="nav-firmware">📱 เฟิร์มแวร์ล่าสุด (IPSW)</a>
+            <a href="calculate.html" id="nav-calculate">คำนวณราคาอะไหล่ และ ทำใบเสนอราคา</a>
+            <a href="search.html" id="nav-search">ค้นหารุ่น</a>
+            <a href="price.html" id="nav-price">ตารางราคาหน้าร้าน</a>
+            <a href="barcode-manual.html" id="nav-barcode">บาร์โค้ด สำหรับใช้หน้าร้าน</a>
+            <a href="stock.html" id="nav-stock">สต๊อกสินค้า</a>
+            <a href="firmware.html" id="nav-firmware">เฟิร์มแวร์ล่าสุด (IPSW)</a>
         </div>
     `;
 

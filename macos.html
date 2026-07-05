@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ดาวน์โหลด macOS & วิธีทำ Bootable USB - iServe</title>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; padding: 0; margin: 0; background-color: #f5f5f7; color: #1d1d1f; }
+        .navbar { background-color: #1d1d1f; padding: 15px 20px; text-align: center; }
+        .navbar a { color: #f5f5f7; text-decoration: none; padding: 10px 20px; margin: 0 5px; border-radius: 6px; font-size: 15px; font-weight: 500; transition: 0.3s; display: inline-block;}
+        .navbar a:hover { background-color: #333336; }
+        .navbar a.active { background-color: #0071e3; color: white; }
+        
+        .container { max-width: 1000px; margin: 40px auto; padding: 0 20px; }
+        .card { background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); margin-bottom: 30px; }
+        h2 { margin-top: 0; border-bottom: 2px solid #e5e5e7; padding-bottom: 10px; font-size: 22px; color: #1d1d1f; }
+        
+        /* สไตล์ตาราง */
+        table { width: 100%; border-collapse: collapse; font-size: 14px; margin-top: 15px; }
+        th, td { padding: 15px 12px; text-align: left; border-bottom: 1px solid #e5e5e7; }
+        th { background-color: #f9f9fa; color: #515154; font-weight: 600; }
+        tr:hover { background-color: #f4f4f5; }
+        
+        .btn-download { background-color: #0071e3; color: white; text-decoration: none; padding: 8px 12px; border-radius: 6px; font-size: 13px; font-weight: bold; display: inline-block; }
+        .btn-download:hover { background-color: #005bb5; }
+        
+        /* สไตล์กล่องโค้ด Terminal */
+        .terminal-box { background-color: #1e1e1e; color: #4af626; font-family: 'Courier New', Courier, monospace; padding: 15px; border-radius: 8px; font-size: 13px; overflow-x: auto; margin-top: 10px; position: relative; line-height: 1.5; }
+        .os-name { font-weight: bold; font-size: 16px; color: #1d1d1f; margin-bottom: 5px; }
+        .os-version { color: #86868b; font-size: 13px; }
+        
+        .instruction-step { margin-bottom: 15px; font-size: 15px; line-height: 1.6; }
+        .highlight { font-weight: bold; color: #e30000; }
+    </style>
+</head>
+<body>
+    <div id="navbar-container"></div>
+    <script src="navbar.js"></script>
+
+    <div class="container">
+        <div class="card">
+            <h2>🛠️ ขั้นตอนที่ 1: การเตรียม USB Flash Drive</h2>
+            <div class="instruction-step">
+                1. เสียบแฟลชไดรฟ์ขนาด <b>16GB ขึ้นไป</b> เข้ากับเครื่อง Mac (หากเป็นเวอร์ชันใหม่ๆ แนะนำ 32GB)<br>
+                2. เปิดแอป <b>Disk Utility</b><br>
+                3. เลือกแฟลชไดรฟ์ของคุณ แล้วกดปุ่ม <b>Erase (ลบ)</b><br>
+                4. ตั้งชื่อแฟลชไดรฟ์ว่า: <span class="highlight">MyVolume</span> <i>(สำคัญมาก ต้องพิมพ์ตัวพิมพ์ใหญ่-เล็กตามนี้)</i><br>
+                5. Format เลือกเป็น: <b>Mac OS Extended (Journaled)</b><br>
+                6. Scheme เลือกเป็น: <b>GUID Partition Map</b> (ถ้ามีให้เลือก)<br>
+                7. กด Erase แล้วรอจนเสร็จสิ้น
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>💻 ขั้นตอนที่ 2: ดาวน์โหลดและสร้าง Bootable USB (ผ่าน Terminal)</h2>
+            <p style="color: #515154; font-size: 14px;">เมื่อโหลดไฟล์ติดตั้งเสร็จแล้ว ให้เปิดแอป <b>Terminal</b> ขึ้นมา ก๊อปปี้คำสั่งด้านล่างไปวาง กด Enter แล้วใส่รหัสผ่านเครื่อง Mac</p>
+            
+            <table>
+                <thead>
+                    <tr>
+                        <th width="25%">ระบบปฏิบัติการ (OS)</th>
+                        <th width="15%">ดาวน์โหลด</th>
+                        <th width="60%">คำสั่ง Terminal (สำหรับแฟลชไดรฟ์ชื่อ MyVolume)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>
+                            <div class="os-name">macOS Sequoia</div>
+                            <div class="os-version">เวอร์ชัน 15</div>
+                        </td>
+                        <td><a href="macappstore://apps.apple.com/th/app/macos-sequoia/id6479738484?mt=12" class="btn-download">App Store</a></td>
+                        <td><div class="terminal-box">sudo /Applications/Install\ macOS\ Sequoia.app/Contents/Resources/createinstallmedia --volume /Volumes/MyVolume</div></td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <div class="os-name">macOS Sonoma</div>
+                            <div class="os-version">เวอร์ชัน 14</div>
+                        </td>
+                        <td><a href="macappstore://apps.apple.com/th/app/macos-sonoma/id6450717509?mt=12" class="btn-download">App Store</a></td>
+                        <td><div class="terminal-box">sudo /Applications/Install\ macOS\ Sonoma.app/Contents/Resources/createinstallmedia --volume /Volumes/MyVolume</div></td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <div class="os-name">macOS Ventura</div>
+                            <div class="os-version">เวอร์ชัน 13</div>
+                        </td>
+                        <td><a href="macappstore://apps.apple.com/th/app/macos-ventura/id1638787999?mt=12" class="btn-download">App Store</a></td>
+                        <td><div class="terminal-box">sudo /Applications/Install\ macOS\ Ventura.app/Contents/Resources/createinstallmedia --volume /Volumes/MyVolume</div></td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <div class="os-name">macOS Monterey</div>
+                            <div class="os-version">เวอร์ชัน 12</div>
+                        </td>
+                        <td><a href="macappstore://apps.apple.com/th/app/macos-monterey/id1576738294?mt=12" class="btn-download">App Store</a></td>
+                        <td><div class="terminal-box">sudo /Applications/Install\ macOS\ Monterey.app/Contents/Resources/createinstallmedia --volume /Volumes/MyVolume</div></td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <div class="os-name">macOS Big Sur</div>
+                            <div class="os-version">เวอร์ชัน 11</div>
+                        </td>
+                        <td><a href="macappstore://apps.apple.com/th/app/macos-big-sur/id1526878132?mt=12" class="btn-download">App Store</a></td>
+                        <td><div class="terminal-box">sudo /Applications/Install\ macOS\ Big\ Sur.app/Contents/Resources/createinstallmedia --volume /Volumes/MyVolume</div></td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <div class="os-name">macOS Catalina</div>
+                            <div class="os-version">เวอร์ชัน 10.15</div>
+                        </td>
+                        <td><a href="macappstore://apps.apple.com/th/app/macos-catalina/id1466841314?mt=12" class="btn-download">App Store</a></td>
+                        <td><div class="terminal-box">sudo /Applications/Install\ macOS\ Catalina.app/Contents/Resources/createinstallmedia --volume /Volumes/MyVolume</div></td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <div class="os-name">macOS Mojave</div>
+                            <div class="os-version">เวอร์ชัน 10.14</div>
+                        </td>
+                        <td><a href="macappstore://apps.apple.com/th/app/macos-mojave/id1398502828?mt=12" class="btn-download">App Store</a></td>
+                        <td><div class="terminal-box">sudo /Applications/Install\ macOS\ Mojave.app/Contents/Resources/createinstallmedia --volume /Volumes/MyVolume</div></td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <div class="os-name">macOS High Sierra</div>
+                            <div class="os-version">เวอร์ชัน 10.13</div>
+                        </td>
+                        <td><a href="macappstore://apps.apple.com/th/app/macos-high-sierra/id1246284741?mt=12" class="btn-download">App Store</a></td>
+                        <td><div class="terminal-box">sudo /Applications/Install\ macOS\ High\ Sierra.app/Contents/Resources/createinstallmedia --volume /Volumes/MyVolume</div></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        
+        <div class="card" style="background-color: #e8f2fc; border: 1px solid #c8e1fa;">
+            <h3 style="margin-top: 0; color: #0071e3;">💡 ทริคสำหรับช่าง (Pro Tip)</h3>
+            <p style="font-size: 14px; line-height: 1.6; color: #1d1d1f;">
+                หากคุณเปิดหน้าเว็บนี้บนเครื่อง Mac ที่ใช้ Apple Silicon (M1, M2, ฯลฯ) แล้วกดโหลดจาก App Store ไม่ได้ คุณสามารถใช้คำสั่ง Terminal ด้านล่างนี้ เพื่อสั่งให้เครื่องดึงไฟล์ตัวติดตั้งตัวเต็มลงมาที่โฟลเดอร์ Applications ได้ทันทีครับ:
+            </p>
+            <div class="terminal-box" style="background-color: #000; margin-bottom: 10px;">
+                softwareupdate --fetch-full-installer --full-installer-version 14.5
+            </div>
+            <p style="font-size: 13px; color: #515154; margin: 0;"><i>* เปลี่ยนตัวเลข 14.5 เป็นเวอร์ชันที่คุณต้องการดาวน์โหลด</i></p>
+        </div>
+    </div>
+</body>
+</html>

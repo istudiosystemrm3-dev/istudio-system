@@ -128,7 +128,7 @@
         <div class="protip-box">
             <h3 class="protip-title">💡 ทริคสำหรับช่าง (ดาวน์โหลดตัวเต็มผ่าน Terminal แบบด่วน)</h3>
             <p style="font-size: 14px; line-height: 1.6; color: #1d1d1f; margin-bottom: 15px;">
-                หากเปิดหน้าเว็บนี้บนเครื่อง Mac รุ่นใหม่ๆ แล้วกดโหลดจาก App Store ไม่ได้ ระบบได้ทำการดึงเลขเวอร์ชัน <b>macOS ล่าสุดที่ Apple เปิดให้โหลดแบบ Real-time</b> มาสร้างเป็นคำสั่งให้คุณแล้วครับ ก๊อปปี้ไปวางใน Terminal ได้เลย:
+                หากเปิดหน้าเว็บนี้บนเครื่อง Mac รุ่นใหม่ๆ แล้วกดโหลดจาก App Store ไม่ได้ ระบบได้ทำการดึงเลขเวอร์ชัน <b>macOS ล่าสุดที่ Apple เปิดให้โหลดแบบ Real-time (คัดเฉพาะตัวล่าสุดของแต่ละรุ่น)</b> มาสร้างเป็นคำสั่งให้คุณแล้วครับ ก๊อปปี้ไปวางใน Terminal ได้เลย:
             </p>
             
             <div id="dynamic-versions" style="background: white; padding: 20px; border-radius: 8px; border: 1px dashed #a1c6ea;">
@@ -149,25 +149,41 @@
 
         async function fetchLatestMacVersions() {
             try {
-                // ดึงข้อมูลตัวแทนของ Mac เพื่อให้ครอบคลุม OS ปัจจุบันทั้งหมด (M1, M2, M3)
+                // ดึงข้อมูลตัวแทนของ Mac เพื่อให้ครอบคลุม OS ปัจจุบันทั้งหมด
                 const macReps = ["Macmini9,1", "Mac14,3", "Mac15,3"];
-                let versions = new Set();
+                let allVersions = new Set();
 
                 for (let id of macReps) {
                     let response = await fetch("https://api.ipsw.me/v4/device/" + id);
                     if (response.ok) {
                         let data = await response.json();
                         if (data.firmwares) {
-                            // เก็บเฉพาะเลขเวอร์ชันที่ Apple ยังเปิดให้อัปเดตอยู่
                             data.firmwares.forEach(fw => {
-                                if (fw.signed) versions.add(fw.version);
+                                if (fw.signed) allVersions.add(fw.version);
                             });
                         }
                     }
                 }
 
-                // เรียงลำดับจากเวอร์ชันใหม่สุดไปเก่าสุด
-                let versionArray = Array.from(versions).sort((a, b) => b.localeCompare(a, undefined, { numeric: true, sensitivity: 'base' }));
+                // ระบบกรองเอาเฉพาะ "เวอร์ชันสูงสุด" ของแต่ละ Major Version (เช่น 14, 13, 12)
+                let latestPerMajor = {};
+                
+                allVersions.forEach(v => {
+                    // ตัดเลขชุดแรกมาเป็นกลุ่ม (เช่น 14.5 -> กลุ่ม 14)
+                    let major = v.split('.')[0]; 
+                    
+                    if (!latestPerMajor[major]) {
+                        latestPerMajor[major] = v;
+                    } else {
+                        // ถ้าเจอเวอร์ชันในกลุ่มเดียวกัน ให้เทียบว่าอันไหนใหม่กว่า
+                        if (v.localeCompare(latestPerMajor[major], undefined, { numeric: true, sensitivity: 'base' }) > 0) {
+                            latestPerMajor[major] = v;
+                        }
+                    }
+                });
+
+                // แปลงผลลัพธ์ที่กรองแล้วมาเรียงจากเวอร์ชันใหม่สุดไปเก่าสุด
+                let versionArray = Object.values(latestPerMajor).sort((a, b) => b.localeCompare(a, undefined, { numeric: true, sensitivity: 'base' }));
                 let container = document.getElementById('dynamic-versions');
                 
                 if (versionArray.length > 0) {

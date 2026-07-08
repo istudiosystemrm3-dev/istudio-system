@@ -56,7 +56,7 @@
     <div class="container">
         <div class="header-box">
             <h2>📦 ระบบตรวจสอบสต๊อกรายวัน</h2>
-            <p>ลากคลุมข้อมูลในเว็บ Nimbus (เฉพาะคอลัมน์ Part Number ลากยาวไปจนถึง Balance) แล้วนำมาวางด้านล่าง</p>
+            <p>ลากคลุมข้อมูลตารางในเว็บ Nimbus แล้วนำมาวางในช่องด้านล่างเพื่อเปรียบเทียบยอด</p>
         </div>
 
         <div class="flex-container">
@@ -69,7 +69,7 @@
                 
                 <div id="previewOld" class="preview-area">
                     <table>
-                        <thead><tr><th width="70%">รหัสสินค้า (P/N)</th><th width="30%">จำนวน</th></tr></thead>
+                        <thead><tr><th width="25%">รหัส (P/N)</th><th width="55%">รายละเอียดสินค้า</th><th width="20%">จำนวน</th></tr></thead>
                         <tbody></tbody>
                     </table>
                 </div>
@@ -84,7 +84,7 @@
                 
                 <div id="previewNew" class="preview-area">
                     <table>
-                        <thead><tr><th width="70%">รหัสสินค้า (P/N)</th><th width="30%">จำนวน</th></tr></thead>
+                        <thead><tr><th width="25%">รหัส (P/N)</th><th width="55%">รายละเอียดสินค้า</th><th width="20%">จำนวน</th></tr></thead>
                         <tbody></tbody>
                     </table>
                 </div>
@@ -100,9 +100,10 @@
                 <table id="tableSold">
                     <thead>
                         <tr>
-                            <th width="30%">รหัสสินค้า (Part Number)</th>
-                            <th width="30%" style="text-align:center;">ยอดเดิม</th>
-                            <th width="30%" style="text-align:center;">ตัดออก</th>
+                            <th width="25%">รหัสสินค้า (P/N)</th>
+                            <th width="45%">รายละเอียดสินค้า</th>
+                            <th width="15%" style="text-align:center;">ยอดเดิม</th>
+                            <th width="15%" style="text-align:center;">ตัดออก</th>
                         </tr>
                     </thead>
                     <tbody></tbody>
@@ -114,9 +115,10 @@
                 <table id="tableAdded">
                     <thead>
                         <tr>
-                            <th width="30%">รหัสสินค้า (Part Number)</th>
-                            <th width="30%" style="text-align:center;">ยอดเดิม</th>
-                            <th width="30%" style="text-align:center;">เพิ่มเข้า</th>
+                            <th width="25%">รหัสสินค้า (P/N)</th>
+                            <th width="45%">รายละเอียดสินค้า</th>
+                            <th width="15%" style="text-align:center;">ยอดเดิม</th>
+                            <th width="15%" style="text-align:center;">เพิ่มเข้า</th>
                         </tr>
                     </thead>
                     <tbody></tbody>
@@ -127,28 +129,28 @@
     </div>
 
     <script>
-        // สมองกลตัวแปลงข้อมูล
+        // สมองกลตัวแปลงข้อมูล (อัปเกรดให้ดึงชื่อสินค้าด้วย)
         function parseStockData(text) {
             let data = {};
             let lines = text.trim().split('\n');
             
             for (let line of lines) {
-                let cols = line.split('\t').map(c => c.trim()); // แยกข้อมูลด้วยเว้นวรรค Tab
+                let cols = line.split('\t').map(c => c.trim()); 
                 
                 if (cols.length >= 2) {
-                    let pn = cols[0]; // คอลัมน์ซ้ายสุด มักจะเป็นรหัสสินค้า
+                    let pn = cols[0]; 
+                    let desc = (cols.length >= 3) ? cols[1] : "-"; // ดึงคอลัมน์ 2 เป็นชื่อสินค้า ถ้าไม่มีให้ใส่ขีด
                     
-                    // หาก๊อปปี้มาทั้งตารางยาวๆ ระบบจะหาคอลัมน์ที่เป็นตัวเลข (Balance) ให้เองจากด้านหลัง
-                    let balText = cols[cols.length - 1].replace(/,/g, ''); // ดึงคอลัมน์ขวาสุดมาเช็คก่อน
+                    let balText = cols[cols.length - 1].replace(/,/g, ''); 
                     let bal = parseInt(balText, 10);
                     
-                    // ถ้าคอลัมน์ขวาสุดไม่ใช่ตัวเลข ให้ลองหาคอลัมน์ที่ 5 (เผื่อก๊อปมาเต็มตาราง Nimbus)
                     if(isNaN(bal) && cols.length >= 5) {
                         bal = parseInt(cols[4].replace(/,/g, ''), 10);
+                        desc = cols[1]; // ยืนยันการดึงชื่อสินค้าจากคอลัมน์ที่ถูกต้อง
                     }
 
                     if (pn && !isNaN(bal) && pn.toLowerCase() !== "p/n") {
-                        data[pn] = bal;
+                        data[pn] = { desc: desc, bal: bal };
                     }
                 }
             }
@@ -172,10 +174,12 @@
             let count = 0;
 
             for (let pn in parsedData) {
+                let item = parsedData[pn];
                 let tr = document.createElement('tr');
                 tr.innerHTML = `
                     <td style="font-family:monospace; color:#0071e3; font-weight:bold;">${pn}</td>
-                    <td style="font-weight:bold;">${parsedData[pn]}</td>
+                    <td style="font-size: 12px; color:#515154;">${item.desc}</td>
+                    <td style="font-weight:bold;">${item.bal}</td>
                 `;
                 tbody.appendChild(tr);
                 count++;
@@ -184,7 +188,7 @@
             if (count > 0) {
                 previewArea.style.display = 'block';
             } else {
-                tbody.innerHTML = `<tr><td colspan="2" style="text-align:center; color:#ff3b30;">อ่านข้อมูลไม่สำเร็จ กรุณาก๊อปปี้ตารางมาวางใหม่ครับ</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="3" style="text-align:center; color:#ff3b30;">อ่านข้อมูลไม่สำเร็จ กรุณาก๊อปปี้ตารางมาวางใหม่ครับ</td></tr>`;
                 previewArea.style.display = 'block';
             }
         }
@@ -210,21 +214,23 @@
             let soldItems = [];
             let addedItems = [];
 
+            // หาของที่ขายออก
             for (let pn in oldStock) {
-                let oldQty = oldStock[pn];
-                let newQty = (newStock[pn] !== undefined) ? newStock[pn] : 0; 
+                let oldQty = oldStock[pn].bal;
+                let newQty = (newStock[pn] !== undefined) ? newStock[pn].bal : 0; 
                 let diff = newQty - oldQty;
 
                 if (diff < 0) {
-                    soldItems.push({ pn: pn, oldQty: oldQty, diff: Math.abs(diff) });
+                    soldItems.push({ pn: pn, desc: oldStock[pn].desc, oldQty: oldQty, diff: Math.abs(diff) });
                 } else if (diff > 0) {
-                    addedItems.push({ pn: pn, oldQty: oldQty, diff: diff });
+                    addedItems.push({ pn: pn, desc: oldStock[pn].desc, oldQty: oldQty, diff: diff });
                 }
             }
 
+            // หาของที่รับเข้าใหม่ (ที่เมื่อวานไม่มี)
             for (let pn in newStock) {
                 if (oldStock[pn] === undefined) {
-                    addedItems.push({ pn: pn, oldQty: 0, diff: newStock[pn] });
+                    addedItems.push({ pn: pn, desc: newStock[pn].desc, oldQty: 0, diff: newStock[pn].bal });
                 }
             }
 
@@ -240,14 +246,15 @@
             tbody.innerHTML = '';
 
             if (items.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="3" class="empty-msg">ไม่มีรายการเปลี่ยนแปลงในหมวดหมู่นี้</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="4" class="empty-msg">ไม่มีรายการเปลี่ยนแปลงในหมวดหมู่นี้</td></tr>`;
                 return;
             }
 
             items.forEach(item => {
                 let tr = document.createElement('tr');
                 tr.innerHTML = `
-                    <td style="font-family:monospace; font-weight:bold; font-size:15px;">${item.pn}</td>
+                    <td style="font-family:monospace; font-weight:bold; font-size:14px;">${item.pn}</td>
+                    <td style="font-size:13px; color:#333;">${item.desc}</td>
                     <td style="text-align:center; color:#86868b;">${item.oldQty}</td>
                     <td style="text-align:center;"><span class="qty-badge ${badgeClass}">${sign}${item.diff}</span></td>
                 `;

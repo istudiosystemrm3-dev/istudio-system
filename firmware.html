@@ -36,9 +36,9 @@
         .fallback-title { color: #1d1d1f; font-size: 16px; font-weight: bold; margin-bottom: 15px; }
         
         .btn-fallback { background-color: #1d1d1f; color: white; text-decoration: none; padding: 10px 20px; border-radius: 8px; font-size: 14px; font-weight: bold; display: inline-block; transition: 0.2s; margin: 5px; }
-        .btn-fallback:hover { opacity: 0.8; }
+        .btn-fallback:hover { opacity: 0.8; transform: translateY(-2px); }
         .btn-appledb { background-color: #34c759; }
-        .btn-idevice { background-color: #0071e3; }
+        .btn-iclarified { background-color: #ff9500; }
     </style>
 </head>
 <body>
@@ -56,7 +56,9 @@
                 <div>
                     <a href="https://ipsw.me/" target="_blank" class="btn-fallback">🌐 เว็บหลัก (IPSW.me)</a>
                     <a href="https://appledb.dev/" target="_blank" class="btn-fallback btn-appledb">🍏 AppleDB (ฐานข้อมูลสำรอง)</a>
-                    <a href="https://idevicecentral.com/ios-firmware-download/" target="_blank" class="btn-fallback btn-idevice">📱 iDevice Central</a>
+                    <br><br>
+                    <a href="https://www.iclarified.com/750/where-to-download-iphone-firmware-files-from" target="_blank" class="btn-fallback btn-iclarified">📱 iClarified (iPhone)</a>
+                    <a href="https://www.iclarified.com/8500/where-to-download-ipad-firmware-files-from" target="_blank" class="btn-fallback btn-iclarified">🖥️ iClarified (iPad)</a>
                 </div>
                 <p style="font-size: 13px; color: #86868b; margin-top: 15px;">
                     * บางครั้งระบบดึงข้อมูลอัตโนมัติล่ม แต่เว็บไซต์หลักอาจจะยังเข้าใช้งานได้ตามปกติครับ
@@ -118,7 +120,6 @@
             document.getElementById('statusMsg').style.color = "#ff3b30";
             document.getElementById('errorDetail').innerText = "สาเหตุ: " + message;
             document.getElementById('errorDetail').style.display = "block";
-            // แสดงแผงปุ่มสำรอง
             document.getElementById('fallbackSection').style.display = "block";
         }
 

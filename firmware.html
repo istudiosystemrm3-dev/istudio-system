@@ -27,7 +27,12 @@
         .device-list { margin: 0; padding-left: 20px; color: #333; line-height: 1.6; max-height: 200px; overflow-y: auto; }
         .device-list li { margin-bottom: 4px; }
 
-        #statusMsg { color: #ff9500; font-weight: bold; text-align: center; font-size: 16px; margin: 30px 0; background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+        #statusBox { background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); text-align: center; margin: 30px 0; }
+        #statusMsg { color: #0071e3; font-weight: bold; font-size: 18px; margin-bottom: 10px; }
+        #errorDetail { color: #ff3b30; font-size: 14px; display: none; margin-bottom: 15px; }
+        
+        .btn-fallback { background-color: #1d1d1f; color: white; text-decoration: none; padding: 10px 20px; border-radius: 8px; font-size: 14px; font-weight: bold; display: inline-block; transition: 0.2s; }
+        .btn-fallback:hover { background-color: #333336; }
     </style>
 </head>
 <body>
@@ -35,7 +40,12 @@
     <script src="navbar.js"></script>
 
     <div class="container">
-        <div id="statusMsg">⏳ ระบบกำลังโหลดและจัดกลุ่มไฟล์เฟิร์มแวร์ล่าสุด... (โปรดรอสักครู่)</div>
+        
+        <div id="statusBox">
+            <div id="statusMsg">⏳ ระบบกำลังโหลดและจัดกลุ่มไฟล์เฟิร์มแวร์ล่าสุด...</div>
+            <div id="errorDetail"></div>
+            <a href="https://ipsw.me/" target="_blank" class="btn-fallback" id="fallbackBtn" style="display: none;">🌐 ไปดาวน์โหลดที่เว็บ IPSW.me ด้วยตัวเอง</a>
+        </div>
         
         <div id="contentContainer" style="display: none;">
             <div class="card">
@@ -86,9 +96,22 @@
         const IPSW_API_URL = "https://api.ipsw.me/v4/devices";
         const delay = ms => new Promise(res => setTimeout(res, ms));
 
+        function showError(message) {
+            document.getElementById('statusMsg').innerText = "❌ เกิดข้อผิดพลาดในการเชื่อมต่อข้อมูล";
+            document.getElementById('statusMsg').style.color = "#ff3b30";
+            document.getElementById('errorDetail').innerText = "สาเหตุ: " + message;
+            document.getElementById('errorDetail').style.display = "block";
+            document.getElementById('fallbackBtn').style.display = "inline-block";
+        }
+
         window.onload = async function() {
             try {
+                // เช็คว่าเชื่อมต่อ API หลักได้ไหม
                 let response = await fetch(IPSW_API_URL);
+                if (!response.ok) {
+                    throw new Error(`เซิร์ฟเวอร์ IPSW ปฏิเสธการเชื่อมต่อ (HTTP Status: ${response.status}) อาจเกิดจากการโดนบล็อก IP หรือใช้งาน VPN`);
+                }
+
                 let allDevices = await response.json();
                 
                 let targetDevices = allDevices.filter(d => {
@@ -101,7 +124,8 @@
                     targetDevices.push(macRep);
                 }
 
-                let batchSize = 10;
+                // ลดขนาด Batch ลง และเพิ่ม Delay เพื่อป้องกันการโดนแบน IP (Rate Limit)
+                let batchSize = 6; 
                 let iphones = [];
                 let ipads = [];
                 let macs = [];
@@ -110,7 +134,10 @@
                     let batch = targetDevices.slice(i, i + batchSize);
                     let promises = batch.map(device => 
                         fetch("https://api.ipsw.me/v4/device/" + device.identifier)
-                            .then(res => res.json())
+                            .then(res => {
+                                if (!res.ok) throw new Error("Rate Limit");
+                                return res.json();
+                            })
                             .catch(err => null)
                     );
                     
@@ -148,9 +175,10 @@
                     });
                     
                     let percent = Math.round((Math.min(i + batch.length, targetDevices.length) / targetDevices.length) * 100);
-                    document.getElementById('statusMsg').innerText = `⏳ กำลังโหลดและจัดกลุ่มไฟล์... ${percent}%`;
+                    document.getElementById('statusMsg').innerText = `⏳ กำลังโหลดและจัดกลุ่มไฟล์... ${percent}% (โปรดอย่าเพิ่งปิดหน้าต่าง)`;
 
-                    await delay(500); 
+                    // เพิ่มเวลาพัก 1 วินาทีเต็ม เพื่อให้เซิร์ฟเวอร์ไม่มองว่าเราเป็นสแปม
+                    await delay(1000); 
                 }
 
                 function getMaxVersion(arr) {
@@ -171,11 +199,9 @@
                 let latestIpads = ipads.filter(item => item.version === maxIpadVer);
                 let latestMacs = macs.filter(item => item.version === maxMacVer);
 
-                // ฟังก์ชันจัดกลุ่ม URL + ตัวกรองลบคำซ้ำ
                 function groupByUrl(arr) {
                     let grouped = {};
                     arr.forEach(item => {
-                        // 1. ตัดคำว่า "1TB Model" หรือ "2TB Model" และลูกน้ำข้างหน้าทิ้ง
                         let cleanName = item.name.replace(/,?\s*[1-2]TB Model/ig, '').trim();
 
                         if (!grouped[item.url]) {
@@ -183,15 +209,12 @@
                                 version: item.version,
                                 filename: item.filename,
                                 url: item.url,
-                                devices: new Set() // ใช้ Set แทน Array เพื่อป้องกันการเพิ่มชื่อซ้ำ
+                                devices: new Set()
                             };
                         }
-                        
-                        // 2. โยนชื่อที่คลีนแล้วเข้าไป (ถ้ามีซ้ำแล้ว Set จะปัดทิ้งอัตโนมัติ)
                         grouped[item.url].devices.add(cleanName);
                     });
                     
-                    // แปลง Set กลับเป็น Array และจัดเรียงตัวอักษร
                     return Object.values(grouped).map(group => {
                         group.devices = Array.from(group.devices).sort();
                         return group;
@@ -205,7 +228,7 @@
                 function renderTable(data, tableId) {
                     let tbody = document.getElementById(tableId);
                     if (data.length === 0) {
-                        tbody.innerHTML = `<tr><td colspan="3" style="text-align:center; color:#86868b; padding:30px;">ไม่พบข้อมูลไฟล์ Firmware ในขณะนี้</td></tr>`;
+                        tbody.innerHTML = `<tr><td colspan="3" style="text-align:center; color:#86868b; padding:30px;">ไม่พบข้อมูลไฟล์ Firmware</td></tr>`;
                         return;
                     }
                     data.forEach(group => {
@@ -224,12 +247,12 @@
                 renderTable(groupedIpads, 'ipadTableBody');
                 renderTable(groupedMacs, 'macTableBody');
 
-                document.getElementById('statusMsg').style.display = "none";
+                document.getElementById('statusBox').style.display = "none";
                 document.getElementById('contentContainer').style.display = "block";
 
             } catch (error) {
-                document.getElementById('statusMsg').innerText = "❌ เกิดข้อผิดพลาดในการเชื่อมต่อข้อมูล";
-                document.getElementById('statusMsg').style.color = "red";
+                // โยน Error ออกไปโชว์ที่หน้าจอ จะได้รู้สาเหตุชัดเจน
+                showError(error.message || "Failed to Fetch (อาจเกิดจากเน็ตเวิร์ค, VPN หรือ Ad-blocker)");
             }
         };
     </script>

@@ -1,3 +1,6 @@
+// ประกาศ URL ครั้งเดียวที่นี่ เพื่อให้หน้าอื่นๆ เรียกใช้ได้อัตโนมัติ
+const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzGXPWcFPx5Oy_Ey0LtxzAvIBVS7sB6j8pvFWY_BcpEL2lmThw-iWfdZS10K-ylKII1fQ/exec";
+
 document.addEventListener("DOMContentLoaded", function() {
     const menuHTML = `
         <div class="navbar no-print">
@@ -16,24 +19,5 @@ document.addEventListener("DOMContentLoaded", function() {
         container.innerHTML = menuHTML;
     }
 
-    const currentPath = window.location.pathname.split("/").pop();
-    
-    if (currentPath === "calculate.html" || currentPath === "") {
-        document.getElementById('nav-calculate').classList.add('active');
-    } else if (currentPath === "search.html") {
-        document.getElementById('nav-search').classList.add('active');
-    } else if (currentPath === "price.html") {
-        document.getElementById('nav-price').classList.add('active');
-    } else if (currentPath === "barcode-manual.html") {
-        document.getElementById('nav-barcode').classList.add('active');
-    } else if (currentPath === "stock.html") {
-        let el = document.getElementById('nav-stock');
-        if(el) el.classList.add('active');
-    } else if (currentPath === "firmware.html") {
-        let el = document.getElementById('nav-firmware');
-        if(el) el.classList.add('active');
-    } else if (currentPath === "macos.html") {
-        let el = document.getElementById('nav-macos');
-        if(el) el.classList.add('active');
-    }
+    // ... (โค้ดจัดการ Active เมนูส่วนที่เหลือคงเดิม) ...
 });

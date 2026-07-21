@@ -3,35 +3,28 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ดาวน์โหลด macOS & วิธีทำ Bootable USB - iServe</title>
+    <title>ดาวน์โหลด macOS & เครื่องมือช่าง - iServe</title>
+    
+    <!-- ดึงไฟล์ style.css ส่วนกลางมาใช้งาน -->
+    <link rel="stylesheet" href="style.css">
+    
     <style>
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; padding: 0; margin: 0; background-color: #f5f5f7; color: #1d1d1f; }
-        .navbar { background-color: #1d1d1f; padding: 15px 20px; text-align: center; }
-        .navbar a { color: #f5f5f7; text-decoration: none; padding: 10px 20px; margin: 0 5px; border-radius: 6px; font-size: 15px; font-weight: 500; transition: 0.3s; display: inline-block;}
-        .navbar a:hover { background-color: #333336; }
-        .navbar a.active { background-color: #0071e3; color: white; }
-        
-        .container { max-width: 1000px; margin: 40px auto; padding: 0 20px; }
-        .card { background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); margin-bottom: 30px; }
-        h2 { margin-top: 0; border-bottom: 2px solid #e5e5e7; padding-bottom: 10px; font-size: 22px; color: #1d1d1f; }
-        
-        table { width: 100%; border-collapse: collapse; font-size: 14px; margin-top: 15px; }
-        th, td { padding: 15px 12px; text-align: left; border-bottom: 1px solid #e5e5e7; }
-        th { background-color: #f9f9fa; color: #515154; font-weight: 600; }
-        tr:hover { background-color: #f4f4f5; }
-        
-        .btn-download { background-color: #0071e3; color: white; text-decoration: none; padding: 8px 12px; border-radius: 6px; font-size: 13px; font-weight: bold; display: inline-block; }
+        /* สไตล์เฉพาะของหน้า macOS */
+        .tool-card { display: flex; align-items: flex-start; gap: 20px; background: #f8fbff; border: 1px solid #c8e1fa; padding: 20px; border-radius: 12px; margin-bottom: 15px; }
+        .tool-icon { font-size: 40px; }
+        .tool-info h3 { margin: 0 0 5px 0; color: #0071e3; font-size: 18px; }
+        .tool-info p { margin: 0 0 15px 0; font-size: 14px; color: #515154; line-height: 1.5; }
+        .btn-download { background-color: #0071e3; color: white; text-decoration: none; padding: 10px 15px; border-radius: 6px; font-size: 13px; font-weight: bold; display: inline-block; transition: 0.2s; border: none; cursor: pointer; }
         .btn-download:hover { background-color: #005bb5; }
         
-        .terminal-box { background-color: #1e1e1e; color: #4af626; font-family: 'Courier New', Courier, monospace; padding: 15px; border-radius: 8px; font-size: 13px; overflow-x: auto; margin-top: 10px; position: relative; line-height: 1.5; }
-        .os-name { font-weight: bold; font-size: 16px; color: #1d1d1f; margin-bottom: 5px; }
-        .os-version { color: #86868b; font-size: 13px; }
-        
-        .instruction-step { margin-bottom: 15px; font-size: 15px; line-height: 1.6; }
+        .terminal-box { background-color: #1e1e1e; color: #4af626; font-family: 'Courier New', Courier, monospace; padding: 12px 15px; border-radius: 8px; font-size: 13px; overflow-x: auto; margin-top: 5px; line-height: 1.5; }
+        .step-box { background: white; padding: 15px; border-radius: 8px; border: 1px solid #e5e5e7; margin-bottom: 10px; font-size: 14px; line-height: 1.6; }
         .highlight { font-weight: bold; color: #e30000; }
         
-        .protip-box { background-color: #e8f2fc; border: 1px solid #c8e1fa; padding: 25px; border-radius: 12px; }
-        .protip-title { margin-top: 0; color: #0071e3; font-size: 18px; margin-bottom: 15px; display: flex; align-items: center; gap: 8px; }
+        @media (max-width: 768px) {
+            .tool-card { flex-direction: column; gap: 10px; }
+            .tool-icon { font-size: 30px; }
+        }
     </style>
 </head>
 <body>
@@ -39,173 +32,85 @@
     <script src="navbar.js"></script>
 
     <div class="container">
-        <div class="card">
-            <h2>🛠️ ขั้นตอนที่ 1: การเตรียม USB Flash Drive</h2>
-            <div class="instruction-step">
-                1. เสียบแฟลชไดรฟ์ขนาด <b>16GB ขึ้นไป</b> เข้ากับเครื่อง Mac (หากเป็นเวอร์ชันใหม่ๆ แนะนำ 32GB)<br>
-                2. เปิดแอป <b>Disk Utility</b><br>
-                3. เลือกแฟลชไดรฟ์ของคุณ แล้วกดปุ่ม <b>Erase (ลบ)</b><br>
-                4. ตั้งชื่อแฟลชไดรฟ์ว่า: <span class="highlight">MyVolume</span> <i>(สำคัญมาก ต้องพิมพ์ตัวพิมพ์ใหญ่-เล็กตามนี้)</i><br>
-                5. Format เลือกเป็น: <b>Mac OS Extended (Journaled)</b><br>
-                6. Scheme เลือกเป็น: <b>GUID Partition Map</b> (ถ้ามีให้เลือก)<br>
-                7. กด Erase แล้วรอจนเสร็จสิ้น
-            </div>
-        </div>
-
-        <div class="card">
-            <h2>💻 ขั้นตอนที่ 2: ดาวน์โหลดและสร้าง Bootable USB (ผ่าน Terminal)</h2>
-            <p style="color: #515154; font-size: 14px;">เมื่อโหลดไฟล์ติดตั้งเสร็จแล้ว ให้เปิดแอป <b>Terminal</b> ขึ้นมา ก๊อปปี้คำสั่งด้านล่างไปวาง กด Enter แล้วใส่รหัสผ่านเครื่อง Mac</p>
-            
-            <table>
-                <thead>
-                    <tr>
-                        <th width="25%">ระบบปฏิบัติการ (OS)</th>
-                        <th width="15%">ดาวน์โหลด</th>
-                        <th width="60%">คำสั่ง Terminal (สำหรับแฟลชไดรฟ์ชื่อ MyVolume)</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td>
-                            <div class="os-name">macOS Sequoia</div>
-                            <div class="os-version">เวอร์ชัน 15</div>
-                        </td>
-                        <td><a href="macappstore://apps.apple.com/th/app/macos-sequoia/id6479738484?mt=12" class="btn-download">App Store</a></td>
-                        <td><div class="terminal-box">sudo /Applications/Install\ macOS\ Sequoia.app/Contents/Resources/createinstallmedia --volume /Volumes/MyVolume</div></td>
-                    </tr>
-                    <tr>
-                        <td>
-                            <div class="os-name">macOS Sonoma</div>
-                            <div class="os-version">เวอร์ชัน 14</div>
-                        </td>
-                        <td><a href="macappstore://apps.apple.com/th/app/macos-sonoma/id6450717509?mt=12" class="btn-download">App Store</a></td>
-                        <td><div class="terminal-box">sudo /Applications/Install\ macOS\ Sonoma.app/Contents/Resources/createinstallmedia --volume /Volumes/MyVolume</div></td>
-                    </tr>
-                    <tr>
-                        <td>
-                            <div class="os-name">macOS Ventura</div>
-                            <div class="os-version">เวอร์ชัน 13</div>
-                        </td>
-                        <td><a href="macappstore://apps.apple.com/th/app/macos-ventura/id1638787999?mt=12" class="btn-download">App Store</a></td>
-                        <td><div class="terminal-box">sudo /Applications/Install\ macOS\ Ventura.app/Contents/Resources/createinstallmedia --volume /Volumes/MyVolume</div></td>
-                    </tr>
-                    <tr>
-                        <td>
-                            <div class="os-name">macOS Monterey</div>
-                            <div class="os-version">เวอร์ชัน 12</div>
-                        </td>
-                        <td><a href="macappstore://apps.apple.com/th/app/macos-monterey/id1576738294?mt=12" class="btn-download">App Store</a></td>
-                        <td><div class="terminal-box">sudo /Applications/Install\ macOS\ Monterey.app/Contents/Resources/createinstallmedia --volume /Volumes/MyVolume</div></td>
-                    </tr>
-                    <tr>
-                        <td>
-                            <div class="os-name">macOS Big Sur</div>
-                            <div class="os-version">เวอร์ชัน 11</div>
-                        </td>
-                        <td><a href="macappstore://apps.apple.com/th/app/macos-big-sur/id1526878132?mt=12" class="btn-download">App Store</a></td>
-                        <td><div class="terminal-box">sudo /Applications/Install\ macOS\ Big\ Sur.app/Contents/Resources/createinstallmedia --volume /Volumes/MyVolume</div></td>
-                    </tr>
-                    <tr>
-                        <td>
-                            <div class="os-name">macOS Catalina</div>
-                            <div class="os-version">เวอร์ชัน 10.15</div>
-                        </td>
-                        <td><a href="macappstore://apps.apple.com/th/app/macos-catalina/id1466841314?mt=12" class="btn-download">App Store</a></td>
-                        <td><div class="terminal-box">sudo /Applications/Install\ macOS\ Catalina.app/Contents/Resources/createinstallmedia --volume /Volumes/MyVolume</div></td>
-                    </tr>
-                    <tr>
-                        <td>
-                            <div class="os-name">macOS Mojave</div>
-                            <div class="os-version">เวอร์ชัน 10.14</div>
-                        </td>
-                        <td><a href="macappstore://apps.apple.com/th/app/macos-mojave/id1398502828?mt=12" class="btn-download">App Store</a></td>
-                        <td><div class="terminal-box">sudo /Applications/Install\ macOS\ Mojave.app/Contents/Resources/createinstallmedia --volume /Volumes/MyVolume</div></td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
         
-        <div class="protip-box">
-            <h3 class="protip-title">💡 ทริคสำหรับช่าง (ดาวน์โหลดตัวเต็มผ่าน Terminal แบบด่วน)</h3>
-            <p style="font-size: 14px; line-height: 1.6; color: #1d1d1f; margin-bottom: 15px;">
-                หากเปิดหน้าเว็บนี้บนเครื่อง Mac รุ่นใหม่ๆ แล้วกดโหลดจาก App Store ไม่ได้ ระบบได้ทำการดึงเลขเวอร์ชัน <b>macOS ล่าสุดที่ Apple เปิดให้โหลดแบบ Real-time (คัดเฉพาะตัวล่าสุดของแต่ละรุ่น)</b> มาสร้างเป็นคำสั่งให้คุณแล้วครับ ก๊อปปี้ไปวางใน Terminal ได้เลย:
+        <div class="card">
+            <h2>🛠️ เครื่องมือสำหรับช่าง (โหลด macOS & สร้าง USB ในตัว)</h2>
+            <p style="font-size: 14px; color: #515154; margin-bottom: 20px;">
+                แก้ปัญหา Mac รุ่นใหม่ไม่ยอมให้โหลด macOS รุ่นเก่า! แอปเหล่านี้จะดึงไฟล์ตรงจากเซิร์ฟเวอร์ Apple และช่วยสร้าง Bootable USB (แฟลชไดรฟ์ล้างเครื่อง) ให้ในคลิกเดียว
             </p>
-            
-            <div id="dynamic-versions" style="background: white; padding: 20px; border-radius: 8px; border: 1px dashed #a1c6ea;">
-                <span style="color: #ff9500; font-weight: bold; font-size: 14px;">⏳ ระบบกำลังสแกนหาเลขเวอร์ชันล่าสุดจากเซิร์ฟเวอร์ Apple...</span>
+
+            <div class="tool-card">
+                <div class="tool-icon">🌟</div>
+                <div class="tool-info">
+                    <h3>Mist (Mac OS Installer Super Tool) - แนะนำ!</h3>
+                    <p>แอป Open Source ยอดฮิตของช่าง Mac ทั่วโลก โหลด OS ได้ทุกเวอร์ชัน เลือกได้ว่าจะโหลดเป็น .app, .iso หรือ <b>สั่งทำ Bootable USB ลงแฟลชไดรฟ์ได้จากในแอปเลย</b> (คอมพิวเตอร์ที่ใช้รันโปรแกรมนี้ต้องเป็น macOS 12 Monterey ขึ้นไป)</p>
+                    <a href="https://github.com/ninxsoft/Mist/releases/latest" target="_blank" class="btn-download">⬇️ ดาวน์โหลด Mist (GitHub)</a>
+                </div>
             </div>
 
-            <p style="font-size: 13px; color: #86868b; margin-top: 15px; margin-bottom: 0;">
-                <i>* เมื่อโหลดเสร็จแล้ว ไฟล์ตัวติดตั้งจะไปอยู่ในโฟลเดอร์ Applications ให้อัตโนมัติ สามารถนำคำสั่งสร้าง Bootable USB ด้านบนไปใช้ต่อได้เลยครับ</i>
-            </p>
+            <div class="tool-card">
+                <div class="tool-icon">🍏</div>
+                <div class="tool-info">
+                    <h3>ANYmacOS</h3>
+                    <p>โปรแกรมทางเลือกที่ใช้งานง่าย หน้าตาคลีน ดึงไฟล์จาก Apple โดยตรง และมีฟีเจอร์ Create Bootable USB ให้ในตัวเช่นกัน เป็นตัวสำรองที่ดีหาก Mist มีปัญหา</p>
+                    <a href="https://www.sl-soft.de/en/anymacos/" target="_blank" class="btn-download" style="background-color: #34c759;">⬇️ ดาวน์โหลด ANYmacOS</a>
+                </div>
+            </div>
         </div>
-        <br><br>
+
+        <div class="card">
+            <h2>📥 แหล่งโหลดไฟล์ติดตั้งโดยตรง (InstallAssistant.pkg)</h2>
+            <p style="font-size: 14px; color: #515154; margin-bottom: 15px;">
+                หากคุณไม่ต้องการใช้แอปช่วยโหลด คุณสามารถโหลดไฟล์ติดตั้งของ Apple (ไฟล์ .pkg) ได้จากเว็บที่ช่างทั่วโลกไว้วางใจ ซึ่งรวบรวม Direct Link แท้จากเซิร์ฟเวอร์ Apple ไว้ครบทุกเวอร์ชัน
+            </p>
+            
+            <div style="background-color: #fff9e6; border: 1px dashed #ffcc00; padding: 15px; border-radius: 8px; margin-bottom: 20px; font-size: 14px; color: #1d1d1f;">
+                <b>💡 วิธีใช้งาน:</b> <br>
+                1. เข้าเว็บไปโหลดไฟล์ .pkg ของเวอร์ชันที่ต้องการ<br>
+                2. ดับเบิลคลิกติดตั้งไฟล์ .pkg <br>
+                3. ระบบจะแตกไฟล์ตัวติดตั้งสีเหลี่ยมๆ (เช่น <i>Install macOS Sonoma.app</i>) ไปวางไว้ในโฟลเดอร์ <b>Applications (แอปพลิเคชัน)</b> ให้ทันที<br>
+                4. นำตัวติดตั้งนั้นไปสร้าง Bootable USB ต่อได้เลย
+            </div>
+            
+            <a href="https://mrmacintosh.com/" target="_blank" class="btn-download" style="background-color: #ff9500;">🌐 เปิดเว็บไซต์ Mr. Macintosh</a>
+        </div>
+
+        <div class="card">
+            <h2>💻 วิธีทำ Bootable USB ผ่าน Terminal (เผื่อฉุกเฉิน)</h2>
+            <p style="font-size: 14px; color: #515154; margin-bottom: 15px;">
+                หากคุณโหลดไฟล์ .pkg มาติดตั้งจนได้ไฟล์ .app อยู่ในโฟลเดอร์ Applications แล้ว และต้องการสั่งทำ USB ด้วยตัวเอง ให้ทำตามขั้นตอนนี้ครับ:
+            </p>
+            
+            <div class="step-box">
+                <b>1. เตรียมแฟลชไดรฟ์</b><br>
+                เสียบแฟลชไดรฟ์ขนาด 16GB ขึ้นไป เปิดแอป <i>Disk Utility</i> เลือกแฟลชไดรฟ์แล้วกด Erase ให้ตั้งชื่อว่า <span class="highlight">MyVolume</span> (ตัวพิมพ์ใหญ่-เล็กต้องเป๊ะ) <br>
+                เลือก Format: <i>Mac OS Extended (Journaled)</i> และ Scheme: <i>GUID Partition Map</i>
+            </div>
+            
+            <div class="step-box">
+                <b>2. เปิดแอป Terminal แล้วก๊อปปี้คำสั่งไปวาง</b>
+                
+                <div style="margin-top: 15px;">
+                    <span style="font-size: 13px; font-weight: bold; color: #1d1d1f;">macOS Sequoia (15)</span>
+                    <div class="terminal-box">sudo /Applications/Install\ macOS\ Sequoia.app/Contents/Resources/createinstallmedia --volume /Volumes/MyVolume</div>
+                </div>
+
+                <div style="margin-top: 15px;">
+                    <span style="font-size: 13px; font-weight: bold; color: #1d1d1f;">macOS Sonoma (14)</span>
+                    <div class="terminal-box">sudo /Applications/Install\ macOS\ Sonoma.app/Contents/Resources/createinstallmedia --volume /Volumes/MyVolume</div>
+                </div>
+                
+                <div style="margin-top: 15px;">
+                    <span style="font-size: 13px; font-weight: bold; color: #1d1d1f;">macOS Ventura (13)</span>
+                    <div class="terminal-box">sudo /Applications/Install\ macOS\ Ventura.app/Contents/Resources/createinstallmedia --volume /Volumes/MyVolume</div>
+                </div>
+
+                <div style="margin-top: 15px;">
+                    <span style="font-size: 13px; font-weight: bold; color: #1d1d1f;">macOS Monterey (12)</span>
+                    <div class="terminal-box">sudo /Applications/Install\ macOS\ Monterey.app/Contents/Resources/createinstallmedia --volume /Volumes/MyVolume</div>
+                </div>
+            </div>
+        </div>
     </div>
-
-    <script>
-        window.addEventListener('DOMContentLoaded', () => {
-            fetchLatestMacVersions();
-        });
-
-        async function fetchLatestMacVersions() {
-            try {
-                // ดึงข้อมูลตัวแทนของ Mac เพื่อให้ครอบคลุม OS ปัจจุบันทั้งหมด
-                const macReps = ["Macmini9,1", "Mac14,3", "Mac15,3"];
-                let allVersions = new Set();
-
-                for (let id of macReps) {
-                    let response = await fetch("https://api.ipsw.me/v4/device/" + id);
-                    if (response.ok) {
-                        let data = await response.json();
-                        if (data.firmwares) {
-                            data.firmwares.forEach(fw => {
-                                if (fw.signed) allVersions.add(fw.version);
-                            });
-                        }
-                    }
-                }
-
-                // ระบบกรองเอาเฉพาะ "เวอร์ชันสูงสุด" ของแต่ละ Major Version (เช่น 14, 13, 12)
-                let latestPerMajor = {};
-                
-                allVersions.forEach(v => {
-                    // ตัดเลขชุดแรกมาเป็นกลุ่ม (เช่น 14.5 -> กลุ่ม 14)
-                    let major = v.split('.')[0]; 
-                    
-                    if (!latestPerMajor[major]) {
-                        latestPerMajor[major] = v;
-                    } else {
-                        // ถ้าเจอเวอร์ชันในกลุ่มเดียวกัน ให้เทียบว่าอันไหนใหม่กว่า
-                        if (v.localeCompare(latestPerMajor[major], undefined, { numeric: true, sensitivity: 'base' }) > 0) {
-                            latestPerMajor[major] = v;
-                        }
-                    }
-                });
-
-                // แปลงผลลัพธ์ที่กรองแล้วมาเรียงจากเวอร์ชันใหม่สุดไปเก่าสุด
-                let versionArray = Object.values(latestPerMajor).sort((a, b) => b.localeCompare(a, undefined, { numeric: true, sensitivity: 'base' }));
-                let container = document.getElementById('dynamic-versions');
-                
-                if (versionArray.length > 0) {
-                    let html = '';
-                    versionArray.forEach(v => {
-                        html += `
-                        <div style="margin-bottom: 12px;">
-                            <span style="font-size: 14px; color: #1d1d1f; font-weight: bold;">macOS ${v}</span>
-                            <div class="terminal-box" style="background-color: #000; margin-top: 5px; padding: 12px 15px; border-left: 4px solid #34c759;">
-                                softwareupdate --fetch-full-installer --full-installer-version ${v}
-                            </div>
-                        </div>`;
-                    });
-                    container.innerHTML = html;
-                } else {
-                    container.innerHTML = `<span style="color: #ff3b30;">ไม่พบข้อมูลเวอร์ชันล่าสุด กรุณาเช็คผ่านคำสั่ง softwareupdate --list-full-installers ครับ</span>`;
-                }
-
-            } catch (e) {
-                document.getElementById('dynamic-versions').innerHTML = `<span style="color: #ff3b30;">การเชื่อมต่อเซิร์ฟเวอร์ขัดข้อง กรุณาเช็คผ่านคำสั่ง softwareupdate --list-full-installers ด้วยตัวเองครับ</span>`;
-            }
-        }
-    </script>
 </body>
 </html>

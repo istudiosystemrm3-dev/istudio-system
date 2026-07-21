@@ -4,16 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ค้นหารุ่นอุปกรณ์ - ระบบออนไลน์</title>
+    
+    <!-- ดึงไฟล์ style.css ส่วนกลางมาใช้งาน -->
+    <link rel="stylesheet" href="style.css">
+    
     <style>
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; padding: 0; margin: 0; background-color: #f5f5f7; color: #1d1d1f; }
-        .navbar { background-color: #1d1d1f; padding: 15px 20px; text-align: center; }
-        .navbar a { color: #f5f5f7; text-decoration: none; padding: 10px 20px; margin: 0 5px; border-radius: 6px; font-size: 15px; font-weight: 500; transition: 0.3s; }
-        .navbar a:hover { background-color: #333336; }
-        .navbar a.active { background-color: #0071e3; color: white; }
-        .container { max-width: 1200px; margin: 40px auto; display: grid; grid-template-columns: 1fr 2.5fr; gap: 20px; }
+        /* สไตล์เฉพาะของหน้าค้นหารุ่น */
+        .container { max-width: 1200px; display: grid; grid-template-columns: 1fr 2.5fr; gap: 20px; }
         @media (max-width: 768px) { .container { grid-template-columns: 1fr; } }
-        .card { background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
-        h2 { margin-top: 0; border-bottom: 1px solid #e5e5e7; padding-bottom: 10px; font-size: 18px; margin-bottom: 15px; }
         
         .search-panel { background: #e8f2fc; padding: 15px; border-radius: 8px; margin-bottom: 15px; border: 1px solid #c8e1fa; display: flex; flex-wrap: wrap; gap: 15px; align-items: flex-end; }
         .search-group { flex: 1; min-width: 150px; }
@@ -21,14 +19,11 @@
         .search-group input, .search-group select { width: 100%; padding: 10px; border: 1px solid #d2d2d7; border-radius: 6px; font-size: 14px; outline: none; box-sizing: border-box; }
         .search-group input:focus, .search-group select:focus { border-color: #0071e3; }
         
-        table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 13px; }
-        th, td { padding: 12px 10px; text-align: left; border-bottom: 1px solid #e5e5e7; }
-        th { background-color: #f5f5f7; color: #515154; font-weight: 600; }
-        tr:hover { background-color: #f9f9fa; }
         .table-container { overflow-x: auto; max-height: 650px; overflow-y: auto; border: 1px solid #e5e5e7; border-radius: 6px; }
         thead th { position: sticky; top: 0; z-index: 1; box-shadow: 0 1px 2px rgba(0,0,0,0.1); }
         .info-box { background-color: #f5f5f7; padding: 15px; border-radius: 8px; border: 1px solid #d2d2d7; margin-top: 15px; }
         .info-box p { margin: 0; font-size: 13px; color: #515154; line-height: 1.5; }
+        
         .status-badge { display: inline-block; padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: bold; background-color: #ff9500; color: white; }
         .status-connected { background-color: #34c759; }
         .badge-main { display: inline-block; background-color: #e6f0fa; color: #0071e3; padding: 4px 8px; border-radius: 4px; font-size: 11px; font-weight: bold; }
@@ -43,8 +38,17 @@
         <div class="card">
             <h2>☁️ สถานะฐานข้อมูลออนไลน์</h2>
             <div style="margin-bottom: 15px;">
-                สถานะระบบ: <span id="syncStatus" class="status-badge">กำลังเชื่อมต่อ...</span>
+                สถานะระบบ: <span id="syncStatus" class="status-badge">กำลังเตรียมข้อมูล...</span>
             </div>
+            
+            <div style="display: flex; justify-content: space-between; align-items: center; background: #f5f5f7; padding: 12px 15px; border-radius: 8px; border: 1px solid #d2d2d7; margin-bottom: 15px;">
+                <div style="font-size: 13px; color: #515154;">
+                    <strong>🕒 ข้อมูลอัปเดตเมื่อ:</strong> <span id="lastUpdateText" style="color: #0071e3; font-weight: bold;">-</span><br>
+                    <span style="font-size: 11px; color: #86868b;">(ระบบเก็บข้อมูลไว้ในเครื่องเพื่อความเร็ว จะดึงใหม่อัตโนมัติวันละ 1 ครั้ง)</span>
+                </div>
+                <button onclick="forceRefresh()" style="background: #1d1d1f; color: white; border: none; padding: 8px 12px; border-radius: 6px; font-size: 12px; font-weight: bold; cursor: pointer; transition: 0.2s;">🔄 รีเฟรชข้อมูลใหม่</button>
+            </div>
+
             <div class="info-box">
                 <p>
                     💡 <strong>การจัดการข้อมูลพาร์ท/รุ่น:</strong><br>
@@ -53,6 +57,7 @@
                 </p>
             </div>
         </div>
+        
         <div class="card">
             <h2>🔍 ค้นหารุ่นอุปกรณ์ (<span id="totalCount">0</span>)</h2>
             
@@ -94,29 +99,74 @@
     </div>
 
     <script>
-        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzGXPWcFPx5Oy_Ey0LtxzAvIBVS7sB6j8pvFWY_BcpEL2lmThw-iWfdZS10K-ylKII1fQ/exec";
+        const CACHE_KEY_MODELS = 'iserve_models_data';
+        const CACHE_TIME_KEY_MODELS = 'iserve_models_time';
+        const CACHE_DURATION_MODELS = 24 * 60 * 60 * 1000; // 24 ชั่วโมง
+
         let modelsDatabase = [];
 
         window.onload = function() {
-            loadOnlineData();
+            loadOnlineData(false);
         };
 
-        function loadOnlineData() {
+        function processData(data) {
+            modelsDatabase = data;
+            
+            let statusEl = document.getElementById('syncStatus');
+            statusEl.innerText = "พร้อมใช้งาน (มีข้อมูลแล้ว)";
+            statusEl.className = "status-badge status-connected";
+            
+            let cacheTime = localStorage.getItem(CACHE_TIME_KEY_MODELS);
+            if (cacheTime) {
+                let d = new Date(parseInt(cacheTime));
+                document.getElementById('lastUpdateText').innerText = d.toLocaleString('th-TH');
+            }
+
+            setupMainDropdown();
+            renderTable(modelsDatabase);
+        }
+
+        function loadOnlineData(forceUpdate = false) {
+            if (!forceUpdate) {
+                let cachedData = localStorage.getItem(CACHE_KEY_MODELS);
+                let cacheTime = localStorage.getItem(CACHE_TIME_KEY_MODELS);
+                let now = new Date().getTime();
+
+                if (cachedData && cacheTime && (now - cacheTime < CACHE_DURATION_MODELS)) {
+                    try {
+                        let parsedData = JSON.parse(cachedData);
+                        processData(parsedData);
+                        return;
+                    } catch (e) {
+                        console.log("Cache มีปัญหา กำลังดึงข้อมูลใหม่...");
+                    }
+                }
+            }
+
+            let statusEl = document.getElementById('syncStatus');
+            statusEl.innerText = "กำลังดาวน์โหลดข้อมูลรุ่นใหม่...";
+            statusEl.className = "status-badge";
+            statusEl.style.backgroundColor = "#ff9500";
+            document.getElementById('dataTableBody').innerHTML = `<tr><td colspan="4" style="text-align: center; padding: 30px; color: #0071e3; font-weight: bold;">กำลังดึงข้อมูลล่าสุดจากระบบ...</td></tr>`;
+
             fetch(WEB_APP_URL + "?action=getModels")
                 .then(response => response.json())
                 .then(data => {
-                    modelsDatabase = data;
-                    document.getElementById('syncStatus').innerText = "เชื่อมต่อคลาวด์สำเร็จ";
-                    document.getElementById('syncStatus').classList.add('status-connected');
-                    
-                    setupMainDropdown();
-                    renderTable(modelsDatabase);
+                    localStorage.setItem(CACHE_KEY_MODELS, JSON.stringify(data));
+                    localStorage.setItem(CACHE_TIME_KEY_MODELS, new Date().getTime().toString());
+                    processData(data);
                 })
                 .catch(error => {
-                    document.getElementById('syncStatus').innerText = "การเชื่อมต่อผิดพลาด";
-                    document.getElementById('syncStatus').style.backgroundColor = "#ff3b30";
+                    statusEl.innerText = "เชื่อมต่อล้มเหลว (ลองกดรีเฟรชใหม่)";
+                    statusEl.style.backgroundColor = "#ff3b30";
                     document.getElementById('dataTableBody').innerHTML = `<tr><td colspan="4" style="text-align: center; color: #ff3b30; padding: 30px;">ไม่สามารถโหลดข้อมูลได้</td></tr>`;
                 });
+        }
+
+        function forceRefresh() {
+            localStorage.removeItem(CACHE_KEY_MODELS);
+            localStorage.removeItem(CACHE_TIME_KEY_MODELS);
+            loadOnlineData(true);
         }
 
         // จัดการ Dropdown หมวดหมู่หลักอย่างเดียวตอนโหลดเว็บ
@@ -124,24 +174,29 @@
             let mainCats = [...new Set(modelsDatabase.map(item => String(item.mainCat || "ไม่ได้ระบุ").trim()))];
             mainCats = mainCats.filter(t => t !== "").sort();
             
+            let mainSelect = document.getElementById('mainCatFilter');
+            let currentMainVal = mainSelect.value;
+            
             let mainHTML = `<option value="ALL">-- หมวดหมู่หลักทั้งหมด --</option>`;
             mainCats.forEach(t => mainHTML += `<option value="${t}">${t}</option>`);
-            document.getElementById('mainCatFilter').innerHTML = mainHTML;
+            mainSelect.innerHTML = mainHTML;
+            
+            if(mainCats.includes(currentMainVal)) {
+                mainSelect.value = currentMainVal;
+            }
 
             // เรียกให้ไปอัปเดตหมวดหมู่ย่อยครั้งแรกด้วย
             updateSubCategoryDropdown();
         }
 
-        // ฟังก์ชันใหม่: กรองหมวดหมู่ย่อยให้สัมพันธ์กับหมวดหมู่หลัก
+        // กรองหมวดหมู่ย่อยให้สัมพันธ์กับหมวดหมู่หลัก
         function updateSubCategoryDropdown() {
             let selectedMain = document.getElementById('mainCatFilter').value;
             let availableSubCats = [];
 
             if (selectedMain === "ALL") {
-                // ถ้าหมวดหลักเป็น ALL ให้ดึงหมวดหมู่ย่อยทั้งหมดมาแสดง
                 availableSubCats = [...new Set(modelsDatabase.map(item => String(item.subCat || "ไม่ได้ระบุ").trim()))];
             } else {
-                // ถ้าเจาะจงหมวดหลัก (เช่น iPhone) ให้ดึงเฉพาะหมวดหมู่ย่อยที่อยู่ใน iPhone
                 let filteredModels = modelsDatabase.filter(item => String(item.mainCat || "ไม่ได้ระบุ").trim() === selectedMain);
                 availableSubCats = [...new Set(filteredModels.map(item => String(item.subCat || "ไม่ได้ระบุ").trim()))];
             }
@@ -149,13 +204,12 @@
             availableSubCats = availableSubCats.filter(t => t !== "").sort();
 
             let subSelect = document.getElementById('subCatFilter');
-            let currentSubVal = subSelect.value; // เก็บค่าเดิมที่ลูกค้าอาจจะเลือกค้างไว้
+            let currentSubVal = subSelect.value; 
 
             let subHTML = `<option value="ALL">-- หมวดหมู่ย่อยทั้งหมด --</option>`;
             availableSubCats.forEach(t => subHTML += `<option value="${t}">${t}</option>`);
             subSelect.innerHTML = subHTML;
 
-            // ตรวจสอบว่าถ้าค่าเดิมที่เลือกไว้ยังมีให้เลือกอยู่ ก็คงไว้ ถ้าไม่มีให้รีเซ็ตกลับเป็น ALL
             if (availableSubCats.includes(currentSubVal)) {
                 subSelect.value = currentSubVal;
             } else {
@@ -165,8 +219,8 @@
 
         // เมื่อหมวดหมู่หลักถูกเปลี่ยน จะทำ 2 อย่างพร้อมกัน
         function onMainCatChange() {
-            updateSubCategoryDropdown(); // 1. เปลี่ยนตัวเลือกลิสต์ในหมวดหมู่ย่อย
-            filterTable();               // 2. จัดเรียงตารางใหม่
+            updateSubCategoryDropdown(); 
+            filterTable();               
         }
 
         function renderTable(dataArray) {
@@ -198,15 +252,12 @@
             let selectedSub = document.getElementById('subCatFilter').value;
             
             let filteredData = modelsDatabase.filter(item => {
-                // 1. ตรวจสอบหมวดหมู่หลัก
                 let itemMain = String(item.mainCat || "ไม่ได้ระบุ").trim();
                 if (selectedMain !== "ALL" && itemMain !== selectedMain) return false;
 
-                // 2. ตรวจสอบหมวดหมู่ย่อย
                 let itemSub = String(item.subCat || "ไม่ได้ระบุ").trim();
                 if (selectedSub !== "ALL" && itemSub !== selectedSub) return false;
 
-                // 3. ตรวจสอบคำค้นหา
                 if (keywordsArray.length > 0) {
                     let lowerName = String(item.name || "").toLowerCase();
                     let lowerPart = String(item.partNo || "").toLowerCase();

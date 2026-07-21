@@ -38,7 +38,7 @@
     <div class="container">
         
         <div id="statusBox">
-            <div id="statusMsg">⏳ ระบบกำลังโหลดและจัดกลุ่มไฟล์เฟิร์มแวร์ล่าสุด...</div>
+            <div id="statusMsg">⏳ ระบบกำลังดึงข้อมูลเฟิร์มแวร์จากเซิร์ฟเวอร์... (ประมาณ 10-20 วิ)</div>
             <div id="errorDetail"></div>
             
             <div id="fallbackSection" class="fallback-section">
@@ -57,13 +57,23 @@
         </div>
         
         <div id="contentContainer" style="display: none;">
+            
+            <!-- เพิ่มส่วนควบคุม Caching ด้านบน -->
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; background: white; padding: 15px 25px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05);">
+                <div style="font-size: 14px; color: #515154;">
+                    <strong>🕒 ข้อมูลอัปเดตเมื่อ:</strong> <span id="lastUpdateText" style="color: #0071e3; font-weight: bold;">-</span><br>
+                    <span style="font-size: 12px; color: #86868b;">(ระบบโหลดข้อมูลเก็บไว้เพื่อความรวดเร็ว จะดึงใหม่อัตโนมัติวันละ 1 ครั้ง)</span>
+                </div>
+                <button onclick="forceRefresh()" style="background: #1d1d1f; color: white; border: none; padding: 10px 15px; border-radius: 6px; font-size: 13px; font-weight: bold; cursor: pointer; transition: 0.2s;">🔄 รีเฟรชข้อมูลใหม่</button>
+            </div>
+
             <div class="card">
                 <h2>📱 iPhone (เวอร์ชันล่าสุด)</h2>
                 <table>
                     <thead>
                         <tr>
                             <th width="15%">เวอร์ชัน</th>
-                            <th width="40%">รุ่นที่รองรับ (ใช้ไฟล์ร่วมกัน)</th>
+                            <th width="40%">รุ่นที่รองรับ (เรียงตามรุ่นล่าสุด)</th>
                             <th width="45%">ลิงก์ดาวน์โหลด (IPSW)</th>
                         </tr>
                     </thead>
@@ -77,7 +87,7 @@
                     <thead>
                         <tr>
                             <th width="15%">เวอร์ชัน</th>
-                            <th width="40%">รุ่นที่รองรับ (ใช้ไฟล์ร่วมกัน)</th>
+                            <th width="40%">รุ่นที่รองรับ (เรียงตามรุ่นล่าสุด)</th>
                             <th width="45%">ลิงก์ดาวน์โหลด (IPSW)</th>
                         </tr>
                     </thead>
@@ -104,6 +114,11 @@
     <script>
         const IPSW_API_URL = "https://api.ipsw.me/v4/devices";
         const delay = ms => new Promise(res => setTimeout(res, ms));
+        
+        // กำหนด Key สำหรับ Caching
+        const CACHE_KEY = 'iserve_firmware_data';
+        const CACHE_TIME_KEY = 'iserve_firmware_time';
+        const CACHE_DURATION = 24 * 60 * 60 * 1000; // 24 ชั่วโมง
 
         function showError(message) {
             document.getElementById('statusMsg').innerText = "❌ เกิดข้อผิดพลาดในการเชื่อมต่อข้อมูลอัตโนมัติ";
@@ -113,7 +128,69 @@
             document.getElementById('fallbackSection').style.display = "block";
         }
 
-        window.onload = async function() {
+        // ฟังก์ชันวาดตารางและแสดงผลหน้าจอหลัก
+        function renderAllTables(data) {
+            renderTable(data.iphones, 'iphoneTableBody');
+            renderTable(data.ipads, 'ipadTableBody');
+            renderTable(data.macs, 'macTableBody');
+            
+            // แสดงเวลาที่อัปเดตล่าสุด
+            let cacheTime = localStorage.getItem(CACHE_TIME_KEY);
+            if (cacheTime) {
+                let d = new Date(parseInt(cacheTime));
+                document.getElementById('lastUpdateText').innerText = d.toLocaleString('th-TH');
+            }
+
+            document.getElementById('statusBox').style.display = "none";
+            document.getElementById('contentContainer').style.display = "block";
+        }
+
+        // ฟังก์ชันวาดตารางย่อย
+        function renderTable(data, tableId) {
+            let tbody = document.getElementById(tableId);
+            tbody.innerHTML = "";
+            if (data.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="3" style="text-align:center; color:#86868b; padding:30px;">ไม่พบข้อมูลไฟล์ Firmware</td></tr>`;
+                return;
+            }
+            data.forEach(group => {
+                let devicesHTML = `<ul class="device-list">` + group.devices.map(d => `<li>${d}</li>`).join('') + `</ul>`;
+                let tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td><span class="version-badge">${group.version}</span></td>
+                    <td>${devicesHTML}</td>
+                    <td><a href="${group.url}" class="fw-link" target="_blank">${group.filename}</a></td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        async function loadFirmwareData(forceUpdate = false) {
+            // 1. ตรวจสอบ Cache ก่อนว่ามีข้อมูลและยังไม่หมดอายุ (24 ชม.)
+            if (!forceUpdate) {
+                let cachedData = localStorage.getItem(CACHE_KEY);
+                let cacheTime = localStorage.getItem(CACHE_TIME_KEY);
+                let now = new Date().getTime();
+
+                if (cachedData && cacheTime && (now - cacheTime < CACHE_DURATION)) {
+                    try {
+                        let parsedData = JSON.parse(cachedData);
+                        renderAllTables(parsedData);
+                        return; // จบการทำงาน ไม่ต้องโหลด API ใหม่
+                    } catch (e) {
+                        console.log("Cache มีปัญหา ทำการโหลดข้อมูลใหม่");
+                    }
+                }
+            }
+
+            // แสดงหน้าจอ Loading
+            document.getElementById('statusBox').style.display = "block";
+            document.getElementById('contentContainer').style.display = "none";
+            document.getElementById('statusMsg').innerText = "⏳ ระบบกำลังโหลดและจัดกลุ่มไฟล์เฟิร์มแวร์ล่าสุด... (ประมาณ 10-20 วิ)";
+            document.getElementById('statusMsg').style.color = "#0071e3";
+            document.getElementById('errorDetail').style.display = "none";
+            document.getElementById('fallbackSection').style.display = "none";
+
             try {
                 let response = await fetch(IPSW_API_URL);
                 if (!response.ok) {
@@ -121,16 +198,13 @@
                 }
 
                 let allDevices = await response.json();
-                
                 let targetDevices = allDevices.filter(d => {
                     let idLower = d.identifier.toLowerCase();
                     return idLower.includes("iphone") || idLower.includes("ipad");
                 });
 
                 let macRep = allDevices.find(d => d.identifier === "Mac14,2") || allDevices.find(d => d.identifier.toLowerCase().includes("mac"));
-                if (macRep) {
-                    targetDevices.push(macRep);
-                }
+                if (macRep) targetDevices.push(macRep);
 
                 let batchSize = 6; 
                 let iphones = [];
@@ -183,7 +257,6 @@
                     
                     let percent = Math.round((Math.min(i + batch.length, targetDevices.length) / targetDevices.length) * 100);
                     document.getElementById('statusMsg').innerText = `⏳ กำลังโหลดและจัดกลุ่มไฟล์... ${percent}% (โปรดอย่าเพิ่งปิดหน้าต่าง)`;
-
                     await delay(1000); 
                 }
 
@@ -222,44 +295,43 @@
                     });
                     
                     return Object.values(grouped).map(group => {
-                        group.devices = Array.from(group.devices).sort();
+                        // เรียงลำดับอุปกรณ์ภายในกลุ่ม (มากไปน้อย เช่น iPhone 15 มาก่อน iPhone 14)
+                        group.devices = Array.from(group.devices).sort((a, b) => b.localeCompare(a, undefined, { numeric: true, sensitivity: 'base' }));
                         return group;
-                    }).sort((a, b) => a.devices[0].localeCompare(b.devices[0]));
-                }
-
-                let groupedIphones = groupByUrl(latestIphones);
-                let groupedIpads = groupByUrl(latestIpads);
-                let groupedMacs = groupByUrl(latestMacs);
-
-                function renderTable(data, tableId) {
-                    let tbody = document.getElementById(tableId);
-                    if (data.length === 0) {
-                        tbody.innerHTML = `<tr><td colspan="3" style="text-align:center; color:#86868b; padding:30px;">ไม่พบข้อมูลไฟล์ Firmware</td></tr>`;
-                        return;
-                    }
-                    data.forEach(group => {
-                        let devicesHTML = `<ul class="device-list">` + group.devices.map(d => `<li>${d}</li>`).join('') + `</ul>`;
-                        let tr = document.createElement('tr');
-                        tr.innerHTML = `
-                            <td><span class="version-badge">${group.version}</span></td>
-                            <td>${devicesHTML}</td>
-                            <td><a href="${group.url}" class="fw-link" target="_blank">${group.filename}</a></td>
-                        `;
-                        tbody.appendChild(tr);
+                    }).sort((a, b) => {
+                        // เรียงลำดับกลุ่มทั้งหมด โดยยึดจากอุปกรณ์ตัวแรกของกลุ่ม (มากไปน้อย)
+                        return b.devices[0].localeCompare(a.devices[0], undefined, { numeric: true, sensitivity: 'base' });
                     });
                 }
 
-                renderTable(groupedIphones, 'iphoneTableBody');
-                renderTable(groupedIpads, 'ipadTableBody');
-                renderTable(groupedMacs, 'macTableBody');
+                let finalData = {
+                    iphones: groupByUrl(latestIphones),
+                    ipads: groupByUrl(latestIpads),
+                    macs: groupByUrl(latestMacs)
+                };
 
-                document.getElementById('statusBox').style.display = "none";
-                document.getElementById('contentContainer').style.display = "block";
+                // 2. บันทึกข้อมูลลง Cache เก็บไว้ใช้ครั้งหน้า
+                localStorage.setItem(CACHE_KEY, JSON.stringify(finalData));
+                localStorage.setItem(CACHE_TIME_KEY, new Date().getTime().toString());
+
+                // แสดงผลตาราง
+                renderAllTables(finalData);
 
             } catch (error) {
                 showError(error.message || "Failed to Fetch (อาจเกิดจากเน็ตเวิร์ค, VPN หรือ Ad-blocker)");
             }
+        }
+
+        window.onload = function() {
+            loadFirmwareData(false); // เรียกใช้แบบเช็ค Cache
         };
+
+        function forceRefresh() {
+            // ลบข้อมูลเดิมแล้วบังคับโหลดใหม่
+            localStorage.removeItem(CACHE_KEY);
+            localStorage.removeItem(CACHE_TIME_KEY);
+            loadFirmwareData(true); 
+        }
     </script>
 </body>
 </html>

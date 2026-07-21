@@ -32,11 +32,22 @@
     <div id="navbar-container"></div>
     <script src="navbar.js"></script>
     <div class="container">
+        
         <div class="card">
             <h2>☁️ สถานะตารางราคา</h2>
             <div style="margin-bottom: 15px;">
-                สถานะระบบ: <span id="syncStatus" class="status-badge">กำลังเชื่อมต่อ...</span>
+                สถานะระบบ: <span id="syncStatus" class="status-badge">กำลังเตรียมข้อมูล...</span>
             </div>
+            
+            <!-- เพิ่มส่วนควบคุม Caching -->
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; background: #f5f5f7; padding: 12px 15px; border-radius: 8px; border: 1px solid #d2d2d7;">
+                <div style="font-size: 13px; color: #515154;">
+                    <strong>🕒 ข้อมูลอัปเดตเมื่อ:</strong> <span id="lastUpdateText" style="color: #0071e3; font-weight: bold;">-</span><br>
+                    <span style="font-size: 11px; color: #86868b;">(ระบบเก็บข้อมูลไว้ในเครื่องเพื่อความเร็ว จะดึงใหม่อัตโนมัติวันละ 1 ครั้ง)</span>
+                </div>
+                <button onclick="forceRefresh()" style="background: #1d1d1f; color: white; border: none; padding: 8px 12px; border-radius: 6px; font-size: 12px; font-weight: bold; cursor: pointer; transition: 0.2s;">🔄 รีเฟรชข้อมูลใหม่</button>
+            </div>
+
             <div class="controls-box" style="display: block;">
                 <label style="font-size: 12px; font-weight: bold; color: #515154; display: block; margin-bottom: 5px;">กรองตาม ID:</label>
                 <select id="filterCategory" onchange="filterTable()">
@@ -47,6 +58,7 @@
                 💡 ระบบจะคำนวณ <strong>Price + Service</strong> ให้เป็น Total Price โดยอัตโนมัติครับ
             </p>
         </div>
+        
         <div class="card">
             <h2>📋 รายการตารางราคาซ่อม (แท็บ Price) - รวม <span id="totalCount">0</span> รายการ</h2>
             <div class="search-box">
@@ -71,34 +83,98 @@
             </div>
         </div>
     </div>
+    
     <script>
+        // กำหนดตัวแปรสำหรับ Caching
+        const CACHE_KEY_PRICE = 'iserve_price_data';
+        const CACHE_TIME_KEY_PRICE = 'iserve_price_time';
+        const CACHE_DURATION_PRICE = 24 * 60 * 60 * 1000; // 24 ชั่วโมง
+
         let priceDatabase = [];
 
         window.onload = function() {
-            loadOnlinePrices();
+            loadOnlinePrices(false); // โหลดแบบใช้ Cache
         };
 
-        function loadOnlinePrices() {
+        function processData(data) {
+            priceDatabase = data;
+            
+            // อัปเดตสถานะการเชื่อมต่อ
+            let statusEl = document.getElementById('syncStatus');
+            statusEl.innerText = "พร้อมใช้งาน (มีข้อมูลแล้ว)";
+            statusEl.className = "status-badge status-connected";
+            
+            // แสดงเวลาที่อัปเดตล่าสุด
+            let cacheTime = localStorage.getItem(CACHE_TIME_KEY_PRICE);
+            if (cacheTime) {
+                let d = new Date(parseInt(cacheTime));
+                document.getElementById('lastUpdateText').innerText = d.toLocaleString('th-TH');
+            }
+
+            updateCategoryDropdown();
+            renderTable(priceDatabase);
+        }
+
+        function loadOnlinePrices(forceUpdate = false) {
+            // 1. ตรวจสอบ Cache ก่อน (ถ้าไม่ได้กดบังคับอัปเดต)
+            if (!forceUpdate) {
+                let cachedData = localStorage.getItem(CACHE_KEY_PRICE);
+                let cacheTime = localStorage.getItem(CACHE_TIME_KEY_PRICE);
+                let now = new Date().getTime();
+
+                if (cachedData && cacheTime && (now - cacheTime < CACHE_DURATION_PRICE)) {
+                    try {
+                        let parsedData = JSON.parse(cachedData);
+                        processData(parsedData);
+                        return; // จบการทำงาน ดึงข้อมูลจากเครื่องขึ้นมาแสดงเลย ไม่ต้องต่อเน็ต
+                    } catch (e) {
+                        console.log("ข้อมูล Cache มีปัญหา กำลังดึงข้อมูลใหม่...");
+                    }
+                }
+            }
+
+            // 2. กรณีไม่มี Cache หรือกดบังคับอัปเดต ให้ไปดึงจาก Google Script ใหม่
+            let statusEl = document.getElementById('syncStatus');
+            statusEl.innerText = "กำลังดาวน์โหลดตารางราคาใหม่...";
+            statusEl.className = "status-badge";
+            statusEl.style.backgroundColor = "#ff9500";
+            document.getElementById('dataTableBody').innerHTML = `<tr><td colspan="6" style="text-align: center; padding: 30px; color: #0071e3; font-weight: bold;">กำลังดึงข้อมูลล่าสุดจากระบบ...</td></tr>`;
+
             fetch(WEB_APP_URL + "?action=getPrices")
                 .then(res => res.json())
                 .then(data => {
-                    priceDatabase = data;
-                    document.getElementById('syncStatus').innerText = "เชื่อมต่อสำเร็จ";
-                    document.getElementById('syncStatus').classList.add('status-connected');
-                    updateCategoryDropdown();
-                    renderTable(priceDatabase);
+                    // เซฟลง Cache เพื่อให้โหลดเร็วในครั้งหน้า
+                    localStorage.setItem(CACHE_KEY_PRICE, JSON.stringify(data));
+                    localStorage.setItem(CACHE_TIME_KEY_PRICE, new Date().getTime().toString());
+                    
+                    processData(data);
                 })
                 .catch(err => {
-                    document.getElementById('syncStatus').innerText = "เชื่อมต่อล้มเหลว";
-                    document.getElementById('syncStatus').style.backgroundColor = "#ff3b30";
+                    statusEl.innerText = "เชื่อมต่อล้มเหลว (ลองกดรีเฟรชใหม่)";
+                    statusEl.style.backgroundColor = "#ff3b30";
+                    document.getElementById('dataTableBody').innerHTML = `<tr><td colspan="6" style="text-align: center; padding: 30px; color: #ff3b30;">ไม่สามารถดึงข้อมูลได้ กรุณาตรวจสอบอินเทอร์เน็ต</td></tr>`;
                 });
+        }
+
+        function forceRefresh() {
+            // ลบของเก่าทิ้ง แล้วสั่งให้โหลดใหม่จากคลาวด์
+            localStorage.removeItem(CACHE_KEY_PRICE);
+            localStorage.removeItem(CACHE_TIME_KEY_PRICE);
+            loadOnlinePrices(true);
         }
 
         function updateCategoryDropdown() {
             let ids = [...new Set(priceDatabase.map(item => String(item.id || "")).filter(val => val !== ""))];
             let select = document.getElementById('filterCategory');
+            let currentVal = select.value; // จำค่าเดิมที่เลือกไว้
+
             select.innerHTML = `<option value="ALL">-- แสดงทั้งหมด --</option>` + 
                                ids.map(c => `<option value="${c}">${c}</option>`).join('');
+            
+            // คืนค่าที่เคยเลือก
+            if(ids.includes(currentVal)) {
+                select.value = currentVal;
+            }
         }
 
         function renderTable(dataArray) {

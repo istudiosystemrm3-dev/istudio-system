@@ -67,7 +67,7 @@
             <div id="dropZone">
                 <div style="font-size: 16px; margin-bottom: 5px;"><strong>📁 โฟลเดอร์ที่เก็บไฟล์ (External HDD):</strong></div>
                 <div id="currentPath" style="color: #ff3b30; font-weight: bold; margin-bottom: 10px; word-break: break-all;">ยังไม่ได้ตั้งค่า</div>
-                <div style="font-size: 13px; color: #515154;">💡 <strong>วิธีตั้งค่า:</strong> เปิด Finder แล้ว "ลากโฟลเดอร์" ที่เก็บไฟล์ IPSW ทั้งหมด มาวางในกล่องนี้<br>(ตั้งค่าเพียงครั้งเดียว ระบบจะจดจำไว้ตลอดไป)</div>
+                <div style="font-size: 13px; color: #515154;">💡 <strong>วิธีตั้งค่า:</strong> เปิด Finder แล้ว "ลากโฟลเดอร์" ที่เก็บไฟล์ IPSW ทั้งหมด มาวางในกล่องนี้<br>(ตั้งค่าเพียงครั้งเดียว ระบบจะจดจำไว้ตลอดไป - ฟีเจอร์นี้รองรับเฉพาะใน Desktop App)</div>
             </div>
             
             <!-- ส่วนควบคุม Caching -->
@@ -127,8 +127,19 @@
     <div id="toast">🔍 กำลังค้นหาไฟล์ในโฟลเดอร์...</div>
 
     <script>
-        const { shell } = require('electron');
-        const { exec } = require('child_process');
+        // 🌟 1. ระบบเช็คว่าเป็น Desktop App (Electron) หรือ Web Browser (Chrome)
+        let shell, exec;
+        let isDesktopApp = false;
+
+        try {
+            // โค้ดส่วนนี้จะทำงานได้เฉพาะตอนเปิดผ่าน iServe Tools (Electron) เท่านั้น
+            shell = require('electron').shell;
+            exec = require('child_process').exec;
+            isDesktopApp = true; 
+        } catch (e) {
+            // ถ้าเปิดใน Chrome จะตกลงมาตรงนี้ ทำให้หน้าเว็บไม่ค้าง
+            console.warn("⚠️ คุณกำลังเปิดผ่าน Web Browser ปกติ - ฟังก์ชันค้นหาไฟล์จะถูกปิดการใช้งาน");
+        }
 
         const IPSW_API_URL = "https://api.ipsw.me/v4/devices";
         const delay = ms => new Promise(res => setTimeout(res, ms));
@@ -137,14 +148,13 @@
         const CACHE_TIME_KEY = 'iserve_firmware_time';
         const CACHE_DURATION = 24 * 60 * 60 * 1000;
 
-        // 🌟 1. ระบบจัดการ Drag & Drop โฟลเดอร์
+        // 🌟 2. ระบบจัดการ Drag & Drop โฟลเดอร์
         let basePath = localStorage.getItem('iserve_firmware_path') || '';
         
         window.addEventListener('DOMContentLoaded', () => {
             const dropZone = document.getElementById('dropZone');
             const currentPathSpan = document.getElementById('currentPath');
 
-            // แสดงโฟลเดอร์ที่เคยบันทึกไว้
             if (basePath) {
                 currentPathSpan.innerText = basePath;
                 currentPathSpan.style.color = '#0071e3';
@@ -164,19 +174,27 @@
                 e.preventDefault();
                 dropZone.classList.remove('dragover');
                 
-                if (e.dataTransfer.files.length > 0) {
+                // ถ้ารันใน Electron จะสามารถดึง path จริงของเครื่องได้
+                if (isDesktopApp && e.dataTransfer.files.length > 0) {
                     const folderPath = e.dataTransfer.files[0].path;
                     localStorage.setItem('iserve_firmware_path', folderPath);
                     basePath = folderPath;
                     currentPathSpan.innerText = basePath;
                     currentPathSpan.style.color = '#0071e3';
                     alert('✅ บันทึกตำแหน่งโฟลเดอร์เรียบร้อยแล้ว!\n\nต่อจากนี้ระบบจะค้นหาไฟล์ภายใน:\n' + basePath);
+                } else if (!isDesktopApp) {
+                    alert('❌ ฟังก์ชันนี้ต้องใช้งานผ่านแอป iServe Tools (Desktop) เท่านั้นครับ');
                 }
             });
         });
 
-        // 🌟 2. อัปเดตฟังก์ชันค้นหาให้ใช้คำสั่ง find แทน mdfind
+        // 🌟 3. ฟังก์ชันค้นหาไฟล์ (มีการป้องกัน Error หากรันบน Chrome)
         function openInFinder(filename) {
+            if (!isDesktopApp) {
+                alert('❌ ฟังก์ชันค้นหาและเปิดไฟล์ รองรับเฉพาะการใช้งานผ่านโปรแกรม iServe Tools (Desktop App) เท่านั้นครับ');
+                return;
+            }
+
             if (!basePath) {
                 alert('❌ กรุณาตั้งค่า "โฟลเดอร์เก็บไฟล์" ก่อนครับ\n\nโดยเปิด Finder แล้วลากโฟลเดอร์ที่เก็บไฟล์มาวางในกล่องด้านบน');
                 return;
@@ -186,14 +204,13 @@
             toast.innerHTML = "🔍 กำลังค้นหาไฟล์ในโฟลเดอร์เป้าหมาย...";
             toast.className = "show";
 
-            // ใช้คำสั่ง find เพื่อเจาะจงค้นหาเฉพาะในโฟลเดอร์ที่ตั้งค่าไว้ (และซับโฟลเดอร์ทั้งหมด)
+            // เจาะจงค้นหาเฉพาะในโฟลเดอร์ที่ตั้งค่าไว้ (และซับโฟลเดอร์ทั้งหมด)
             exec(`find "${basePath}" -name "${filename}"`, (error, stdout, stderr) => {
                 setTimeout(() => { toast.className = toast.className.replace("show", ""); }, 500);
                 
                 let resultPaths = stdout.trim().split('\n').filter(p => p !== '');
                 
                 if (resultPaths.length > 0) {
-                    // เปิด Finder และไฮไลท์ไฟล์ที่เจอ
                     shell.showItemInFolder(resultPaths[0]); 
                 } else {
                     alert(`❌ ไม่พบไฟล์:\n${filename}\n\nภายในโฟลเดอร์หลักและโฟลเดอร์ย่อยของ:\n${basePath}\n\nกรุณาตรวจสอบว่าโหลดไฟล์เสร็จสมบูรณ์แล้ว`);
@@ -201,6 +218,7 @@
             });
         }
 
+        // ฟังก์ชันจัดการ UI และดึงข้อมูล
         function showError(message) {
             document.getElementById('statusMsg').innerText = "❌ เกิดข้อผิดพลาดในการเชื่อมต่อข้อมูลอัตโนมัติ";
             document.getElementById('statusMsg').style.color = "#ff3b30";

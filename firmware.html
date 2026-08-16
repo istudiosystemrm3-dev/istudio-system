@@ -87,18 +87,16 @@
         </div>
     </div>
 
-    <!-- โค้ดแจ้งเตือน Toast -->
     <div id="toast">🔍 กำลังค้นหาไฟล์...</div>
 
     <script>
-        // 🌟 1. เพิ่มเครื่องมือ webUtils ของ Electron รุ่นใหม่
         let shell, exec, pathModule, webUtils;
         let isDesktopApp = false;
 
         try {
             const electron = require('electron');
             shell = electron.shell;
-            webUtils = electron.webUtils; // เครื่องมือเจาะระบบความปลอดภัยเพื่อดึง path
+            webUtils = electron.webUtils;
             exec = require('child_process').exec;
             pathModule = require('path');
             isDesktopApp = true; 
@@ -122,7 +120,7 @@
             }
         });
 
-        // 🌟 2. อัปเดตฟังก์ชันดึงตำแหน่งไฟล์ให้รองรับ Electron รุ่นใหม่
+        // 🌟 2. อัปเดตฟังก์ชันดึงตำแหน่งไฟล์ (เพิ่มระบบถามเพื่อถอยไป 1 โฟลเดอร์)
         function handleFileSelect(event) {
             if (!isDesktopApp) {
                 alert('❌ ฟังก์ชันนี้ต้องใช้งานผ่านแอป iServe Tools (Desktop) เท่านั้นครับ');
@@ -132,28 +130,34 @@
             const files = event.target.files;
             if (files.length > 0) {
                 const file = files[0];
-                let filePath = file.path; // ลองดึงแบบเก่าก่อน
+                let filePath = file.path; 
                 
-                // หากถูกบล็อก (.path ไม่มีค่า) ให้ใช้ webUtils ดึงแทน
                 if (!filePath && typeof webUtils !== 'undefined') {
                     filePath = webUtils.getPathForFile(file);
                 }
 
                 if (filePath) {
-                    const folderPath = pathModule.dirname(filePath); 
+                    let folderPath = pathModule.dirname(filePath); 
+                    let parentFolder = pathModule.dirname(folderPath); // หาที่อยู่ของโฟลเดอร์หลัก
+                    
+                    // ถามผู้ใช้ว่าต้องการค้นหาครอบคลุมไปถึงโฟลเดอร์หลักหรือไม่
+                    let confirmMessage = `ระบบตรวจพบว่าคุณเลือกไฟล์ในโฟลเดอร์:\n[ ${pathModule.basename(folderPath)} ]\n\nคุณต้องการขยับพื้นที่ค้นหาให้กว้างขึ้นไปที่โฟลเดอร์หลัก:\n[ ${pathModule.basename(parentFolder)} ]\nเพื่อให้ระบบสามารถค้นหาเจอทั้ง iPhone, iPad และ Mac พร้อมกันเลยหรือไม่?`;
+                    
+                    if (confirm(confirmMessage)) {
+                        folderPath = parentFolder; // ถอยกลับไป 1 ชั้น
+                    }
                     
                     localStorage.setItem('iserve_firmware_path', folderPath);
                     basePath = folderPath;
                     
                     document.getElementById('currentPath').innerText = basePath;
                     document.getElementById('currentPath').style.color = '#0071e3';
-                    alert('✅ บันทึกตำแหน่งโฟลเดอร์เรียบร้อยแล้ว!\n\nเป้าหมายคือ:\n' + basePath);
+                    alert('✅ บันทึกตำแหน่งโฟลเดอร์เป้าหมายเรียบร้อยแล้ว!\n\nระบบจะค้นหาไฟล์ทั้งหมดภายใน:\n' + basePath);
                 } else {
-                    alert('❌ ไม่สามารถอ่านที่อยู่ไฟล์ได้ (ระบบรักษาความปลอดภัยของ Mac บล็อกไว้)');
+                    alert('❌ ไม่สามารถอ่านที่อยู่ไฟล์ได้');
                 }
             }
             
-            // ล้างค่า input เพื่อให้กดเลือกไฟล์เดิมซ้ำได้ในครั้งถัดไป
             event.target.value = '';
         }
 
@@ -180,7 +184,7 @@
                 if (resultPaths.length > 0) {
                     shell.showItemInFolder(resultPaths[0]); 
                 } else {
-                    alert(`❌ ไม่พบไฟล์:\n${filename}\n\nภายในโฟลเดอร์:\n${basePath}`);
+                    alert(`❌ ไม่พบไฟล์:\n${filename}\n\nภายในพื้นที่:\n${basePath}\n\n(ลองตั้งค่าโฟลเดอร์เป้าหมายใหม่ให้ครอบคลุมมากขึ้น)`);
                 }
             });
         }

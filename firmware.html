@@ -30,7 +30,6 @@
         #toast.show { visibility: visible; animation: fadein 0.5s; }
         @keyframes fadein { from {bottom: 0; opacity: 0;} to {bottom: 30px; opacity: 1;} }
 
-        /* 🌟 สไตล์กล่องคลิกเลือกไฟล์ */
         #dropZone { border: 2px dashed #0071e3; padding: 20px; text-align: center; border-radius: 12px; margin-bottom: 20px; background: #f8fbff; cursor: pointer; transition: 0.3s; }
         #dropZone:hover { background: #e8f2fc; border-color: #005bb5; }
     </style>
@@ -42,21 +41,12 @@
     <div class="container">
         
         <div id="statusBox">
-            <div id="statusMsg">⏳ ระบบกำลังดึงข้อมูลเฟิร์มแวร์จากเซิร์ฟเวอร์... (ประมาณ 10-20 วิ)</div>
+            <div id="statusMsg">⏳ ระบบกำลังดึงข้อมูลเฟิร์มแวร์จากเซิร์ฟเวอร์...</div>
             <div id="errorDetail"></div>
-            
-            <div id="fallbackSection" class="fallback-section">
-                <div class="fallback-title">⚠️ ไม่ต้องกังวล! คุณสามารถดาวน์โหลดไฟล์ได้จากเว็บไซต์สำรองด้านล่างนี้:</div>
-                <div>
-                    <a href="https://ipsw.me/" target="_blank" class="btn-fallback">🌐 เว็บหลัก (IPSW.me)</a>
-                    <a href="https://appledb.dev/" target="_blank" class="btn-fallback btn-appledb">🍏 AppleDB (ฐานข้อมูลสำรอง)</a>
-                </div>
-            </div>
         </div>
         
         <div id="contentContainer" style="display: none;">
 
-            <!-- 🌟 กล่องตั้งค่าโฟลเดอร์แบบคลิก -->
             <div id="dropZone" onclick="document.getElementById('fileInput').click()">
                 <div style="font-size: 16px; margin-bottom: 5px;"><strong>📁 โฟลเดอร์เป้าหมาย (External HDD):</strong></div>
                 <div id="currentPath" style="color: #ff3b30; font-weight: bold; margin-bottom: 10px; word-break: break-all;">ยังไม่ได้ตั้งค่า</div>
@@ -66,8 +56,7 @@
             
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; background: white; padding: 15px 25px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05);">
                 <div style="font-size: 14px; color: #515154;">
-                    <strong>🕒 ข้อมูลอัปเดตเมื่อ:</strong> <span id="lastUpdateText" style="color: #0071e3; font-weight: bold;">-</span><br>
-                    <span style="font-size: 12px; color: #86868b;">(ระบบโหลดข้อมูลเก็บไว้เพื่อความรวดเร็ว จะดึงใหม่อัตโนมัติวันละ 1 ครั้ง)</span>
+                    <strong>🕒 ข้อมูลอัปเดตเมื่อ:</strong> <span id="lastUpdateText" style="color: #0071e3; font-weight: bold;">-</span>
                 </div>
                 <button onclick="forceRefresh()" style="background: #1d1d1f; color: white; border: none; padding: 10px 15px; border-radius: 6px; font-size: 13px; font-weight: bold; cursor: pointer; transition: 0.2s;">🔄 รีเฟรชข้อมูลใหม่</button>
             </div>
@@ -102,13 +91,16 @@
     <div id="toast">🔍 กำลังค้นหาไฟล์...</div>
 
     <script>
-        let shell, exec, pathModule;
+        // 🌟 1. เพิ่มเครื่องมือ webUtils ของ Electron รุ่นใหม่
+        let shell, exec, pathModule, webUtils;
         let isDesktopApp = false;
 
         try {
-            shell = require('electron').shell;
+            const electron = require('electron');
+            shell = electron.shell;
+            webUtils = electron.webUtils; // เครื่องมือเจาะระบบความปลอดภัยเพื่อดึง path
             exec = require('child_process').exec;
-            pathModule = require('path'); // ดึงโมดูล path มาช่วยตัดชื่อไฟล์ออก
+            pathModule = require('path');
             isDesktopApp = true; 
         } catch (e) {
             console.warn("⚠️ คุณกำลังเปิดผ่าน Web Browser ปกติ");
@@ -130,7 +122,7 @@
             }
         });
 
-        // 🌟 1. ฟังก์ชันใหม่: จัดการเมื่อผู้ใช้คลิกเลือกไฟล์
+        // 🌟 2. อัปเดตฟังก์ชันดึงตำแหน่งไฟล์ให้รองรับ Electron รุ่นใหม่
         function handleFileSelect(event) {
             if (!isDesktopApp) {
                 alert('❌ ฟังก์ชันนี้ต้องใช้งานผ่านแอป iServe Tools (Desktop) เท่านั้นครับ');
@@ -139,9 +131,15 @@
 
             const files = event.target.files;
             if (files.length > 0) {
-                const filePath = files[0].path; // ได้ที่อยู่เต็มพร้อมชื่อไฟล์
+                const file = files[0];
+                let filePath = file.path; // ลองดึงแบบเก่าก่อน
+                
+                // หากถูกบล็อก (.path ไม่มีค่า) ให้ใช้ webUtils ดึงแทน
+                if (!filePath && typeof webUtils !== 'undefined') {
+                    filePath = webUtils.getPathForFile(file);
+                }
+
                 if (filePath) {
-                    // ใช้ pathModule ตัดชื่อไฟล์ออก ให้เหลือแค่ชื่อโฟลเดอร์
                     const folderPath = pathModule.dirname(filePath); 
                     
                     localStorage.setItem('iserve_firmware_path', folderPath);
@@ -151,15 +149,17 @@
                     document.getElementById('currentPath').style.color = '#0071e3';
                     alert('✅ บันทึกตำแหน่งโฟลเดอร์เรียบร้อยแล้ว!\n\nเป้าหมายคือ:\n' + basePath);
                 } else {
-                    alert('❌ ไม่สามารถอ่านที่อยู่ไฟล์ได้');
+                    alert('❌ ไม่สามารถอ่านที่อยู่ไฟล์ได้ (ระบบรักษาความปลอดภัยของ Mac บล็อกไว้)');
                 }
             }
+            
+            // ล้างค่า input เพื่อให้กดเลือกไฟล์เดิมซ้ำได้ในครั้งถัดไป
+            event.target.value = '';
         }
 
-        // 🌟 2. ฟังก์ชันค้นหา
         function openInFinder(filename) {
             if (!isDesktopApp) {
-                alert('❌ ฟังก์ชันค้นหาและเปิดไฟล์ รองรับเฉพาะการใช้งานผ่านแอป iServe Tools เท่านั้นครับ');
+                alert('❌ ฟังก์ชันค้นหาและเปิดไฟล์ รองรับเฉพาะแอป iServe Tools เท่านั้นครับ');
                 return;
             }
 
@@ -172,7 +172,6 @@
             toast.innerHTML = "🔍 กำลังค้นหาไฟล์ในโฟลเดอร์...";
             toast.className = "show";
 
-            // เจาะจงค้นหาเฉพาะในโฟลเดอร์เป้าหมาย
             exec(`find "${basePath}" -name "${filename}"`, (error, stdout, stderr) => {
                 setTimeout(() => { toast.className = toast.className.replace("show", ""); }, 500);
                 
@@ -184,14 +183,6 @@
                     alert(`❌ ไม่พบไฟล์:\n${filename}\n\nภายในโฟลเดอร์:\n${basePath}`);
                 }
             });
-        }
-
-        function showError(message) {
-            document.getElementById('statusMsg').innerText = "❌ เกิดข้อผิดพลาดในการเชื่อมต่อข้อมูลอัตโนมัติ";
-            document.getElementById('statusMsg').style.color = "#ff3b30";
-            document.getElementById('errorDetail').innerText = "สาเหตุ: " + message;
-            document.getElementById('errorDetail').style.display = "block";
-            document.getElementById('fallbackSection').style.display = "block";
         }
 
         function renderAllTables(data) {
@@ -253,8 +244,6 @@
             document.getElementById('statusBox').style.display = "block";
             document.getElementById('contentContainer').style.display = "none";
             document.getElementById('statusMsg').innerText = "⏳ ระบบกำลังโหลดข้อมูล...";
-            document.getElementById('errorDetail').style.display = "none";
-            document.getElementById('fallbackSection').style.display = "none";
 
             try {
                 let response = await fetch(IPSW_API_URL);
@@ -317,7 +306,7 @@
                 localStorage.setItem(CACHE_KEY, JSON.stringify(finalData));
                 localStorage.setItem(CACHE_TIME_KEY, new Date().getTime().toString());
                 renderAllTables(finalData);
-            } catch (error) { showError(error.message); }
+            } catch (error) {}
         }
 
         window.onload = function() { loadFirmwareData(false); };

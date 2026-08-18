@@ -50,7 +50,7 @@
             <div id="dropZone" onclick="document.getElementById('fileInput').click()">
                 <div style="font-size: 16px; margin-bottom: 5px;"><strong>📁 โฟลเดอร์เป้าหมาย (External HDD):</strong></div>
                 <div id="currentPath" style="color: #ff3b30; font-weight: bold; margin-bottom: 10px; word-break: break-all;">ยังไม่ได้ตั้งค่า</div>
-                <div style="font-size: 13px; color: #515154;">💡 <strong>วิธีตั้งค่า:</strong> <u>คลิกที่นี่</u> แล้วเลือกไฟล์ IPSW ใดก็ได้ 1 ไฟล์ที่อยู่ใน HDD ของคุณ<br>(ระบบจะดึงที่อยู่โฟลเดอร์หลักมาบันทึกไว้ใช้งานอัตโนมัติ)</div>
+                <div style="font-size: 13px; color: #515154;">💡 <strong>วิธีตั้งค่า:</strong> <u>คลิกที่นี่</u> แล้วเลือกไฟล์ IPSW ใดก็ได้ 1 ไฟล์ที่อยู่ใน HDD ของคุณ</div>
                 <input type="file" id="fileInput" accept=".ipsw" style="display: none;" onchange="handleFileSelect(event)">
             </div>
             
@@ -64,7 +64,7 @@
             <div class="card">
                 <h2>📱 iPhone (เวอร์ชันล่าสุด)</h2>
                 <table>
-                    <thead><tr><th width="15%">เวอร์ชัน</th><th width="40%">รุ่นที่รองรับ</th><th width="45%">ดาวน์โหลด & ค้นหาไฟล์</th></tr></thead>
+                    <thead><tr><th width="15%">เวอร์ชัน</th><th width="40%">รุ่นที่รองรับ (ใหม่ล่าสุดไปเก่าสุด)</th><th width="45%">ดาวน์โหลด & ค้นหาไฟล์</th></tr></thead>
                     <tbody id="iphoneTableBody"></tbody>
                 </table>
             </div>
@@ -72,7 +72,7 @@
             <div class="card">
                 <h2>🖥️ iPad (เวอร์ชันล่าสุด)</h2>
                 <table>
-                    <thead><tr><th width="15%">เวอร์ชัน</th><th width="40%">รุ่นที่รองรับ</th><th width="45%">ดาวน์โหลด & ค้นหาไฟล์</th></tr></thead>
+                    <thead><tr><th width="15%">เวอร์ชัน</th><th width="40%">รุ่นที่รองรับ (ใหม่ล่าสุดไปเก่าสุด)</th><th width="45%">ดาวน์โหลด & ค้นหาไฟล์</th></tr></thead>
                     <tbody id="ipadTableBody"></tbody>
                 </table>
             </div>
@@ -120,7 +120,6 @@
             }
         });
 
-        // 🌟 2. อัปเดตฟังก์ชันดึงตำแหน่งไฟล์ (เพิ่มระบบถามเพื่อถอยไป 1 โฟลเดอร์)
         function handleFileSelect(event) {
             if (!isDesktopApp) {
                 alert('❌ ฟังก์ชันนี้ต้องใช้งานผ่านแอป iServe Tools (Desktop) เท่านั้นครับ');
@@ -138,13 +137,12 @@
 
                 if (filePath) {
                     let folderPath = pathModule.dirname(filePath); 
-                    let parentFolder = pathModule.dirname(folderPath); // หาที่อยู่ของโฟลเดอร์หลัก
+                    let parentFolder = pathModule.dirname(folderPath); 
                     
-                    // ถามผู้ใช้ว่าต้องการค้นหาครอบคลุมไปถึงโฟลเดอร์หลักหรือไม่
-                    let confirmMessage = `ระบบตรวจพบว่าคุณเลือกไฟล์ในโฟลเดอร์:\n[ ${pathModule.basename(folderPath)} ]\n\nคุณต้องการขยับพื้นที่ค้นหาให้กว้างขึ้นไปที่โฟลเดอร์หลัก:\n[ ${pathModule.basename(parentFolder)} ]\nเพื่อให้ระบบสามารถค้นหาเจอทั้ง iPhone, iPad และ Mac พร้อมกันเลยหรือไม่?`;
+                    let confirmMessage = `ระบบตรวจพบว่าคุณเลือกไฟล์ในโฟลเดอร์:\n[ ${pathModule.basename(folderPath)} ]\n\nคุณต้องการขยับพื้นที่ค้นหาให้กว้างขึ้นไปที่โฟลเดอร์หลัก:\n[ ${pathModule.basename(parentFolder)} ]\nเพื่อให้ระบบค้นหาเจอทั้ง iPhone, iPad และ Mac พร้อมกันหรือไม่?`;
                     
                     if (confirm(confirmMessage)) {
-                        folderPath = parentFolder; // ถอยกลับไป 1 ชั้น
+                        folderPath = parentFolder; 
                     }
                     
                     localStorage.setItem('iserve_firmware_path', folderPath);
@@ -152,41 +150,84 @@
                     
                     document.getElementById('currentPath').innerText = basePath;
                     document.getElementById('currentPath').style.color = '#0071e3';
-                    alert('✅ บันทึกตำแหน่งโฟลเดอร์เป้าหมายเรียบร้อยแล้ว!\n\nระบบจะค้นหาไฟล์ทั้งหมดภายใน:\n' + basePath);
+                    alert('✅ บันทึกตำแหน่งโฟลเดอร์เป้าหมายเรียบร้อยแล้ว!');
                 } else {
                     alert('❌ ไม่สามารถอ่านที่อยู่ไฟล์ได้');
                 }
             }
-            
             event.target.value = '';
         }
 
         function openInFinder(filename) {
-            if (!isDesktopApp) {
-                alert('❌ ฟังก์ชันค้นหาและเปิดไฟล์ รองรับเฉพาะแอป iServe Tools เท่านั้นครับ');
-                return;
-            }
-
-            if (!basePath) {
-                alert('❌ กรุณาตั้งค่า "โฟลเดอร์เป้าหมาย" ก่อนครับ\n\nโดยคลิกที่กล่องด้านบนแล้วเลือกไฟล์ IPSW 1 ไฟล์');
-                return;
-            }
+            if (!isDesktopApp) return alert('❌ ฟังก์ชันนี้รองรับเฉพาะแอป iServe Tools เท่านั้นครับ');
+            if (!basePath) return alert('❌ กรุณาตั้งค่า "โฟลเดอร์เป้าหมาย" ก่อนครับ');
 
             let toast = document.getElementById("toast");
-            toast.innerHTML = "🔍 กำลังค้นหาไฟล์ในโฟลเดอร์...";
+            toast.innerHTML = "🔍 กำลังค้นหาไฟล์...";
             toast.className = "show";
 
             exec(`find "${basePath}" -name "${filename}"`, (error, stdout, stderr) => {
                 setTimeout(() => { toast.className = toast.className.replace("show", ""); }, 500);
-                
                 let resultPaths = stdout.trim().split('\n').filter(p => p !== '');
-                
                 if (resultPaths.length > 0) {
                     shell.showItemInFolder(resultPaths[0]); 
                 } else {
-                    alert(`❌ ไม่พบไฟล์:\n${filename}\n\nภายในพื้นที่:\n${basePath}\n\n(ลองตั้งค่าโฟลเดอร์เป้าหมายใหม่ให้ครอบคลุมมากขึ้น)`);
+                    alert(`❌ ไม่พบไฟล์:\n${filename}\n\nภายในพื้นที่:\n${basePath}`);
                 }
             });
+        }
+
+        // ==========================================
+        // 🌟 ระบบให้คะแนนรุ่น Apple (Smart Sorting Algorithm) 🌟
+        // ==========================================
+        function getDeviceScore(name) {
+            let score = 0;
+            let n = name.toLowerCase();
+
+            // 1. หมวดหมู่สินค้าหลัก
+            if (n.includes("iphone")) {
+                score += 50000;
+                if (n.includes("pro max")) score += 50;
+                else if (n.includes("pro")) score += 40;
+                else if (n.includes("plus")) score += 30;
+                else if (n.includes("mini")) score += 10;
+                else if (n.includes("se")) score -= 50;
+                else score += 20; 
+            } else if (n.includes("ipad")) {
+                if (n.includes("pro")) score += 40000;
+                else if (n.includes("air")) score += 30000;
+                else if (n.includes("mini")) score += 10000;
+                else score += 20000; // iPad รุ่นธรรมดา
+            } else {
+                score += 60000; // Mac
+            }
+
+            // 2. ซีรีส์ชิปเซ็ต (ตระกูล M และ A พิเศษ)
+            if (n.includes("m5")) score += 5000;
+            else if (n.includes("m4")) score += 4000;
+            else if (n.includes("m3")) score += 3000;
+            else if (n.includes("m2")) score += 2000;
+            else if (n.includes("m1")) score += 1000;
+            else if (n.includes("a17 pro")) score += 800; 
+
+            // 3. เจนเนอเรชั่น (เช่น 6th generation, 5th generation)
+            let genMatch = n.match(/(\d+)(st|nd|rd|th)\s+generation/);
+            if (genMatch) score += parseInt(genMatch[1]) * 100;
+
+            // 4. ตัวเลขรุ่นหลัก (เช่น iPhone 16, iPad Pro 4, iPad mini 6)
+            // ตัดคำว่าขนาดหน้าจอออกก่อน เพื่อไม่ให้ตัวเลข 13-inch ตีกับเลขรุ่น
+            let cleanForNum = n.replace(/\d+\.?\d*-inch/g, '').replace(/wifi|cellular/g, '');
+            let numMatch = cleanForNum.match(/\b(?:iphone|ipad|mini|air|pro|se)\s+(\d+)\b/);
+            if (numMatch) score += parseInt(numMatch[1]) * 100;
+
+            // 5. ขนาดหน้าจอ (จอใหญ่กว่าให้อยู่บน)
+            let sizeMatch = n.match(/(\d+\.?\d*)-inch/);
+            if (sizeMatch) score += parseFloat(sizeMatch[1]);
+            
+            // 6. การเชื่อมต่อ (ให้ WiFi อยู่เหนือ Cellular เล็กน้อยเพื่อความเป็นระเบียบ)
+            if (n.includes("cellular")) score -= 0.1; 
+
+            return score;
         }
 
         function renderAllTables(data) {
@@ -293,6 +334,7 @@
                 let maxIpadVer = getMaxVersion(ipads);
                 let maxMacVer = getMaxVersion(macs);
 
+                // 🌟 ปรับปรุง: ใช้ Smart Sorting Algorithm เรียงลำดับ 🌟
                 function groupByUrl(arr, maxVer) {
                     let grouped = {};
                     arr.filter(item => item.version === maxVer).forEach(item => {
@@ -300,10 +342,15 @@
                         if (!grouped[item.url]) grouped[item.url] = { version: item.version, filename: item.filename, url: item.url, devices: new Set() };
                         grouped[item.url].devices.add(cleanName);
                     });
+                    
                     return Object.values(grouped).map(group => {
-                        group.devices = Array.from(group.devices).sort((a, b) => b.localeCompare(a, undefined, { numeric: true, sensitivity: 'base' }));
+                        // 1. เรียงรุ่นย่อยภายในกรุ๊ปเดียวกัน (คะแนนมากไปน้อย)
+                        group.devices = Array.from(group.devices).sort((a, b) => getDeviceScore(b) - getDeviceScore(a));
                         return group;
-                    }).sort((a, b) => b.devices[0].localeCompare(a.devices[0], undefined, { numeric: true, sensitivity: 'base' }));
+                    }).sort((a, b) => {
+                        // 2. เรียงลำดับตัวกรุ๊ปทั้งหมด โดยใช้ตัวท็อปสุดของกรุ๊ปนั้นๆ มาวัดกัน (คะแนนมากไปน้อย)
+                        return getDeviceScore(b.devices[0]) - getDeviceScore(a.devices[0]);
+                    });
                 }
 
                 let finalData = { iphones: groupByUrl(iphones, maxIphoneVer), ipads: groupByUrl(ipads, maxIpadVer), macs: groupByUrl(macs, maxMacVer) };

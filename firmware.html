@@ -107,9 +107,9 @@
         const IPSW_API_URL = "https://api.ipsw.me/v4/devices";
         const delay = ms => new Promise(res => setTimeout(res, ms));
         
-        // 🌟 บังคับเปลี่ยน Key ใหม่ v4 เพื่อเคลียร์ Cache เก่าทิ้งทันที
-        const CACHE_KEY = 'iserve_firmware_data_v4';
-        const CACHE_TIME_KEY = 'iserve_firmware_time_v4';
+        // 🌟 บังคับเปลี่ยน Key ใหม่ v5 เพื่อเคลียร์ Cache เก่าทิ้งทันที
+        const CACHE_KEY = 'iserve_firmware_data_v5';
+        const CACHE_TIME_KEY = 'iserve_firmware_time_v5';
         const CACHE_DURATION = 24 * 60 * 60 * 1000;
 
         let basePath = localStorage.getItem('iserve_firmware_path') || '';
@@ -180,59 +180,89 @@
         }
 
         // ==========================================
-        // 🌟 อัปเกรดระบบให้คะแนน (Smart Sorting Algorithm v3) 🌟
+        // 🌟 อัปเกรดระบบให้คะแนน (Smart Sorting Algorithm v4) 🌟
         // ==========================================
         function getDeviceScore(name) {
             let score = 0;
             let n = name.toLowerCase();
 
-            // 1. หมวดหมู่สินค้าหลัก (แยกตระกูลเด็ดขาดด้วยคะแนนหลักล้าน)
+            // =========================
+            // 📱 การให้คะแนนสำหรับ iPhone
+            // =========================
             if (n.includes("iphone")) {
-                score += 5000000;
-                if (n.includes("pro max")) score += 500000;
-                else if (n.includes("pro")) score += 400000;
-                else if (n.includes("plus")) score += 300000;
-                else if (n.includes("mini")) score += 100000;
-                else if (n.includes("se")) score -= 500000; // SE ให้อยู่ล่างสุดของ iPhone
-                else score += 200000; // รุ่นธรรมดา
-            } else if (n.includes("ipad")) {
-                // เช็คชื่อแบบเจาะจง เพื่อป้องกัน "iPad mini (A17 Pro)" ไปโดนตีความว่าเป็น iPad Pro
+                score += 5000000; // แยกล้านเพื่อแบ่งตระกูลหลัก
+                
+                // ดึงตัวเลขรุ่นหลักออกมา (เช่น 17, 16, 15)
+                let numMatch = n.match(/\biphone\s*(\d+)/);
+                let modelNum = numMatch ? parseInt(numMatch[1]) : 0;
+                
+                // ถ้ารุ่น Air ให้เทียบเท่า 17 ไปเลย
+                if (n.includes("air")) modelNum = 17;
+                
+                // เอาตัวเลขรุ่นมาคูณเป็นคะแนนหลัก (เช่น 17 = 17000 คะแนน)
+                score += modelNum * 1000;
+                
+                // บวกคะแนนรองตามรุ่นย่อย (เรียงจากใหญ่ไปเล็ก)
+                if (n.includes("pro max")) score += 700;
+                else if (n.includes("pro")) score += 600;
+                else if (n.includes("plus")) score += 500;
+                else if (n.includes("air")) score += 450;
+                else if (n.includes("mini")) score += 200;
+                else if (n.includes("se")) {
+                    // SE เอาคะแนนรุ่นหลักออก แล้วไปคำนวณใหม่ให้อยู่ล่างสุด
+                    score = 5000000; 
+                    let genMatch = n.match(/(\d+)(st|nd|rd|th)/);
+                    if (genMatch) score += parseInt(genMatch[1]) * 10;
+                    else if (n.includes("2020")) score += 20;
+                    else if (n.includes("2022")) score += 30;
+                }
+                else if (n.match(/\b\d+e\b/)) { 
+                    score += 300; // รุ่นที่ลงท้ายด้วย e (16e, 17e)
+                } 
+                else {
+                    score += 400; // รุ่นธรรมดา (17, 16)
+                }
+                return score;
+            } 
+            
+            // =========================
+            // 🖥️ การให้คะแนนสำหรับ iPad
+            // =========================
+            else if (n.includes("ipad")) {
                 if (n.includes("ipad pro")) score += 4000000;
                 else if (n.includes("ipad air")) score += 3000000;
                 else if (n.includes("ipad mini")) score += 2000000;
-                else score += 1000000; // iPad รุ่นธรรมดา (Base)
-            } else {
-                score += 6000000; // Mac
-            }
+                else score += 1000000; // iPad รุ่นธรรมดา
 
-            // 2. ซีรีส์ชิปเซ็ต (M-Series และ A-Series รุ่นพิเศษ)
-            if (n.includes("m6")) score += 60000;
-            else if (n.includes("m5")) score += 50000;
-            else if (n.includes("m4")) score += 40000;
-            else if (n.includes("m3")) score += 30000;
-            else if (n.includes("m2")) score += 20000;
-            else if (n.includes("m1")) score += 10000;
-            else if (n.includes("a17 pro")) score += 7000; // เทียบเท่า Gen 7 
-            else if (n.includes("a16")) score += 11000;    // เทียบเท่า Gen 11 
+                if (n.includes("m6")) score += 60000;
+                else if (n.includes("m5")) score += 50000;
+                else if (n.includes("m4")) score += 40000;
+                else if (n.includes("m3")) score += 30000;
+                else if (n.includes("m2")) score += 20000;
+                else if (n.includes("m1")) score += 10000;
+                else if (n.includes("a17 pro")) score += 7000; 
+                else if (n.includes("a16")) score += 11000;    
 
-            // 3. เจนเนอเรชั่น (เช่น 10th generation = 10000 คะแนน)
-            let genMatch = n.match(/(\d+)(st|nd|rd|th)\s+generation/);
-            if (genMatch) score += parseInt(genMatch[1]) * 1000;
+                let genMatch = n.match(/(\d+)(st|nd|rd|th)\s+generation/);
+                if (genMatch) score += parseInt(genMatch[1]) * 1000;
 
-            // 4. ตัวเลขรุ่นหลัก (เช่น iPad Air 5, iPad mini 6 = 5000, 6000 คะแนน)
-            // คลีนค่าขนาดหน้าจอทิ้งก่อน เพื่อไม่ให้ 11-inch ดันไปถูกตีความว่าเป็น Gen 11
-            let cleanForNum = n.replace(/\d+\.?\d*-inch/g, '').replace(/wifi|cellular/g, '');
-            let numMatch = cleanForNum.match(/\b(?:iphone|ipad|mini|air|pro|se)\s+(\d+)\b/);
-            if (numMatch) score += parseInt(numMatch[1]) * 1000;
+                let cleanForNum = n.replace(/\d+\.?\d*-inch/g, '').replace(/wifi|cellular/g, '');
+                let numMatch = cleanForNum.match(/\b(?:iphone|ipad|mini|air|pro|se)\s+(\d+)\b/);
+                if (numMatch) score += parseInt(numMatch[1]) * 1000;
 
-            // 5. ขนาดหน้าจอ (จอใหญ่กว่าให้อยู่ด้านบน เช่น 13 > 11)
-            let sizeMatch = n.match(/(\d+\.?\d*)-inch/);
-            if (sizeMatch) score += parseFloat(sizeMatch[1]);
+                let sizeMatch = n.match(/(\d+\.?\d*)-inch/);
+                if (sizeMatch) score += parseFloat(sizeMatch[1]);
+                
+                if (n.includes("cellular")) score -= 0.1; 
+                return score;
+            } 
             
-            // 6. การเชื่อมต่อ (ให้ WiFi อยู่เหนือ Cellular เล็กน้อยเพื่อความสวยงาม)
-            if (n.includes("cellular")) score -= 0.1; 
-
-            return score;
+            // =========================
+            // 💻 การให้คะแนนสำหรับ Mac
+            // =========================
+            else {
+                return 6000000;
+            }
         }
 
         function renderAllTables(data) {

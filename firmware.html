@@ -41,7 +41,7 @@
     <div class="container">
         
         <div id="statusBox">
-            <div id="statusMsg">⏳ ระบบกำลังดึงข้อมูลและจัดเรียงใหม่ล่าสุด...</div>
+            <div id="statusMsg">⏳ ระบบกำลังดึงข้อมูลและจัดเรียงตามปีที่ออกฮาร์ดแวร์...</div>
             <div id="errorDetail"></div>
         </div>
         
@@ -64,7 +64,7 @@
             <div class="card">
                 <h2>📱 iPhone (เวอร์ชันล่าสุด)</h2>
                 <table>
-                    <thead><tr><th width="15%">เวอร์ชัน</th><th width="40%">รุ่นที่รองรับ (ใหม่ล่าสุดไปเก่าสุด)</th><th width="45%">ดาวน์โหลด & ค้นหาไฟล์</th></tr></thead>
+                    <thead><tr><th width="15%">เวอร์ชัน</th><th width="40%">รุ่นที่รองรับ (เรียงตามฮาร์ดแวร์/ปีที่ผลิต)</th><th width="45%">ดาวน์โหลด & ค้นหาไฟล์</th></tr></thead>
                     <tbody id="iphoneTableBody"></tbody>
                 </table>
             </div>
@@ -72,7 +72,7 @@
             <div class="card">
                 <h2>🖥️ iPad (เวอร์ชันล่าสุด)</h2>
                 <table>
-                    <thead><tr><th width="15%">เวอร์ชัน</th><th width="40%">รุ่นที่รองรับ (ใหม่ล่าสุดไปเก่าสุด)</th><th width="45%">ดาวน์โหลด & ค้นหาไฟล์</th></tr></thead>
+                    <thead><tr><th width="15%">เวอร์ชัน</th><th width="40%">รุ่นที่รองรับ (เรียงตามฮาร์ดแวร์/ปีที่ผลิต)</th><th width="45%">ดาวน์โหลด & ค้นหาไฟล์</th></tr></thead>
                     <tbody id="ipadTableBody"></tbody>
                 </table>
             </div>
@@ -107,9 +107,9 @@
         const IPSW_API_URL = "https://api.ipsw.me/v4/devices";
         const delay = ms => new Promise(res => setTimeout(res, ms));
         
-        // 🌟 บังคับเปลี่ยน Key ใหม่ v5 เพื่อเคลียร์ Cache เก่าทิ้งทันที
-        const CACHE_KEY = 'iserve_firmware_data_v5';
-        const CACHE_TIME_KEY = 'iserve_firmware_time_v5';
+        // 🌟 บังคับเปลี่ยน Key ใหม่ v6 เพื่อเคลียร์ Cache เก่าทิ้งทันที
+        const CACHE_KEY = 'iserve_firmware_data_v6';
+        const CACHE_TIME_KEY = 'iserve_firmware_time_v6';
         const CACHE_DURATION = 24 * 60 * 60 * 1000;
 
         let basePath = localStorage.getItem('iserve_firmware_path') || '';
@@ -180,89 +180,20 @@
         }
 
         // ==========================================
-        // 🌟 อัปเกรดระบบให้คะแนน (Smart Sorting Algorithm v4) 🌟
+        // 🌟 ระบบเรียงลำดับใหม่ (แกะรหัส Hardware ปีผลิต 100%) 🌟
         // ==========================================
-        function getDeviceScore(name) {
-            let score = 0;
-            let n = name.toLowerCase();
-
-            // =========================
-            // 📱 การให้คะแนนสำหรับ iPhone
-            // =========================
-            if (n.includes("iphone")) {
-                score += 5000000; // แยกล้านเพื่อแบ่งตระกูลหลัก
-                
-                // ดึงตัวเลขรุ่นหลักออกมา (เช่น 17, 16, 15)
-                let numMatch = n.match(/\biphone\s*(\d+)/);
-                let modelNum = numMatch ? parseInt(numMatch[1]) : 0;
-                
-                // ถ้ารุ่น Air ให้เทียบเท่า 17 ไปเลย
-                if (n.includes("air")) modelNum = 17;
-                
-                // เอาตัวเลขรุ่นมาคูณเป็นคะแนนหลัก (เช่น 17 = 17000 คะแนน)
-                score += modelNum * 1000;
-                
-                // บวกคะแนนรองตามรุ่นย่อย (เรียงจากใหญ่ไปเล็ก)
-                if (n.includes("pro max")) score += 700;
-                else if (n.includes("pro")) score += 600;
-                else if (n.includes("plus")) score += 500;
-                else if (n.includes("air")) score += 450;
-                else if (n.includes("mini")) score += 200;
-                else if (n.includes("se")) {
-                    // SE เอาคะแนนรุ่นหลักออก แล้วไปคำนวณใหม่ให้อยู่ล่างสุด
-                    score = 5000000; 
-                    let genMatch = n.match(/(\d+)(st|nd|rd|th)/);
-                    if (genMatch) score += parseInt(genMatch[1]) * 10;
-                    else if (n.includes("2020")) score += 20;
-                    else if (n.includes("2022")) score += 30;
-                }
-                else if (n.match(/\b\d+e\b/)) { 
-                    score += 300; // รุ่นที่ลงท้ายด้วย e (16e, 17e)
-                } 
-                else {
-                    score += 400; // รุ่นธรรมดา (17, 16)
-                }
-                return score;
-            } 
+        function getIdentifierScore(identifier) {
+            if (!identifier) return 0;
             
-            // =========================
-            // 🖥️ การให้คะแนนสำหรับ iPad
-            // =========================
-            else if (n.includes("ipad")) {
-                if (n.includes("ipad pro")) score += 4000000;
-                else if (n.includes("ipad air")) score += 3000000;
-                else if (n.includes("ipad mini")) score += 2000000;
-                else score += 1000000; // iPad รุ่นธรรมดา
-
-                if (n.includes("m6")) score += 60000;
-                else if (n.includes("m5")) score += 50000;
-                else if (n.includes("m4")) score += 40000;
-                else if (n.includes("m3")) score += 30000;
-                else if (n.includes("m2")) score += 20000;
-                else if (n.includes("m1")) score += 10000;
-                else if (n.includes("a17 pro")) score += 7000; 
-                else if (n.includes("a16")) score += 11000;    
-
-                let genMatch = n.match(/(\d+)(st|nd|rd|th)\s+generation/);
-                if (genMatch) score += parseInt(genMatch[1]) * 1000;
-
-                let cleanForNum = n.replace(/\d+\.?\d*-inch/g, '').replace(/wifi|cellular/g, '');
-                let numMatch = cleanForNum.match(/\b(?:iphone|ipad|mini|air|pro|se)\s+(\d+)\b/);
-                if (numMatch) score += parseInt(numMatch[1]) * 1000;
-
-                let sizeMatch = n.match(/(\d+\.?\d*)-inch/);
-                if (sizeMatch) score += parseFloat(sizeMatch[1]);
-                
-                if (n.includes("cellular")) score -= 0.1; 
-                return score;
-            } 
-            
-            // =========================
-            // 💻 การให้คะแนนสำหรับ Mac
-            // =========================
-            else {
-                return 6000000;
+            // ใช้ Regex ดึงตัวเลขรหัส (เช่น iPhone16,2 -> ได้ 16 และ 2)
+            let match = identifier.match(/^[a-zA-Z]+(\d+),(\d+)$/);
+            if (match) {
+                let major = parseInt(match[1]); // รุ่นปี (ยิ่งเยอะยิ่งใหม่)
+                let minor = parseInt(match[2]); // รุ่นย่อย (มักจะเรียงตามขนาด/ความโปร)
+                // คืนค่าคะแนนโดยให้ความสำคัญกับรุ่นปี มากกว่ารุ่นย่อย
+                return (major * 1000) + minor;
             }
+            return 0;
         }
 
         function renderAllTables(data) {
@@ -323,7 +254,7 @@
 
             document.getElementById('statusBox').style.display = "block";
             document.getElementById('contentContainer').style.display = "none";
-            document.getElementById('statusMsg').innerText = "⏳ ระบบกำลังโหลดและจัดเรียงข้อมูลใหม่ล่าสุด...";
+            document.getElementById('statusMsg').innerText = "⏳ ระบบกำลังโหลดและจัดเรียงข้อมูลตามปีฮาร์ดแวร์...";
 
             try {
                 let response = await fetch(IPSW_API_URL);
@@ -348,7 +279,16 @@
                                 let idLower = deviceInfo.identifier.toLowerCase();
                                 let type = idLower.includes("iphone") ? "iPhone" : idLower.includes("ipad") ? "iPad" : "Mac";
                                 let deviceName = type === "Mac" ? "💻 ชิป Apple Silicon (M1-M4) ทุกรุ่น" : deviceInfo.name;
-                                let item = { version: latestFw.version, name: deviceName, url: latestFw.url, filename: latestFw.url.split('/').pop() };
+                                
+                                // เพิ่ม identifier เข้ามาเก็บไว้ใน item เพื่อให้ระบบจัดเรียงเอาไปใช้ต่อ
+                                let item = { 
+                                    version: latestFw.version, 
+                                    name: deviceName, 
+                                    url: latestFw.url, 
+                                    filename: latestFw.url.split('/').pop(),
+                                    identifier: deviceInfo.identifier 
+                                };
+                                
                                 if (type === "iPhone") iphones.push(item);
                                 else if (type === "iPad") ipads.push(item);
                                 else macs.push(item);
@@ -369,21 +309,31 @@
                 let maxIpadVer = getMaxVersion(ipads);
                 let maxMacVer = getMaxVersion(macs);
 
+                // ระบบจัดเรียงตามรหัสฮาร์ดแวร์
                 function groupByUrl(arr, maxVer) {
                     let grouped = {};
                     arr.filter(item => item.version === maxVer).forEach(item => {
                         let cleanName = item.name.replace(/,?\s*[1-2]TB Model/ig, '').trim();
-                        if (!grouped[item.url]) grouped[item.url] = { version: item.version, filename: item.filename, url: item.url, devices: new Set() };
-                        grouped[item.url].devices.add(cleanName);
+                        // ดึงคะแนนฮาร์ดแวร์จาก Identifier แท้ๆ (เช่น iPhone16,2)
+                        let score = getIdentifierScore(item.identifier);
+                        
+                        if (!grouped[item.url]) grouped[item.url] = { version: item.version, filename: item.filename, url: item.url, devices: [], maxScore: 0 };
+                        
+                        if (score > grouped[item.url].maxScore) grouped[item.url].maxScore = score;
+                        
+                        if (!grouped[item.url].devices.find(d => d.name === cleanName)) {
+                            grouped[item.url].devices.push({ name: cleanName, score: score });
+                        }
                     });
                     
                     return Object.values(grouped).map(group => {
-                        // เรียงตัวหนังสือภายในกรุ๊ป
-                        group.devices = Array.from(group.devices).sort((a, b) => getDeviceScore(b) - getDeviceScore(a));
+                        // 1. เรียงรุ่นย่อยภายในกรุ๊ปเดียวกัน (คะแนนฮาร์ดแวร์เยอะไปน้อย)
+                        group.devices.sort((a, b) => b.score - a.score);
+                        group.devices = group.devices.map(d => d.name);
                         return group;
                     }).sort((a, b) => {
-                        // เรียงลำดับตัวกรุ๊ปทั้งหมด
-                        return getDeviceScore(b.devices[0]) - getDeviceScore(a.devices[0]);
+                        // 2. เรียงลำดับตัวกรุ๊ปทั้งหมด (ฮาร์ดแวร์รุ่นใหม่สุดขึ้นก่อน)
+                        return b.maxScore - a.maxScore;
                     });
                 }
 

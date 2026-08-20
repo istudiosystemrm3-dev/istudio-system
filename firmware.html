@@ -32,6 +32,11 @@
 
         #dropZone { border: 2px dashed #0071e3; padding: 20px; text-align: center; border-radius: 12px; margin-bottom: 20px; background: #f8fbff; cursor: pointer; transition: 0.3s; }
         #dropZone:hover { background: #e8f2fc; border-color: #005bb5; }
+
+        /* 🌟 สไตล์กล่องค้นหา */
+        .search-container { margin-bottom: 20px; }
+        .search-input { width: 100%; padding: 14px 20px; font-size: 16px; border: 1px solid #d2d2d7; border-radius: 12px; outline: none; transition: 0.3s; box-shadow: 0 2px 8px rgba(0,0,0,0.03); }
+        .search-input:focus { border-color: #0071e3; box-shadow: 0 0 0 4px rgba(0,113,227,0.1); }
     </style>
 </head>
 <body>
@@ -59,6 +64,11 @@
                     <strong>🕒 ข้อมูลอัปเดตเมื่อ:</strong> <span id="lastUpdateText" style="color: #0071e3; font-weight: bold;">-</span>
                 </div>
                 <button onclick="forceRefresh()" style="background: #1d1d1f; color: white; border: none; padding: 10px 15px; border-radius: 6px; font-size: 13px; font-weight: bold; cursor: pointer; transition: 0.2s;">🔄 รีเฟรชข้อมูลใหม่</button>
+            </div>
+
+            <!-- 🌟 ช่องพิมพ์ค้นหา -->
+            <div class="search-container">
+                <input type="text" id="searchInput" class="search-input" placeholder="🔍 พิมพ์ค้นหารุ่นที่ต้องการ... (เช่น 15 Pro, M4, Air)" onkeyup="filterDevices()">
             </div>
 
             <div class="card">
@@ -107,9 +117,9 @@
         const IPSW_API_URL = "https://api.ipsw.me/v4/devices";
         const delay = ms => new Promise(res => setTimeout(res, ms));
         
-        // 🌟 บังคับเปลี่ยน Key ใหม่ v6 เพื่อเคลียร์ Cache เก่าทิ้งทันที
-        const CACHE_KEY = 'iserve_firmware_data_v6';
-        const CACHE_TIME_KEY = 'iserve_firmware_time_v6';
+        // 🌟 เปลี่ยน Key เป็น v7 (ระบบค้นหา + แก้ชื่อ iPad 11 นิ้ว)
+        const CACHE_KEY = 'iserve_firmware_data_v7';
+        const CACHE_TIME_KEY = 'iserve_firmware_time_v7';
         const CACHE_DURATION = 24 * 60 * 60 * 1000;
 
         let basePath = localStorage.getItem('iserve_firmware_path') || '';
@@ -121,6 +131,33 @@
                 currentPathSpan.style.color = '#0071e3';
             }
         });
+
+        // 🌟 ฟังก์ชันระบบค้นหารุ่นแบบ Real-time
+        function filterDevices() {
+            let input = document.getElementById("searchInput").value.toLowerCase();
+            let tables = ['iphoneTableBody', 'ipadTableBody', 'macTableBody'];
+            
+            tables.forEach(tableId => {
+                let tbody = document.getElementById(tableId);
+                if (!tbody) return;
+                let rows = tbody.getElementsByTagName('tr');
+                
+                for (let i = 0; i < rows.length; i++) {
+                    if (rows[i].cells.length < 2) continue; // ข้ามแถวที่แจ้งเตือน "ไม่พบข้อมูล"
+                    
+                    // ค้นหาข้อความในคอลัมน์ที่ 2 (รุ่นที่รองรับ)
+                    let deviceCell = rows[i].getElementsByTagName('td')[1];
+                    if (deviceCell) {
+                        let text = deviceCell.textContent || deviceCell.innerText;
+                        if (text.toLowerCase().indexOf(input) > -1) {
+                            rows[i].style.display = ""; // เจอคำค้นหา ให้แสดงแถว
+                        } else {
+                            rows[i].style.display = "none"; // ไม่เจอคำค้นหา ให้ซ่อนแถว
+                        }
+                    }
+                }
+            });
+        }
 
         function handleFileSelect(event) {
             if (!isDesktopApp) {
@@ -179,20 +216,10 @@
             });
         }
 
-        // ==========================================
-        // 🌟 ระบบเรียงลำดับใหม่ (แกะรหัส Hardware ปีผลิต 100%) 🌟
-        // ==========================================
         function getIdentifierScore(identifier) {
             if (!identifier) return 0;
-            
-            // ใช้ Regex ดึงตัวเลขรหัส (เช่น iPhone16,2 -> ได้ 16 และ 2)
             let match = identifier.match(/^[a-zA-Z]+(\d+),(\d+)$/);
-            if (match) {
-                let major = parseInt(match[1]); // รุ่นปี (ยิ่งเยอะยิ่งใหม่)
-                let minor = parseInt(match[2]); // รุ่นย่อย (มักจะเรียงตามขนาด/ความโปร)
-                // คืนค่าคะแนนโดยให้ความสำคัญกับรุ่นปี มากกว่ารุ่นย่อย
-                return (major * 1000) + minor;
-            }
+            if (match) return (parseInt(match[1]) * 1000) + parseInt(match[2]);
             return 0;
         }
 
@@ -208,6 +235,10 @@
             }
             document.getElementById('statusBox').style.display = "none";
             document.getElementById('contentContainer').style.display = "block";
+            
+            // เคลียร์ช่องค้นหาเมื่อโหลดเสร็จ
+            document.getElementById("searchInput").value = "";
+            filterDevices();
         }
 
         function renderTable(data, tableId) {
@@ -280,7 +311,6 @@
                                 let type = idLower.includes("iphone") ? "iPhone" : idLower.includes("ipad") ? "iPad" : "Mac";
                                 let deviceName = type === "Mac" ? "💻 ชิป Apple Silicon (M1-M4) ทุกรุ่น" : deviceInfo.name;
                                 
-                                // เพิ่ม identifier เข้ามาเก็บไว้ใน item เพื่อให้ระบบจัดเรียงเอาไปใช้ต่อ
                                 let item = { 
                                     version: latestFw.version, 
                                     name: deviceName, 
@@ -309,16 +339,25 @@
                 let maxIpadVer = getMaxVersion(ipads);
                 let maxMacVer = getMaxVersion(macs);
 
-                // ระบบจัดเรียงตามรหัสฮาร์ดแวร์
                 function groupByUrl(arr, maxVer) {
                     let grouped = {};
                     arr.filter(item => item.version === maxVer).forEach(item => {
                         let cleanName = item.name.replace(/,?\s*[1-2]TB Model/ig, '').trim();
-                        // ดึงคะแนนฮาร์ดแวร์จาก Identifier แท้ๆ (เช่น iPhone16,2)
+                        
+                        // 🌟 ระบบแปลชื่อรุ่นที่ IPSW.me เรียกผิด ให้เป็นชื่อทางการ
+                        if (cleanName.includes("iPad Pro 4 (11-inch")) {
+                            cleanName = cleanName.replace("iPad Pro 4 (11-inch", "iPad Pro 11-inch (2nd generation");
+                        } else if (cleanName.includes("iPad Pro 3 (11-inch")) {
+                            cleanName = cleanName.replace("iPad Pro 3 (11-inch", "iPad Pro 11-inch (1st generation");
+                        } else if (cleanName.includes("iPad Pro 4 (12.9-inch")) {
+                            cleanName = cleanName.replace("iPad Pro 4 (12.9-inch", "iPad Pro 12.9-inch (4th generation");
+                        } else if (cleanName.includes("iPad Pro 3 (12.9-inch")) {
+                            cleanName = cleanName.replace("iPad Pro 3 (12.9-inch", "iPad Pro 12.9-inch (3rd generation");
+                        }
+
                         let score = getIdentifierScore(item.identifier);
                         
                         if (!grouped[item.url]) grouped[item.url] = { version: item.version, filename: item.filename, url: item.url, devices: [], maxScore: 0 };
-                        
                         if (score > grouped[item.url].maxScore) grouped[item.url].maxScore = score;
                         
                         if (!grouped[item.url].devices.find(d => d.name === cleanName)) {
@@ -327,14 +366,10 @@
                     });
                     
                     return Object.values(grouped).map(group => {
-                        // 1. เรียงรุ่นย่อยภายในกรุ๊ปเดียวกัน (คะแนนฮาร์ดแวร์เยอะไปน้อย)
                         group.devices.sort((a, b) => b.score - a.score);
                         group.devices = group.devices.map(d => d.name);
                         return group;
-                    }).sort((a, b) => {
-                        // 2. เรียงลำดับตัวกรุ๊ปทั้งหมด (ฮาร์ดแวร์รุ่นใหม่สุดขึ้นก่อน)
-                        return b.maxScore - a.maxScore;
-                    });
+                    }).sort((a, b) => b.maxScore - a.maxScore);
                 }
 
                 let finalData = { iphones: groupByUrl(iphones, maxIphoneVer), ipads: groupByUrl(ipads, maxIpadVer), macs: groupByUrl(macs, maxMacVer) };

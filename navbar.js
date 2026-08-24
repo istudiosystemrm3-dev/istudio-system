@@ -11,6 +11,7 @@ document.addEventListener("DOMContentLoaded", function() {
             <a href="stock.html" id="nav-stock">สต๊อกสินค้า</a>
             <a href="firmware.html" id="nav-firmware">เฟิร์มแวร์ล่าสุด (IPSW)</a>
             <a href="macos.html" id="nav-macos">💻 macOS Bootable</a>
+            <a href="knowledge.html">📚 คลังความรู้ (Knowledge)</a>
         </div>
     `;
  

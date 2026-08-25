@@ -184,7 +184,7 @@
         }
 
         function loadCloudItems() {
-            fetch(WEB_APP_URL + "?action=getBarcodes")
+            fetch(window.WEB_APP_URL + "?action=getBarcodes", { redirect: 'follow' })
                 .then(res => res.json())
                 .then(data => {
                     onlineItems = data;

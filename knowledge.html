@@ -35,6 +35,7 @@
         .article-actions { flex-shrink: 0; display: flex; flex-direction: column; gap: 8px; }
         
         .loading-text { text-align: center; color: #0071e3; font-weight: bold; padding: 40px; font-size: 16px; }
+        .error-text { text-align: center; color: #ff3b30; font-weight: bold; padding: 20px; border: 1px solid #ff3b30; border-radius: 8px; background-color: #ffe5e5; }
     </style>
 </head>
 <body>
@@ -82,24 +83,41 @@
             return Date.now().toString(36) + Math.random().toString(36).substr(2);
         }
 
-        // 🌟 ดึงข้อมูลจาก Google Sheets
+        // 🌟 1. ดึงข้อมูลจาก Google Sheets
         async function loadDataFromCloud() {
             if (!window.WEB_APP_URL) {
-                document.getElementById('articleContainer').innerHTML = '<div style="color:red; text-align:center; padding: 20px;">❌ ไม่พบ URL ฐานข้อมูล (โปรดเช็คไฟล์ navbar.js)</div>';
+                document.getElementById('articleContainer').innerHTML = '<div class="error-text">❌ ไม่พบ URL ฐานข้อมูล (โปรดเช็คไฟล์ navbar.js)</div>';
                 return;
             }
 
             try {
                 const response = await fetch(window.WEB_APP_URL + "?action=getKnowledge");
-                articles = await response.json();
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const data = await response.json();
+                
+                if (data.status === 'error') {
+                    throw new Error(data.message);
+                }
+
+                articles = data;
                 renderData();
             } catch (error) {
-                document.getElementById('articleContainer').innerHTML = '<div style="color:red; text-align:center; padding: 20px;">❌ เกิดข้อผิดพลาดในการดึงข้อมูล</div>';
+                console.error("Fetch Error:", error);
+                document.getElementById('articleContainer').innerHTML = `<div class="error-text">❌ เกิดข้อผิดพลาดในการดึงข้อมูล: ${error.message}<br>โปรดตรวจสอบ URL ใน navbar.js และการตั้งค่า Deploy ใน Apps Script</div>`;
             }
         }
 
-        // 🌟 บันทึกข้อมูลขึ้น Google Sheets
+        // 🌟 2. บันทึกข้อมูลขึ้น Google Sheets
         async function saveData() {
+            if (!window.WEB_APP_URL) {
+                alert("❌ ไม่พบ URL ฐานข้อมูล (โปรดเช็คไฟล์ navbar.js)");
+                return;
+            }
+
             const title = document.getElementById('artTitle').value.trim();
             const desc = document.getElementById('artDesc').value.trim();
             let link = document.getElementById('artLink').value.trim();
@@ -107,12 +125,8 @@
             const btnSave = document.getElementById('btnSave');
 
             if (!title) return alert("❌ กรุณากรอก 'หัวข้อ' ด้วยครับ");
+            if (link && !link.startsWith('http://') && !link.startsWith('https://')) link = 'https://' + link;
 
-            if (link && !link.startsWith('http://') && !link.startsWith('https://')) {
-                link = 'https://' + link;
-            }
-
-            // เปลี่ยนปุ่มเป็นสถานะกำลังโหลด
             btnSave.innerText = "⏳ กำลังบันทึก...";
             btnSave.disabled = true;
 
@@ -126,26 +140,32 @@
             };
 
             try {
-                await fetch(window.WEB_APP_URL, {
+                const response = await fetch(window.WEB_APP_URL, {
                     method: 'POST',
                     body: JSON.stringify(payload)
                 });
                 
-                alert("✅ บันทึกข้อมูลลงฐานข้อมูลเรียบร้อยแล้ว!");
-                cancelEdit();
+                const data = await response.json();
                 
-                // รีโหลดข้อมูลใหม่จาก Cloud
-                document.getElementById('articleContainer').innerHTML = '<div class="loading-text">⏳ กำลังรีเฟรชข้อมูล...</div>';
-                await loadDataFromCloud();
+                if (data.status === 'success') {
+                    alert("✅ บันทึกข้อมูลลงฐานข้อมูลเรียบร้อยแล้ว!");
+                    cancelEdit();
+                    document.getElementById('articleContainer').innerHTML = '<div class="loading-text">⏳ กำลังรีเฟรชข้อมูล...</div>';
+                    await loadDataFromCloud();
+                } else {
+                    throw new Error(data.message || 'Unknown error during save');
+                }
                 
             } catch (error) {
-                alert("❌ เกิดข้อผิดพลาดในการบันทึก กรุณาลองใหม่");
+                alert(`❌ เกิดข้อผิดพลาดในการบันทึก: ${error.message}`);
+                console.error(error);
             }
 
             btnSave.innerText = "💾 บันทึกข้อมูลขึ้น Cloud";
             btnSave.disabled = false;
         }
 
+        // 🌟 3. ระบบแก้ไขและลบข้อมูล
         function editData(id) {
             const article = articles.find(a => a.id === id);
             if (article) {
@@ -153,10 +173,8 @@
                 document.getElementById('artDesc').value = article.desc;
                 document.getElementById('artLink').value = article.link;
                 document.getElementById('editId').value = article.id;
-                
                 document.getElementById('formTitle').innerText = "✏️ แก้ไขข้อมูลคลังความรู้";
                 document.getElementById('btnCancel').style.display = "inline-block";
-                
                 window.scrollTo({ top: 0, behavior: 'smooth' });
             }
         }
@@ -166,27 +184,38 @@
             document.getElementById('artDesc').value = "";
             document.getElementById('artLink').value = "";
             document.getElementById('editId').value = "";
-            
             document.getElementById('formTitle').innerText = "📝 เพิ่มข้อมูลคลังความรู้";
             document.getElementById('btnCancel').style.display = "none";
         }
 
-        // 🌟 ลบข้อมูลจาก Google Sheets
         async function deleteData(id) {
+            if (!window.WEB_APP_URL) {
+                alert("❌ ไม่พบ URL ฐานข้อมูล");
+                return;
+            }
+
             if (confirm("⚠️ คุณแน่ใจหรือไม่ว่าต้องการลบข้อมูลนี้ออกจากระบบส่วนกลาง?")) {
                 document.getElementById('articleContainer').innerHTML = '<div class="loading-text">🗑️ กำลังลบข้อมูล...</div>';
                 
                 const payload = { action: 'deleteKnowledge', id: id };
                 
                 try {
-                    await fetch(window.WEB_APP_URL, {
+                    const response = await fetch(window.WEB_APP_URL, {
                         method: 'POST',
                         body: JSON.stringify(payload)
                     });
-                    await loadDataFromCloud();
+                    
+                    const data = await response.json();
+                    
+                    if (data.status === 'success') {
+                         await loadDataFromCloud();
+                    } else {
+                         throw new Error(data.message || 'Unknown error during delete');
+                    }
+                   
                 } catch (error) {
-                    alert("❌ เกิดข้อผิดพลาดในการลบ");
-                    loadDataFromCloud(); // โหลดใหม่ถ้าพัง
+                    alert(`❌ เกิดข้อผิดพลาดในการลบ: ${error.message}`);
+                    loadDataFromCloud(); 
                 }
             }
         }
@@ -194,12 +223,16 @@
         function renderData() {
             const container = document.getElementById('articleContainer');
             const keyword = document.getElementById('searchInput').value.toLowerCase();
-            
             container.innerHTML = "";
+            
+            if (!Array.isArray(articles)) {
+                 container.innerHTML = `<div style="text-align: center; color: #ff3b30; padding: 40px;">รูปแบบข้อมูลไม่ถูกต้อง</div>`;
+                 return;
+            }
 
             const filtered = articles.filter(a => 
-                a.title.toLowerCase().includes(keyword) || 
-                a.desc.toLowerCase().includes(keyword)
+                (a.title && a.title.toLowerCase().includes(keyword)) || 
+                (a.desc && a.desc.toLowerCase().includes(keyword))
             );
 
             if (filtered.length === 0) {
@@ -209,7 +242,6 @@
 
             filtered.forEach(item => {
                 let linkHTML = item.link ? `<a href="${item.link}" target="_blank" class="article-link">🌐 เปิดเว็บลิงก์</a>` : '';
-                
                 let card = document.createElement('div');
                 card.className = "article-card";
                 card.innerHTML = `
@@ -228,7 +260,6 @@
             });
         }
 
-        // รอให้ Navbar โหลดเสร็จก่อน แล้วค่อยดึงข้อมูลจาก Cloud
         setTimeout(() => { loadDataFromCloud(); }, 300);
     </script>
 </body>

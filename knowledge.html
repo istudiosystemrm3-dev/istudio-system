@@ -230,10 +230,12 @@
                  return;
             }
 
-            const filtered = articles.filter(a => 
-                (a.title && a.title.toLowerCase().includes(keyword)) || 
-                (a.desc && a.desc.toLowerCase().includes(keyword))
-            );
+            // 🌟 ป้องกัน Error โดยการแปลงค่าเป็น String และดักค่าว่าง
+            const filtered = articles.filter(a => {
+                let titleStr = (a.title || "").toString().toLowerCase();
+                let descStr = (a.desc || "").toString().toLowerCase();
+                return titleStr.includes(keyword) || descStr.includes(keyword);
+            });
 
             if (filtered.length === 0) {
                 container.innerHTML = `<div style="text-align: center; color: #86868b; padding: 40px;">ไม่พบข้อมูล</div>`;
@@ -246,14 +248,14 @@
                 card.className = "article-card";
                 card.innerHTML = `
                     <div class="article-content">
-                        <div class="article-title">${item.title}</div>
-                        <div class="article-desc">${item.desc}</div>
+                        <div class="article-title">${item.title || ""}</div>
+                        <div class="article-desc">${item.desc || ""}</div>
                         ${linkHTML}
-                        <div style="font-size: 11px; color: #a1a1a6; margin-top: 10px;">🕒 อัปเดตเมื่อ: ${item.date}</div>
+                        <div style="font-size: 11px; color: #a1a1a6; margin-top: 10px;">🕒 อัปเดตเมื่อ: ${item.date || "-"}</div>
                     </div>
                     <div class="article-actions">
-                        <button class="btn btn-sm btn-edit" onclick="editData('${item.id}')">✏️ แก้ไข</button>
-                        <button class="btn btn-sm btn-delete" onclick="deleteData('${item.id}')">🗑️ ลบ</button>
+                        <button class="btn btn-sm btn-edit" onclick="editData('${item.id || ""}')">✏️ แก้ไข</button>
+                        <button class="btn btn-sm btn-delete" onclick="deleteData('${item.id || ""}')">🗑️ ลบ</button>
                     </div>
                 `;
                 container.appendChild(card);

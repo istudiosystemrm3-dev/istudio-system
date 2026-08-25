@@ -22,13 +22,13 @@
 
         /* สไตล์ตาราง */
         .data-table { width: 100%; border-collapse: collapse; background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.05); font-size: 14px; }
-        .data-table th, .data-table td { padding: 15px; text-align: left; border-bottom: 1px solid #e5e5ea; }
+        .data-table th, .data-table td { padding: 12px 15px; text-align: left; border-bottom: 1px solid #e5e5ea; vertical-align: middle; }
         .data-table th { background-color: #f5f5f7; font-weight: bold; color: #1d1d1f; }
         .data-table tbody tr:hover { background-color: #f8fbff; }
         
         /* สไตล์ Input ให้นับสต๊อก */
-        .input-onhand { width: 80px; padding: 8px; border: 2px solid #d2d2d7; border-radius: 6px; font-size: 16px; font-weight: bold; text-align: center; outline: none; }
-        .input-onhand:focus { border-color: #0071e3; }
+        .input-onhand { width: 70px; padding: 8px; border: 2px solid #d2d2d7; border-radius: 6px; font-size: 16px; font-weight: bold; text-align: center; outline: none; transition: 0.2s; }
+        .input-onhand:focus { border-color: #0071e3; box-shadow: 0 0 0 3px rgba(0,113,227,0.1); }
         .diff-red { color: #ff3b30; font-weight: bold; }
         .diff-green { color: #34c759; font-weight: bold; }
         .diff-zero { color: #86868b; }
@@ -40,9 +40,12 @@
         .btn-warning { background-color: #ff9500; color: white; }
         .btn-success { background-color: #34c759; color: white; }
         
-        /* Form เพิ่มรายการ */
-        .add-box { background: white; padding: 15px 20px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); margin-bottom: 20px; display: flex; gap: 10px; align-items: center; }
-        .add-input { flex: 1; padding: 10px; border: 1px solid #d2d2d7; border-radius: 6px; font-size: 14px; }
+        /* แถบเครื่องมือด้านบน */
+        .toolbar { background: white; padding: 15px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); margin-bottom: 20px; display: flex; gap: 15px; align-items: center; }
+        .search-input { flex: 1; padding: 12px 15px; border: 1px solid #d2d2d7; border-radius: 8px; font-size: 15px; outline: none; }
+        .search-input:focus { border-color: #0071e3; }
+        .btn-sync { background-color: #1d1d1f; color: white; padding: 12px 20px; border-radius: 8px; font-size: 14px; font-weight: bold; border: none; cursor: pointer; }
+        .btn-sync:hover { background-color: #333; }
 
         /* Modal เคลียร์ยอด */
         .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; justify-content: center; align-items: center; }
@@ -69,7 +72,6 @@
             <h1 class="page-title">📦 ระบบคุมยอดสต๊อก (Reconciliation)</h1>
         </div>
 
-        <!-- ระบบ Tabs -->
         <div class="tab-container">
             <button class="tab-btn active" onclick="switchTab('tab-stock')">🟢 เช็คสต๊อกประจำวัน</button>
             <button class="tab-btn" onclick="switchTab('tab-deposit')">🟡 มัดจำค้างรับ (<span id="depositCount">0</span>)</button>
@@ -78,24 +80,26 @@
 
         <!-- แท็บ 1: เช็คสต๊อก -->
         <div id="tab-stock" class="tab-content active">
-            <div class="add-box">
-                <strong>➕ เพิ่มอะไหล่เข้าระบบ:</strong>
-                <input type="text" id="newItemName" class="add-input" placeholder="เช่น แบตเตอรี่ iPhone 13 (Commy)">
-                <input type="number" id="newItemQty" class="add-input" placeholder="จำนวน" style="max-width: 100px;">
-                <button class="btn btn-primary" onclick="addNewItem()">เพิ่มรายการ</button>
+            
+            <!-- แถบเครื่องมือ (ดึงข้อมูล & ค้นหา) -->
+            <div class="toolbar">
+                <button class="btn-sync" onclick="syncFromDatabase()">🔄 โหลดสต๊อกจากตารางหลัก</button>
+                <input type="text" id="searchInput" class="search-input" placeholder="🔍 ค้นหาชื่ออะไหล่ หรือ บาร์โค้ด..." onkeyup="filterStock()">
             </div>
 
             <table class="data-table">
                 <thead>
                     <tr>
                         <th width="35%">ชื่ออะไหล่ / สินค้า</th>
-                        <th width="15%" style="text-align: center;">สต๊อกระบบ</th>
+                        <th width="15%" style="text-align: center;">สต๊อกระบบ (ตาราง)</th>
                         <th width="15%" style="text-align: center;">นับจริง (On Hand)</th>
                         <th width="15%" style="text-align: center;">ส่วนต่าง</th>
                         <th width="20%">การจัดการ</th>
                     </tr>
                 </thead>
-                <tbody id="stockBody"></tbody>
+                <tbody id="stockBody">
+                    <tr><td colspan="5" style="text-align:center; padding: 40px; color: #86868b;">กดปุ่ม "โหลดสต๊อกจากตารางหลัก" เพื่อเริ่มตรวจนับ</td></tr>
+                </tbody>
             </table>
         </div>
 
@@ -141,11 +145,8 @@
                 จำนวนที่ต้องเคลียร์: <strong id="modalDiffQty" style="font-size: 18px;">0</strong>
             </div>
             
-            <div class="radio-group" id="modalOptions">
-                <!-- ตัวเลือกจะถูกสร้างอัตโนมัติตามของขาด หรือ ของเกิน -->
-            </div>
-
-            <input type="text" id="modalRef" class="modal-input" placeholder="ระบุเลข Job, เลขบิล, หรือชื่อสาขาที่โอนไป...">
+            <div class="radio-group" id="modalOptions"></div>
+            <input type="text" id="modalRef" class="modal-input" placeholder="ระบุข้อมูลอ้างอิง...">
             
             <div style="display: flex; justify-content: flex-end; gap: 10px;">
                 <button class="btn" style="background: #e5e5ea; color: #1d1d1f;" onclick="closeModal()">ยกเลิก</button>
@@ -155,14 +156,13 @@
     </div>
 
     <script>
-        // ฐานข้อมูลแบบ Local Storage
-        const DB_KEY = 'iserve_stock_db';
+        // ฐานข้อมูลจำลอง (รอต่อกับ Google Sheets)
+        const DB_KEY = 'iserve_stock_reconcile_db';
         let db = JSON.parse(localStorage.getItem(DB_KEY)) || { items: [], deposits: [], logs: [] };
 
         let currentClearItem = null;
         let currentClearDiff = 0;
 
-        // 🌟 1. ระบบจัดการ Tabs
         function switchTab(tabId) {
             document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
             document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
@@ -171,7 +171,6 @@
             renderAll();
         }
 
-        // 🌟 2. ฟังก์ชันหลักสำหรับ Render หน้าจอ
         function renderAll() {
             renderStock();
             renderDeposits();
@@ -189,19 +188,35 @@
             db.logs.unshift({ date: getFormattedDate(), item: itemName, type: type, qty: qty, ref: ref });
         }
 
-        // 🌟 3. ระบบจัดการสต๊อก (Tab 1)
-        function addNewItem() {
-            let name = document.getElementById('newItemName').value.trim();
-            let qty = parseInt(document.getElementById('newItemQty').value) || 0;
+        // 🌟 จำลองการดึงข้อมูลจากตาราง (เดี๋ยวเราจะเขียนเชื่อม Google Sheets ตรงนี้)
+        function syncFromDatabase() {
+            let btn = document.querySelector('.btn-sync');
+            btn.innerText = "⏳ กำลังดึงข้อมูล...";
             
-            if (!name) return alert("❌ กรุณาใส่ชื่ออะไหล่ครับ");
+            setTimeout(() => {
+                // ข้อมูลตัวอย่างที่สมมติว่าดึงมาจากตารางของคุณ
+                db.items = [
+                    { id: '1', name: 'แบตเตอรี่ iPhone 13 Pro (แท้)', sysQty: 10, onHand: "" },
+                    { id: '2', name: 'หน้าจอ iPhone 12 (งานเทียบ)', sysQty: 5, onHand: "" },
+                    { id: '3', name: 'ฟิล์มกระจก iPad Pro 11"', sysQty: 25, onHand: "" }
+                ];
+                renderAll();
+                btn.innerText = "🔄 โหลดสต๊อกจากตารางหลัก";
+                alert("✅ ดึงข้อมูลสต๊อกล่าสุดเรียบร้อยแล้ว!");
+            }, 800);
+        }
 
-            db.items.push({ id: Date.now().toString(), name: name, sysQty: qty, onHand: qty });
-            addLog(name, 'รับเข้า (สต๊อกใหม่)', `+${qty}`, 'ตั้งต้นระบบ');
-            
-            document.getElementById('newItemName').value = "";
-            document.getElementById('newItemQty').value = "";
-            renderAll();
+        // ค้นหาในตาราง
+        function filterStock() {
+            let input = document.getElementById("searchInput").value.toLowerCase();
+            let rows = document.getElementById("stockBody").getElementsByTagName("tr");
+            for (let i = 0; i < rows.length; i++) {
+                let nameCell = rows[i].getElementsByTagName("td")[0];
+                if (nameCell) {
+                    let text = nameCell.textContent || nameCell.innerText;
+                    rows[i].style.display = text.toLowerCase().indexOf(input) > -1 ? "" : "none";
+                }
+            }
         }
 
         function updateOnHand(id, value) {
@@ -214,8 +229,9 @@
 
         function renderStock() {
             const tbody = document.getElementById('stockBody');
-            tbody.innerHTML = "";
+            if (db.items.length === 0) return;
             
+            tbody.innerHTML = "";
             db.items.forEach(item => {
                 let diff = (item.onHand === "") ? 0 : (item.onHand - item.sysQty);
                 let diffHTML = `<span class="diff-zero">0</span>`;
@@ -228,15 +244,17 @@
                     } else if (diff > 0) {
                         diffHTML = `<span class="diff-green">+${diff}</span>`;
                         actionHTML = `<button class="btn btn-primary" onclick="openModal('${item.id}', ${diff})">📥 ลงเป็นของมัดจำ</button>`;
+                    } else {
+                        actionHTML = `<span style="color: #34c759; font-weight: bold;">✅ ยอดตรง</span>`;
                     }
                 }
 
                 let tr = document.createElement('tr');
                 tr.innerHTML = `
                     <td><strong>${item.name}</strong></td>
-                    <td style="text-align: center; font-size: 16px;">${item.sysQty}</td>
+                    <td style="text-align: center; font-size: 16px; color: #515154;">${item.sysQty}</td>
                     <td style="text-align: center;">
-                        <input type="number" class="input-onhand" value="${item.onHand}" onchange="updateOnHand('${item.id}', this.value)">
+                        <input type="number" class="input-onhand" value="${item.onHand}" onchange="updateOnHand('${item.id}', this.value)" placeholder="นับได้">
                     </td>
                     <td style="text-align: center;">${diffHTML}</td>
                     <td>${actionHTML}</td>
@@ -245,7 +263,6 @@
             });
         }
 
-        // 🌟 4. ระบบ Modal เคลียร์ยอด (อุดรอยรั่ว)
         function openModal(id, diff) {
             currentClearItem = db.items.find(i => i.id === id);
             currentClearDiff = diff;
@@ -255,14 +272,14 @@
             document.getElementById('modalRef').value = "";
             
             let optionsHTML = "";
-            if (diff < 0) { // ของขาด
+            if (diff < 0) {
                 optionsHTML = `
                     <div><input type="radio" name="clearType" id="opt1" value="job" checked> <label for="opt1">🔧 ใช้กับงานซ่อม (มีเลข Job)</label></div>
                     <div><input type="radio" name="clearType" id="opt2" value="sale"> <label for="opt2">🛒 ขายหน้าร้าน (ไม่มี Job)</label></div>
                     <div><input type="radio" name="clearType" id="opt3" value="transfer"> <label for="opt3">🚚 โอนไปสาขาอื่น (Branch Transfer)</label></div>
                 `;
                 document.getElementById('modalRef').placeholder = "ระบุเลข Job, เลขบิล หรือ ชื่อสาขาที่โอนไป...";
-            } else { // ของเกิน
+            } else {
                 optionsHTML = `
                     <div><input type="radio" name="clearType" id="opt4" value="deposit" checked> <label for="opt4">📦 ลูกค้ามัดจำของไว้ (รอประกอบ)</label></div>
                 `;
@@ -290,27 +307,23 @@
                 addLog(currentClearItem.name, logType, `-${absDiff}`, ref);
             }
 
-            // ปรับยอดสต๊อกระบบให้ตรงกับ On Hand
-            currentClearItem.sysQty = currentClearItem.onHand;
+            // ในระบบจริง ตรงนี้จะมีการส่งคำสั่งไปอัปเดตยอดสต๊อกใน Google Sheets ด้วย
+            currentClearItem.sysQty = currentClearItem.onHand; 
             
             closeModal();
             renderAll();
         }
 
-        // 🌟 5. ระบบมัดจำค้างรับ (Tab 2)
         function clearDeposit(id) {
             if (confirm("ลูกค้ามารับงาน/ประกอบอะไหล่ชิ้นนี้แล้วใช่ไหมครับ?")) {
                 let depIndex = db.deposits.findIndex(d => d.id === id);
                 if (depIndex > -1) {
                     let dep = db.deposits[depIndex];
-                    
-                    // หักสต๊อกระบบ (เพราะใช้ของไปแล้ว)
                     let item = db.items.find(i => i.id === dep.itemId);
                     if (item) {
                         item.sysQty -= dep.qty;
-                        item.onHand = item.sysQty; // ปรับ On hand ให้ตรงด้วย
+                        item.onHand = item.sysQty; 
                     }
-
                     addLog(dep.itemName, 'เคลียร์มัดจำ (ปิดงาน)', `-${dep.qty}`, dep.ref);
                     db.deposits.splice(depIndex, 1);
                     renderAll();
@@ -336,13 +349,12 @@
             });
         }
 
-        // 🌟 6. ระบบประวัติ (Tab 3)
         function renderLogs() {
             const tbody = document.getElementById('logBody');
             tbody.innerHTML = "";
             if (db.logs.length === 0) return tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; color:#86868b; padding:30px;">ไม่มีประวัติความเคลื่อนไหว</td></tr>`;
             
-            db.logs.slice(0, 100).forEach(log => { // โชว์แค่ 100 รายการล่าสุด
+            db.logs.slice(0, 100).forEach(log => {
                 let badgeClass = "bg-gray";
                 if (log.type.includes('เบิก') || log.type.includes('ขาย')) badgeClass = "bg-orange";
                 if (log.type.includes('มัดจำ')) badgeClass = "bg-blue";

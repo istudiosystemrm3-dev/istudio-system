@@ -1,7 +1,3 @@
-// 🌟 1. ประกาศ URL ฐานข้อมูล (ห้ามลบหรือเปลี่ยนชื่อตัวแปรนี้เด็ดขาด)
-const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzGXPWcFPx5Oy_Ey0LtxzAvIBVS7sB6j8pvFWY_BcpEL2lmThw-iWfdZS10K-ylKII1fQ/exec";
-
-// 🌟 2. โหลดเมนูนำทาง
 document.addEventListener("DOMContentLoaded", function() {
     try {
         const menuHTML = `
@@ -22,7 +18,7 @@ document.addEventListener("DOMContentLoaded", function() {
         if (container) {
             container.innerHTML = menuHTML;
             
-            // โค้ดตรวจจับว่าอยู่หน้าไหน เพื่อทำแถบสว่าง (Active) ที่เมนูนั้น
+            // โค้ดทำแถบสว่าง (Active) ให้เมนูที่กำลังเปิดอยู่
             let currentPath = window.location.pathname.split('/').pop();
             if (currentPath === '') currentPath = 'calculate.html'; 
             
@@ -30,10 +26,8 @@ document.addEventListener("DOMContentLoaded", function() {
             if (activeLink) {
                 activeLink.classList.add('active');
             }
-        } else {
-            console.warn("⚠️ ไม่พบกล่อง <div id='navbar-container'></div> ในหน้านี้");
         }
     } catch (error) {
-        console.error("❌ เกิดข้อผิดพลาดในการสร้างแถบเมนู:", error);
+        console.error("Error loading navbar:", error);
     }
 });

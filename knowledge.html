@@ -10,7 +10,7 @@
         .form-container { background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); margin-bottom: 25px; }
         .form-group { margin-bottom: 15px; }
         .form-group label { display: block; margin-bottom: 5px; font-weight: bold; color: #1d1d1f; font-size: 14px; }
-        .form-control { width: 100%; padding: 12px; border: 1px solid #d2d2d7; border-radius: 8px; font-size: 14px; transition: 0.3s; }
+        .form-control { width: 100%; padding: 12px; border: 1px solid #d2d2d7; border-radius: 8px; font-size: 14px; transition: 0.3s; box-sizing: border-box; }
         .form-control:focus { border-color: #0071e3; outline: none; box-shadow: 0 0 0 3px rgba(0,113,227,0.1); }
         textarea.form-control { resize: vertical; min-height: 80px; }
         
@@ -23,7 +23,7 @@
         .btn-edit { background: #ff9500; color: white; }
         .btn-delete { background: #ff3b30; color: white; }
 
-        .search-box { width: 100%; padding: 14px 20px; font-size: 16px; border: 1px solid #d2d2d7; border-radius: 12px; margin-bottom: 20px; outline: none; }
+        .search-box { width: 100%; padding: 14px 20px; font-size: 16px; border: 1px solid #d2d2d7; border-radius: 12px; margin-bottom: 20px; outline: none; box-sizing: border-box; }
         .search-box:focus { border-color: #0071e3; }
 
         .article-card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); margin-bottom: 15px; border-left: 5px solid #0071e3; display: flex; justify-content: space-between; align-items: flex-start; }
@@ -33,6 +33,8 @@
         .article-link { display: inline-block; background: #e8f2fc; color: #0071e3; padding: 6px 12px; border-radius: 6px; text-decoration: none; font-size: 13px; font-weight: bold; }
         .article-link:hover { background: #c8e1fa; }
         .article-actions { flex-shrink: 0; display: flex; flex-direction: column; gap: 8px; }
+        
+        .loading-text { text-align: center; color: #0071e3; font-weight: bold; padding: 40px; font-size: 16px; }
     </style>
 </head>
 <body>
@@ -43,12 +45,12 @@
         
         <!-- ฟอร์มกรอกข้อมูล -->
         <div class="form-container">
-            <h2 id="formTitle" style="margin-top:0;">📝 เพิ่มข้อมูลใหม่</h2>
+            <h2 id="formTitle" style="margin-top:0;">📝 เพิ่มข้อมูลคลังความรู้</h2>
             <input type="hidden" id="editId" value="">
             
             <div class="form-group">
                 <label>1. หัวข้อ (Article Name):</label>
-                <input type="text" id="artTitle" class="form-control" placeholder="เช่น วิธีแก้รหัส Error 4013, ลิงก์โหลดวงจร Mac...">
+                <input type="text" id="artTitle" class="form-control" placeholder="เช่น วิธีแก้รหัส Error 4013, อาการบอร์ดช็อต...">
             </div>
             
             <div class="form-group">
@@ -61,75 +63,89 @@
                 <input type="url" id="artLink" class="form-control" placeholder="https://...">
             </div>
             
-            <button class="btn btn-primary" onclick="saveData()">💾 บันทึกข้อมูล</button>
-            <button id="btnCancel" class="btn btn-cancel" onclick="cancelEdit()">❌ ยกเลิกการแก้ไข</button>
+            <button id="btnSave" class="btn btn-primary" onclick="saveData()">💾 บันทึกข้อมูลขึ้น Cloud</button>
+            <button id="btnCancel" class="btn btn-cancel" onclick="cancelEdit()">❌ ยกเลิก</button>
         </div>
 
-        <!-- ช่องค้นหา -->
         <input type="text" id="searchInput" class="search-box" placeholder="🔍 ค้นหาหัวข้อ หรือรายละเอียด..." onkeyup="renderData()">
 
-        <!-- พื้นที่แสดงข้อมูล -->
         <div id="articleContainer">
-            <!-- การ์ดข้อมูลจะถูกสร้างที่นี่ผ่าน JavaScript -->
+            <div class="loading-text">⏳ กำลังเชื่อมต่อข้อมูลจาก Google Sheets...</div>
         </div>
 
     </div>
 
     <script>
-        // ใช้ Local Storage ไปก่อนในเบื้องต้น
-        const STORAGE_KEY = 'iserve_knowledge_db';
-        let articles = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+        let articles = [];
 
-        // ฟังก์ชันสร้าง ID สุ่ม
         function generateId() {
             return Date.now().toString(36) + Math.random().toString(36).substr(2);
         }
 
-        // ฟังก์ชันบันทึกข้อมูล (ใช้ได้ทั้ง เพิ่มใหม่ และ แก้ไข)
-        function saveData() {
+        // 🌟 ดึงข้อมูลจาก Google Sheets
+        async function loadDataFromCloud() {
+            if (!window.WEB_APP_URL) {
+                document.getElementById('articleContainer').innerHTML = '<div style="color:red; text-align:center; padding: 20px;">❌ ไม่พบ URL ฐานข้อมูล (โปรดเช็คไฟล์ navbar.js)</div>';
+                return;
+            }
+
+            try {
+                const response = await fetch(window.WEB_APP_URL + "?action=getKnowledge");
+                articles = await response.json();
+                renderData();
+            } catch (error) {
+                document.getElementById('articleContainer').innerHTML = '<div style="color:red; text-align:center; padding: 20px;">❌ เกิดข้อผิดพลาดในการดึงข้อมูล</div>';
+            }
+        }
+
+        // 🌟 บันทึกข้อมูลขึ้น Google Sheets
+        async function saveData() {
             const title = document.getElementById('artTitle').value.trim();
             const desc = document.getElementById('artDesc').value.trim();
             let link = document.getElementById('artLink').value.trim();
             const editId = document.getElementById('editId').value;
+            const btnSave = document.getElementById('btnSave');
 
-            if (!title) {
-                alert("❌ กรุณากรอก 'หัวข้อ' ด้วยครับ");
-                return;
-            }
+            if (!title) return alert("❌ กรุณากรอก 'หัวข้อ' ด้วยครับ");
 
-            // จัดฟอร์แมตลิงก์ให้ถูกต้อง
             if (link && !link.startsWith('http://') && !link.startsWith('https://')) {
                 link = 'https://' + link;
             }
 
-            if (editId) {
-                // อัปเดตข้อมูลเดิม
-                let index = articles.findIndex(a => a.id === editId);
-                if (index !== -1) {
-                    articles[index].title = title;
-                    articles[index].desc = desc;
-                    articles[index].link = link;
-                    alert("✅ อัปเดตข้อมูลเรียบร้อยแล้ว!");
-                }
-            } else {
-                // เพิ่มข้อมูลใหม่
-                articles.unshift({
-                    id: generateId(),
-                    title: title,
-                    desc: desc,
-                    link: link,
-                    date: new Date().toLocaleDateString('th-TH')
+            // เปลี่ยนปุ่มเป็นสถานะกำลังโหลด
+            btnSave.innerText = "⏳ กำลังบันทึก...";
+            btnSave.disabled = true;
+
+            const payload = {
+                action: 'saveKnowledge',
+                id: editId || generateId(),
+                title: title,
+                desc: desc,
+                link: link,
+                date: new Date().toLocaleDateString('th-TH')
+            };
+
+            try {
+                await fetch(window.WEB_APP_URL, {
+                    method: 'POST',
+                    body: JSON.stringify(payload)
                 });
-                alert("✅ เพิ่มข้อมูลใหม่เรียบร้อยแล้ว!");
+                
+                alert("✅ บันทึกข้อมูลลงฐานข้อมูลเรียบร้อยแล้ว!");
+                cancelEdit();
+                
+                // รีโหลดข้อมูลใหม่จาก Cloud
+                document.getElementById('articleContainer').innerHTML = '<div class="loading-text">⏳ กำลังรีเฟรชข้อมูล...</div>';
+                await loadDataFromCloud();
+                
+            } catch (error) {
+                alert("❌ เกิดข้อผิดพลาดในการบันทึก กรุณาลองใหม่");
             }
 
-            // บันทึกลง Storage และล้างฟอร์ม
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(articles));
-            cancelEdit();
-            renderData();
+            btnSave.innerText = "💾 บันทึกข้อมูลขึ้น Cloud";
+            btnSave.disabled = false;
         }
 
-        // ฟังก์ชันดึงข้อมูลมาใส่ฟอร์มเพื่อแก้ไข
         function editData(id) {
             const article = articles.find(a => a.id === id);
             if (article) {
@@ -138,49 +154,56 @@
                 document.getElementById('artLink').value = article.link;
                 document.getElementById('editId').value = article.id;
                 
-                document.getElementById('formTitle').innerText = "✏️ แก้ไขข้อมูล";
+                document.getElementById('formTitle').innerText = "✏️ แก้ไขข้อมูลคลังความรู้";
                 document.getElementById('btnCancel').style.display = "inline-block";
                 
-                // เลื่อนหน้าจอกลับไปที่ฟอร์มด้านบน
                 window.scrollTo({ top: 0, behavior: 'smooth' });
             }
         }
 
-        // ฟังก์ชันยกเลิกการแก้ไข
         function cancelEdit() {
             document.getElementById('artTitle').value = "";
             document.getElementById('artDesc').value = "";
             document.getElementById('artLink').value = "";
             document.getElementById('editId').value = "";
             
-            document.getElementById('formTitle').innerText = "📝 เพิ่มข้อมูลใหม่";
+            document.getElementById('formTitle').innerText = "📝 เพิ่มข้อมูลคลังความรู้";
             document.getElementById('btnCancel').style.display = "none";
         }
 
-        // ฟังก์ชันลบข้อมูล
-        function deleteData(id) {
-            if (confirm("⚠️ คุณแน่ใจหรือไม่ว่าต้องการลบข้อมูลนี้?")) {
-                articles = articles.filter(a => a.id !== id);
-                localStorage.setItem(STORAGE_KEY, JSON.stringify(articles));
-                renderData();
+        // 🌟 ลบข้อมูลจาก Google Sheets
+        async function deleteData(id) {
+            if (confirm("⚠️ คุณแน่ใจหรือไม่ว่าต้องการลบข้อมูลนี้ออกจากระบบส่วนกลาง?")) {
+                document.getElementById('articleContainer').innerHTML = '<div class="loading-text">🗑️ กำลังลบข้อมูล...</div>';
+                
+                const payload = { action: 'deleteKnowledge', id: id };
+                
+                try {
+                    await fetch(window.WEB_APP_URL, {
+                        method: 'POST',
+                        body: JSON.stringify(payload)
+                    });
+                    await loadDataFromCloud();
+                } catch (error) {
+                    alert("❌ เกิดข้อผิดพลาดในการลบ");
+                    loadDataFromCloud(); // โหลดใหม่ถ้าพัง
+                }
             }
         }
 
-        // ฟังก์ชันแสดงผลและค้นหา
         function renderData() {
             const container = document.getElementById('articleContainer');
             const keyword = document.getElementById('searchInput').value.toLowerCase();
             
             container.innerHTML = "";
 
-            // กรองข้อมูลตามคำค้นหา
             const filtered = articles.filter(a => 
                 a.title.toLowerCase().includes(keyword) || 
                 a.desc.toLowerCase().includes(keyword)
             );
 
             if (filtered.length === 0) {
-                container.innerHTML = `<div style="text-align: center; color: #86868b; padding: 40px;">ไม่พบข้อมูลที่ค้นหา</div>`;
+                container.innerHTML = `<div style="text-align: center; color: #86868b; padding: 40px;">ไม่พบข้อมูล</div>`;
                 return;
             }
 
@@ -205,8 +228,8 @@
             });
         }
 
-        // โหลดข้อมูลครั้งแรก
-        window.onload = renderData;
+        // รอให้ Navbar โหลดเสร็จก่อน แล้วค่อยดึงข้อมูลจาก Cloud
+        setTimeout(() => { loadDataFromCloud(); }, 300);
     </script>
 </body>
 </html>

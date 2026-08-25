@@ -166,7 +166,7 @@
         };
 
         function loadCloudBranches() {
-            fetch(WEB_APP_URL + "?action=getBranches")
+            fetch(window.WEB_APP_URL + "?action=getBranches", { redirect: 'follow' })
                 .then(res => res.json())
                 .then(data => {
                     branchData = data;

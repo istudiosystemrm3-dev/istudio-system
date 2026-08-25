@@ -1,5 +1,5 @@
 // 🌟 ประกาศ URL แบบ Global ป้องกันการชนกันของโค้ด 100%
-window.WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxvCdl8_vsOCEcofT5mzwxTyq7Hjffdv_AqWwVo6X9Ztq-T_JoR4GvmITUfTV3VR-AxVw/exec";
+window.WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxd_ddpFRlicyehPU6CsYkYbaZSiULu5bJ4xmx5hrMZ9nftzJ6uMR6dHaUprA0EyqhTfg/exec";
 
 document.addEventListener("DOMContentLoaded", function() {
     try {

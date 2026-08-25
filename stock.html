@@ -10,11 +10,14 @@
         .page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
         .page-title { font-size: 24px; font-weight: bold; margin: 0; color: #1d1d1f; }
         
+        .branch-selector-container { background: #1d1d1f; color: white; padding: 15px 25px; border-radius: 12px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+        .branch-select { padding: 8px 15px; font-size: 16px; border-radius: 6px; border: none; font-weight: bold; cursor: pointer; outline: none; }
+        
         /* ระบบ Tabs */
         .tab-container { display: flex; gap: 10px; margin-bottom: 20px; border-bottom: 1px solid #d2d2d7; padding-bottom: 10px; }
         .tab-btn { background: transparent; border: none; font-size: 16px; font-weight: bold; color: #86868b; padding: 10px 20px; cursor: pointer; border-radius: 8px; transition: 0.2s; }
         .tab-btn:hover { background: #f5f5f7; color: #1d1d1f; }
-        .tab-btn.active { background: #1d1d1f; color: white; }
+        .tab-btn.active { background: #0071e3; color: white; }
 
         .tab-content { display: none; }
         .tab-content.active { display: block; animation: fadeIn 0.3s; }
@@ -24,43 +27,30 @@
         .data-table { width: 100%; border-collapse: collapse; background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.05); font-size: 14px; }
         .data-table th, .data-table td { padding: 12px 15px; text-align: left; border-bottom: 1px solid #e5e5ea; vertical-align: middle; }
         .data-table th { background-color: #f5f5f7; font-weight: bold; color: #1d1d1f; }
-        .data-table tbody tr:hover { background-color: #f8fbff; }
         
-        /* สไตล์ Input ให้นับสต๊อก */
         .input-onhand { width: 70px; padding: 8px; border: 2px solid #d2d2d7; border-radius: 6px; font-size: 16px; font-weight: bold; text-align: center; outline: none; transition: 0.2s; }
-        .input-onhand:focus { border-color: #0071e3; box-shadow: 0 0 0 3px rgba(0,113,227,0.1); }
+        .input-onhand:focus { border-color: #0071e3; }
         .diff-red { color: #ff3b30; font-weight: bold; }
         .diff-green { color: #34c759; font-weight: bold; }
         .diff-zero { color: #86868b; }
 
-        /* ปุ่มต่างๆ */
-        .btn { border: none; padding: 8px 15px; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: bold; transition: 0.2s; display: inline-block; }
+        .btn { border: none; padding: 8px 15px; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: bold; display: inline-block; }
         .btn-primary { background-color: #0071e3; color: white; }
-        .btn-primary:hover { background-color: #005bb5; }
         .btn-warning { background-color: #ff9500; color: white; }
         .btn-success { background-color: #34c759; color: white; }
         
-        /* แถบเครื่องมือด้านบน */
-        .toolbar { background: white; padding: 15px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); margin-bottom: 20px; display: flex; gap: 15px; align-items: center; }
+        .toolbar { background: white; padding: 15px; border-radius: 12px; margin-bottom: 20px; display: flex; gap: 15px; align-items: center; }
         .search-input { flex: 1; padding: 12px 15px; border: 1px solid #d2d2d7; border-radius: 8px; font-size: 15px; outline: none; }
-        .search-input:focus { border-color: #0071e3; }
-        .btn-sync { background-color: #1d1d1f; color: white; padding: 12px 20px; border-radius: 8px; font-size: 14px; font-weight: bold; border: none; cursor: pointer; }
-        .btn-sync:hover { background-color: #333; }
+        .btn-sync { background-color: #34c759; color: white; padding: 12px 20px; border-radius: 8px; font-size: 14px; font-weight: bold; border: none; cursor: pointer; }
 
         /* Modal เคลียร์ยอด */
         .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; justify-content: center; align-items: center; }
-        .modal-box { background: white; padding: 30px; border-radius: 16px; width: 450px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
-        .modal-title { font-size: 18px; font-weight: bold; margin-top: 0; margin-bottom: 20px; }
-        .radio-group { display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px; }
-        .radio-group label { background: #f5f5f7; padding: 12px; border-radius: 8px; cursor: pointer; display: block; font-size: 14px; font-weight: bold; border: 1px solid transparent; }
+        .modal-box { background: white; padding: 30px; border-radius: 16px; width: 450px; }
+        .radio-group label { background: #f5f5f7; padding: 12px; border-radius: 8px; cursor: pointer; display: block; font-size: 14px; font-weight: bold; margin-bottom: 8px; border: 1px solid transparent;}
         .radio-group input[type="radio"]:checked + label { border-color: #0071e3; background: #e8f2fc; color: #0071e3; }
-        .modal-input { width: 100%; padding: 12px; border: 1px solid #d2d2d7; border-radius: 8px; margin-bottom: 20px; font-size: 14px; box-sizing: border-box; }
+        .modal-input { width: 100%; padding: 12px; border: 1px solid #d2d2d7; border-radius: 8px; margin-bottom: 20px; box-sizing: border-box; }
         
         .badge { padding: 4px 8px; border-radius: 4px; font-size: 11px; font-weight: bold; color: white; }
-        .bg-blue { background: #0071e3; }
-        .bg-orange { background: #ff9500; }
-        .bg-purple { background: #af52de; }
-        .bg-gray { background: #8e8e93; }
     </style>
 </head>
 <body>
@@ -68,8 +58,17 @@
     <script src="navbar.js"></script>
 
     <div class="container">
-        <div class="page-header">
-            <h1 class="page-title">📦 ระบบคุมยอดสต๊อก (Reconciliation)</h1>
+        
+        <!-- ตัวเลือกสาขาแบบ Global -->
+        <div class="branch-selector-container">
+            <div>
+                <h2 style="margin: 0; font-size: 18px;">📍 สาขาที่กำลังตรวจนับ:</h2>
+                <span style="font-size: 12px; color: #86868b;">ข้อมูลสต๊อกจะแยกอิสระจากกันในแต่ละสาขา</span>
+            </div>
+            <select id="globalBranch" class="branch-select" onchange="changeBranch()">
+                <option value="สาขาหลัก">🏢 สาขาหลัก</option>
+                <option value="สาขา 2">🏬 สาขา 2</option>
+            </select>
         </div>
 
         <div class="tab-container">
@@ -78,58 +77,43 @@
             <button class="tab-btn" onclick="switchTab('tab-log')">📜 ประวัติความเคลื่อนไหว</button>
         </div>
 
-        <!-- แท็บ 1: เช็คสต๊อก -->
+        <!-- แท็บ 1 -->
         <div id="tab-stock" class="tab-content active">
-            
-            <!-- แถบเครื่องมือ (ดึงข้อมูล & ค้นหา) -->
             <div class="toolbar">
-                <button class="btn-sync" onclick="syncFromDatabase()">🔄 โหลดสต๊อกจากตารางหลัก</button>
-                <input type="text" id="searchInput" class="search-input" placeholder="🔍 ค้นหาชื่ออะไหล่ หรือ บาร์โค้ด..." onkeyup="filterStock()">
+                <button class="btn-sync" onclick="syncFromDatabase()">🔄 โหลดสต๊อก (เฉพาะสาขานี้)</button>
+                <input type="text" id="searchInput" class="search-input" placeholder="🔍 ค้นหาชื่ออะไหล่..." onkeyup="filterStock()">
             </div>
-
             <table class="data-table">
                 <thead>
                     <tr>
                         <th width="35%">ชื่ออะไหล่ / สินค้า</th>
-                        <th width="15%" style="text-align: center;">สต๊อกระบบ (ตาราง)</th>
+                        <th width="15%" style="text-align: center;">สต๊อกระบบ</th>
                         <th width="15%" style="text-align: center;">นับจริง (On Hand)</th>
                         <th width="15%" style="text-align: center;">ส่วนต่าง</th>
                         <th width="20%">การจัดการ</th>
                     </tr>
                 </thead>
                 <tbody id="stockBody">
-                    <tr><td colspan="5" style="text-align:center; padding: 40px; color: #86868b;">กดปุ่ม "โหลดสต๊อกจากตารางหลัก" เพื่อเริ่มตรวจนับ</td></tr>
+                    <tr><td colspan="5" style="text-align:center; padding: 40px; color: #86868b;">กดปุ่ม "โหลดสต๊อก" เพื่อเริ่มตรวจนับข้อมูลของสาขานี้</td></tr>
                 </tbody>
             </table>
         </div>
 
-        <!-- แท็บ 2: มัดจำค้างรับ -->
+        <!-- แท็บ 2 -->
         <div id="tab-deposit" class="tab-content">
             <table class="data-table">
                 <thead>
-                    <tr>
-                        <th width="15%">วันที่มัดจำ</th>
-                        <th width="20%">อ้างอิงลูกค้า / Job</th>
-                        <th width="40%">สินค้าที่มัดจำไว้</th>
-                        <th width="10%" style="text-align: center;">จำนวน</th>
-                        <th width="15%">จัดการ</th>
-                    </tr>
+                    <tr><th width="15%">วันที่มัดจำ</th><th width="20%">อ้างอิงลูกค้า / Job</th><th width="40%">สินค้าที่มัดจำไว้</th><th width="10%" style="text-align: center;">จำนวน</th><th width="15%">จัดการ</th></tr>
                 </thead>
                 <tbody id="depositBody"></tbody>
             </table>
         </div>
 
-        <!-- แท็บ 3: ประวัติ (Log) -->
+        <!-- แท็บ 3 -->
         <div id="tab-log" class="tab-content">
             <table class="data-table">
                 <thead>
-                    <tr>
-                        <th width="15%">วัน/เวลา</th>
-                        <th width="35%">ชื่อสินค้า</th>
-                        <th width="15%">ประเภท</th>
-                        <th width="10%" style="text-align: center;">จำนวน</th>
-                        <th width="25%">รายละเอียดอ้างอิง</th>
-                    </tr>
+                    <tr><th width="15%">วัน/เวลา</th><th width="35%">ชื่อสินค้า</th><th width="15%">ประเภท</th><th width="10%" style="text-align: center;">จำนวน</th><th width="25%">รายละเอียดอ้างอิง</th></tr>
                 </thead>
                 <tbody id="logBody"></tbody>
             </table>
@@ -139,15 +123,13 @@
     <!-- Modal: เคลียร์ยอดส่วนต่าง -->
     <div id="clearModal" class="modal-overlay">
         <div class="modal-box">
-            <h2 class="modal-title" id="modalTitle">เคลียร์ส่วนต่าง</h2>
-            <div style="margin-bottom: 15px; color: #515154; font-size: 14px;">
-                สินค้า: <strong id="modalItemName" style="color: #1d1d1f;">-</strong><br>
-                จำนวนที่ต้องเคลียร์: <strong id="modalDiffQty" style="font-size: 18px;">0</strong>
+            <h2 class="modal-title">เคลียร์ส่วนต่าง</h2>
+            <div style="margin-bottom: 15px; font-size: 14px;">
+                สินค้า: <strong id="modalItemName">-</strong><br>
+                จำนวนที่ต้องเคลียร์: <strong id="modalDiffQty" style="font-size: 18px; color: #ff3b30;">0</strong>
             </div>
-            
             <div class="radio-group" id="modalOptions"></div>
             <input type="text" id="modalRef" class="modal-input" placeholder="ระบุข้อมูลอ้างอิง...">
-            
             <div style="display: flex; justify-content: flex-end; gap: 10px;">
                 <button class="btn" style="background: #e5e5ea; color: #1d1d1f;" onclick="closeModal()">ยกเลิก</button>
                 <button class="btn btn-primary" onclick="submitClear()">บันทึกข้อมูล</button>
@@ -156,12 +138,23 @@
     </div>
 
     <script>
-        // ฐานข้อมูลจำลอง (รอต่อกับ Google Sheets)
-        const DB_KEY = 'iserve_stock_reconcile_db';
-        let db = JSON.parse(localStorage.getItem(DB_KEY)) || { items: [], deposits: [], logs: [] };
+        const DB_KEY = 'iserve_stock_branch_v1';
+        // โครงสร้างข้อมูลเก็บแยกตามสาขา
+        let db = JSON.parse(localStorage.getItem(DB_KEY)) || {
+            'สาขาหลัก': { items: [], deposits: [], logs: [] },
+            'สาขา 2': { items: [], deposits: [], logs: [] }
+        };
 
+        let currentBranch = 'สาขาหลัก';
         let currentClearItem = null;
         let currentClearDiff = 0;
+
+        function changeBranch() {
+            currentBranch = document.getElementById('globalBranch').value;
+            // ถ้ายังไม่มีฐานข้อมูลสาขานี้ให้สร้างใหม่
+            if (!db[currentBranch]) db[currentBranch] = { items: [], deposits: [], logs: [] };
+            renderAll();
+        }
 
         function switchTab(tabId) {
             document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
@@ -175,7 +168,7 @@
             renderStock();
             renderDeposits();
             renderLogs();
-            document.getElementById('depositCount').innerText = db.deposits.length;
+            document.getElementById('depositCount').innerText = db[currentBranch].deposits.length;
             localStorage.setItem(DB_KEY, JSON.stringify(db));
         }
 
@@ -185,42 +178,41 @@
         }
 
         function addLog(itemName, type, qty, ref) {
-            db.logs.unshift({ date: getFormattedDate(), item: itemName, type: type, qty: qty, ref: ref });
+            db[currentBranch].logs.unshift({ date: getFormattedDate(), item: itemName, type: type, qty: qty, ref: ref });
         }
 
-        // 🌟 จำลองการดึงข้อมูลจากตาราง (เดี๋ยวเราจะเขียนเชื่อม Google Sheets ตรงนี้)
         function syncFromDatabase() {
             let btn = document.querySelector('.btn-sync');
             btn.innerText = "⏳ กำลังดึงข้อมูล...";
-            
             setTimeout(() => {
-                // ข้อมูลตัวอย่างที่สมมติว่าดึงมาจากตารางของคุณ
-                db.items = [
-                    { id: '1', name: 'แบตเตอรี่ iPhone 13 Pro (แท้)', sysQty: 10, onHand: "" },
-                    { id: '2', name: 'หน้าจอ iPhone 12 (งานเทียบ)', sysQty: 5, onHand: "" },
-                    { id: '3', name: 'ฟิล์มกระจก iPad Pro 11"', sysQty: 25, onHand: "" }
-                ];
+                // จำลองดึงข้อมูลแบบแยกสาขา
+                if(currentBranch === 'สาขาหลัก') {
+                    db[currentBranch].items = [
+                        { id: '1', name: 'แบตเตอรี่ iPhone 13 Pro', sysQty: 10, onHand: "" },
+                        { id: '2', name: 'หน้าจอ iPhone 12', sysQty: 5, onHand: "" }
+                    ];
+                } else {
+                    db[currentBranch].items = [
+                        { id: '1', name: 'แบตเตอรี่ iPhone 13 Pro', sysQty: 2, onHand: "" },
+                        { id: '3', name: 'ฟิล์มกระจก iPad Pro 11"', sysQty: 25, onHand: "" }
+                    ];
+                }
                 renderAll();
-                btn.innerText = "🔄 โหลดสต๊อกจากตารางหลัก";
-                alert("✅ ดึงข้อมูลสต๊อกล่าสุดเรียบร้อยแล้ว!");
-            }, 800);
+                btn.innerText = "🔄 โหลดสต๊อก (เฉพาะสาขานี้)";
+            }, 500);
         }
 
-        // ค้นหาในตาราง
         function filterStock() {
             let input = document.getElementById("searchInput").value.toLowerCase();
             let rows = document.getElementById("stockBody").getElementsByTagName("tr");
             for (let i = 0; i < rows.length; i++) {
                 let nameCell = rows[i].getElementsByTagName("td")[0];
-                if (nameCell) {
-                    let text = nameCell.textContent || nameCell.innerText;
-                    rows[i].style.display = text.toLowerCase().indexOf(input) > -1 ? "" : "none";
-                }
+                if (nameCell) rows[i].style.display = (nameCell.textContent || nameCell.innerText).toLowerCase().indexOf(input) > -1 ? "" : "none";
             }
         }
 
         function updateOnHand(id, value) {
-            let item = db.items.find(i => i.id === id);
+            let item = db[currentBranch].items.find(i => i.id === id);
             if (item) {
                 item.onHand = value === "" ? "" : parseInt(value);
                 renderStock();
@@ -229,10 +221,13 @@
 
         function renderStock() {
             const tbody = document.getElementById('stockBody');
-            if (db.items.length === 0) return;
+            if (db[currentBranch].items.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; padding: 40px; color: #86868b;">ไม่มีข้อมูลสต๊อกในระบบ กรุณากดปุ่มโหลดข้อมูล</td></tr>`;
+                return;
+            }
             
             tbody.innerHTML = "";
-            db.items.forEach(item => {
+            db[currentBranch].items.forEach(item => {
                 let diff = (item.onHand === "") ? 0 : (item.onHand - item.sysQty);
                 let diffHTML = `<span class="diff-zero">0</span>`;
                 let actionHTML = `-`;
@@ -252,10 +247,8 @@
                 let tr = document.createElement('tr');
                 tr.innerHTML = `
                     <td><strong>${item.name}</strong></td>
-                    <td style="text-align: center; font-size: 16px; color: #515154;">${item.sysQty}</td>
-                    <td style="text-align: center;">
-                        <input type="number" class="input-onhand" value="${item.onHand}" onchange="updateOnHand('${item.id}', this.value)" placeholder="นับได้">
-                    </td>
+                    <td style="text-align: center; font-size: 16px;">${item.sysQty}</td>
+                    <td style="text-align: center;"><input type="number" class="input-onhand" value="${item.onHand}" onchange="updateOnHand('${item.id}', this.value)" placeholder="-"></td>
                     <td style="text-align: center;">${diffHTML}</td>
                     <td>${actionHTML}</td>
                 `;
@@ -264,7 +257,7 @@
         }
 
         function openModal(id, diff) {
-            currentClearItem = db.items.find(i => i.id === id);
+            currentClearItem = db[currentBranch].items.find(i => i.id === id);
             currentClearDiff = diff;
             
             document.getElementById('modalItemName').innerText = currentClearItem.name;
@@ -274,15 +267,13 @@
             let optionsHTML = "";
             if (diff < 0) {
                 optionsHTML = `
-                    <div><input type="radio" name="clearType" id="opt1" value="job" checked> <label for="opt1">🔧 ใช้กับงานซ่อม (มีเลข Job)</label></div>
+                    <div><input type="radio" name="clearType" id="opt1" value="job" checked> <label for="opt1">🔧 ใช้กับงานซ่อม (ระบุ Job)</label></div>
                     <div><input type="radio" name="clearType" id="opt2" value="sale"> <label for="opt2">🛒 ขายหน้าร้าน (ไม่มี Job)</label></div>
-                    <div><input type="radio" name="clearType" id="opt3" value="transfer"> <label for="opt3">🚚 โอนไปสาขาอื่น (Branch Transfer)</label></div>
+                    <div><input type="radio" name="clearType" id="opt3" value="transfer"> <label for="opt3">🚚 โอนไปสาขาอื่น</label></div>
                 `;
                 document.getElementById('modalRef').placeholder = "ระบุเลข Job, เลขบิล หรือ ชื่อสาขาที่โอนไป...";
             } else {
-                optionsHTML = `
-                    <div><input type="radio" name="clearType" id="opt4" value="deposit" checked> <label for="opt4">📦 ลูกค้ามัดจำของไว้ (รอประกอบ)</label></div>
-                `;
+                optionsHTML = `<div><input type="radio" name="clearType" id="opt4" value="deposit" checked> <label for="opt4">📦 ลูกค้ามัดจำของไว้</label></div>`;
                 document.getElementById('modalRef').placeholder = "ระบุชื่อลูกค้า หรือ เลข Job ที่มัดจำ...";
             }
             
@@ -295,37 +286,35 @@
         function submitClear() {
             let type = document.querySelector('input[name="clearType"]:checked').value;
             let ref = document.getElementById('modalRef').value.trim();
-            if (!ref) return alert("❌ กรุณาระบุรายละเอียดอ้างอิง (เลข Job/สาขา) ด้วยครับ");
+            if (!ref) return alert("❌ กรุณาระบุรายละเอียดอ้างอิงด้วยครับ");
 
             let absDiff = Math.abs(currentClearDiff);
 
             if (type === "deposit") {
-                db.deposits.push({ id: Date.now().toString(), date: getFormattedDate(), ref: ref, itemName: currentClearItem.name, itemId: currentClearItem.id, qty: absDiff });
+                db[currentBranch].deposits.push({ id: Date.now().toString(), date: getFormattedDate(), ref: ref, itemName: currentClearItem.name, itemId: currentClearItem.id, qty: absDiff });
                 addLog(currentClearItem.name, 'รับมัดจำ', `+${absDiff}`, ref);
             } else {
                 let logType = type === "job" ? "เบิกซ่อม" : (type === "sale" ? "ขายหน้าร้าน" : "โอนสาขา");
                 addLog(currentClearItem.name, logType, `-${absDiff}`, ref);
             }
 
-            // ในระบบจริง ตรงนี้จะมีการส่งคำสั่งไปอัปเดตยอดสต๊อกใน Google Sheets ด้วย
             currentClearItem.sysQty = currentClearItem.onHand; 
-            
             closeModal();
             renderAll();
         }
 
         function clearDeposit(id) {
             if (confirm("ลูกค้ามารับงาน/ประกอบอะไหล่ชิ้นนี้แล้วใช่ไหมครับ?")) {
-                let depIndex = db.deposits.findIndex(d => d.id === id);
+                let depIndex = db[currentBranch].deposits.findIndex(d => d.id === id);
                 if (depIndex > -1) {
-                    let dep = db.deposits[depIndex];
-                    let item = db.items.find(i => i.id === dep.itemId);
+                    let dep = db[currentBranch].deposits[depIndex];
+                    let item = db[currentBranch].items.find(i => i.id === dep.itemId);
                     if (item) {
                         item.sysQty -= dep.qty;
                         item.onHand = item.sysQty; 
                     }
                     addLog(dep.itemName, 'เคลียร์มัดจำ (ปิดงาน)', `-${dep.qty}`, dep.ref);
-                    db.deposits.splice(depIndex, 1);
+                    db[currentBranch].deposits.splice(depIndex, 1);
                     renderAll();
                 }
             }
@@ -334,9 +323,9 @@
         function renderDeposits() {
             const tbody = document.getElementById('depositBody');
             tbody.innerHTML = "";
-            if (db.deposits.length === 0) return tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; color:#86868b; padding:30px;">ไม่มีรายการมัดจำค้าง</td></tr>`;
+            if (db[currentBranch].deposits.length === 0) return tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; color:#86868b; padding:30px;">ไม่มีรายการมัดจำค้างของสาขานี้</td></tr>`;
             
-            db.deposits.forEach(dep => {
+            db[currentBranch].deposits.forEach(dep => {
                 let tr = document.createElement('tr');
                 tr.innerHTML = `
                     <td>${dep.date}</td>
@@ -352,9 +341,9 @@
         function renderLogs() {
             const tbody = document.getElementById('logBody');
             tbody.innerHTML = "";
-            if (db.logs.length === 0) return tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; color:#86868b; padding:30px;">ไม่มีประวัติความเคลื่อนไหว</td></tr>`;
+            if (db[currentBranch].logs.length === 0) return tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; color:#86868b; padding:30px;">ไม่มีประวัติความเคลื่อนไหวในสาขานี้</td></tr>`;
             
-            db.logs.slice(0, 100).forEach(log => {
+            db[currentBranch].logs.slice(0, 100).forEach(log => {
                 let badgeClass = "bg-gray";
                 if (log.type.includes('เบิก') || log.type.includes('ขาย')) badgeClass = "bg-orange";
                 if (log.type.includes('มัดจำ')) badgeClass = "bg-blue";
@@ -372,7 +361,10 @@
             });
         }
 
-        window.onload = renderAll;
+        window.onload = function() {
+            document.getElementById('globalBranch').value = currentBranch;
+            renderAll();
+        };
     </script>
 </body>
 </html>

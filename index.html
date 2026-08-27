@@ -3,146 +3,97 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>iServe Management System</title>
-    
-    <!-- ดึงไฟล์ style.css ส่วนกลางมาใช้งาน -->
+    <title>iServe Tools - Dashboard</title>
     <link rel="stylesheet" href="style.css">
     
     <style>
-        /* สไตล์เฉพาะของหน้า Index */
-        .welcome-section {
-            text-align: center;
-            margin-bottom: 50px;
-            margin-top: 30px;
-        }
-        .welcome-section h1 {
-            font-size: 36px;
-            font-weight: 700;
-            margin-bottom: 12px;
-            color: #1d1d1f;
-            letter-spacing: -0.5px;
-        }
-        .welcome-section p {
-            font-size: 18px;
-            color: #86868b;
-            margin: 0;
-            font-weight: 400;
-        }
+        .dashboard-header { text-align: center; margin-bottom: 40px; padding-top: 20px; }
+        .dashboard-title { font-size: 28px; font-weight: bold; color: #1d1d1f; margin-bottom: 10px; }
+        .dashboard-subtitle { font-size: 16px; color: #86868b; }
         
-        .dashboard-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-            gap: 25px;
-            margin-top: 20px;
-        }
+        .menu-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; max-width: 1000px; margin: 0 auto; padding-bottom: 50px; }
         
-        .menu-card {
-            background: #ffffff;
-            border-radius: 16px;
-            padding: 30px;
-            text-decoration: none;
-            color: inherit;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
-            border: 1px solid #e5e5e7;
-            display: flex;
-            flex-direction: column;
-            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
-        }
+        .menu-card { background: white; border-radius: 16px; padding: 30px 20px; text-decoration: none; color: #1d1d1f; box-shadow: 0 4px 12px rgba(0,0,0,0.04); transition: 0.3s ease; display: flex; flex-direction: column; align-items: center; text-align: center; border: 2px solid transparent; }
+        .menu-card:hover { transform: translateY(-5px); box-shadow: 0 12px 24px rgba(0,0,0,0.08); border-color: #0071e3; }
         
-        .menu-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 12px 24px rgba(0, 0, 0, 0.08);
-            border-color: #0071e3;
-        }
+        .menu-icon { font-size: 45px; margin-bottom: 15px; }
+        .menu-title { font-size: 18px; font-weight: bold; margin-bottom: 10px; color: #1d1d1f; }
+        .menu-desc { font-size: 13px; color: #515154; line-height: 1.5; }
         
-        .card-icon {
-            font-size: 36px;
-            margin-bottom: 20px;
-            display: inline-block;
-        }
-        
-        .card-title {
-            font-size: 20px;
-            font-weight: 600;
-            margin-bottom: 10px;
-            color: #1d1d1f;
-        }
-        
-        .card-desc {
-            font-size: 14px;
-            color: #515154;
-            line-height: 1.5;
-        }
-        
-        .card-link {
-            margin-top: auto;
-            padding-top: 25px;
-            color: #0071e3;
-            font-weight: 600;
-            font-size: 14px;
-            display: flex;
-            align-items: center;
-            gap: 4px;
-            transition: 0.2s;
-        }
-        
-        .menu-card:hover .card-link {
-            gap: 8px;
-        }
+        /* สไตล์สำหรับเมนูที่พักโปรเจกต์ไว้ */
+        .card-disabled { opacity: 0.6; pointer-events: none; border: 2px dashed #d2d2d7; box-shadow: none; background: #f5f5f7; }
+        .badge-soon { background: #d2d2d7; color: #515154; font-size: 11px; padding: 4px 8px; border-radius: 6px; margin-top: 15px; font-weight: bold; }
     </style>
 </head>
 <body>
+    <!-- ดึงแถบเมนูนำทางด้านบนมาแสดง -->
     <div id="navbar-container"></div>
     <script src="navbar.js"></script>
 
     <div class="container">
-        <div class="welcome-section">
-            <h1>iServe System Portal</h1>
-            <p>ระบบบริหารจัดการและสนับสนุนงานบริการเทคนิคหน้าร้าน</p>
+        <div class="dashboard-header">
+            <h1 class="dashboard-title">ยินดีต้อนรับสู่ iServe Tools</h1>
+            <p class="dashboard-subtitle">รวมเครื่องมือช่วยเหลือสำหรับงานซ่อมและบริการลูกค้า</p>
         </div>
 
-        <div class="dashboard-grid">
+        <div class="menu-grid">
             
+            <!-- หมวดหมู่: งานบริการหน้าร้าน -->
             <a href="calculate.html" class="menu-card">
-                <div class="card-icon">🧮</div>
-                <div class="card-title">คำนวณราคาอะไหล่ และ ทำใบเสนอราคา</div>
-                <div class="card-desc">ระบบประเมินราคางานซ่อมและค่าบริการด่วน สรุปยอดรวมและคำนวณสัดส่วนค่าใช้จ่ายเพื่อแจ้งรายละเอียดแก่ลูกค้าได้อย่างมืออาชีพ</div>
-                <div class="card-link">เปิดใช้งานระบบ &rarr;</div>
+                <div class="menu-icon">🧾</div>
+                <div class="menu-title">เสนอราคา & คำนวณ</div>
+                <div class="menu-desc">สร้างใบเสนอราคาและคำนวณค่าบริการซ่อมสำหรับลูกค้าหน้าร้าน</div>
+            </a>
+            
+            <a href="price.html" class="menu-card">
+                <div class="menu-icon">💰</div>
+                <div class="menu-title">ตารางราคาหน้าร้าน</div>
+                <div class="menu-desc">ดูตารางราคาอะไหล่ ค่าแรง และราคาพนักงาน อัปเดตล่าสุด</div>
             </a>
 
             <a href="search.html" class="menu-card">
-                <div class="card-icon">🔍</div>
-                <div class="card-title">ค้นหารุ่น</div>
-                <div class="card-desc">สืบค้นข้อมูลผลิตภัณฑ์ ตรวจสอบข้อมูลรหัสโมเดลจำเพาะ และจัดการเพิ่มฐานข้อมูลอุปกรณ์รุ่นใหม่ๆ เข้าสู่ระบบ</div>
-                <div class="card-link">เปิดใช้งานระบบ &rarr;</div>
-            </a>
-
-            <a href="price.html" class="menu-card">
-                <div class="card-icon">📋</div>
-                <div class="card-title">ตารางราคาหน้าร้าน</div>
-                <div class="card-desc">ตารางสรุปอัตราค่าบริการมาตรฐานและราคาอะไหล่ชิ้นส่วนต่างๆ เพื่อใช้ตรวจสอบและอ้างอิงราคาหน้าร้านได้อย่างเที่ยงตรง</div>
-                <div class="card-link">เปิดใช้งานระบบ &rarr;</div>
+                <div class="menu-icon">🔍</div>
+                <div class="menu-title">ค้นหารุ่น (Model)</div>
+                <div class="menu-desc">เช็ครหัส Model เครื่อง Apple เพื่อเทียบรุ่นและขนาดให้ถูกต้อง</div>
             </a>
 
             <a href="barcode-manual.html" class="menu-card">
-                <div class="card-icon">🏷️</div>
-                <div class="card-title">บาร์โค้ด สำหรับใช้หน้าร้าน</div>
-                <div class="card-desc">ระบบออกรหัสและจัดทำเลย์เอาต์แผ่นสติกเกอร์บาร์โค้ดสำหรับพิมพ์ติดตัวสินค้า อะไหล่ หรือประวัติงานซ่อมประจำตัวเครื่อง</div>
-                <div class="card-link">เปิดใช้งานระบบ &rarr;</div>
+                <div class="menu-icon">🏷️</div>
+                <div class="menu-title">บาร์โค้ดสินค้า</div>
+                <div class="menu-desc">ค้นหาและพิมพ์บาร์โค้ดสำหรับติดสินค้าหรืออะไหล่ในร้าน</div>
             </a>
 
-            <a href="stock.html" class="menu-card">
-                <div class="card-icon">📦</div>
-                <div class="card-title">สต๊อกสินค้า</div>
-                <div class="card-desc">ตรวจสอบยอดคงคลังชิ้นส่วนอะไหล่ บันทึกประวัติการรับเข้า-จ่ายออก และติดตามความเคลื่อนไหวของคลังสินค้าหน้าร้าน</div>
-                <div class="card-link">เปิดใช้งานระบบ &rarr;</div>
+            <!-- หมวดหมู่: งานช่างและความรู้ -->
+            <a href="knowledge.html" class="menu-card">
+                <div class="menu-icon">📚</div>
+                <div class="menu-title">คลังความรู้ (Knowledge)</div>
+                <div class="menu-desc">ศูนย์รวมวิธีแก้ปัญหา ทริคงานซ่อม และแชร์ลิงก์ซอฟต์แวร์</div>
+            </a>
+
+            <a href="checklist.html" class="menu-card">
+                <div class="menu-icon">📋</div>
+                <div class="menu-title">Checklist งานซ่อม</div>
+                <div class="menu-desc">บันทึกและติดตามสถานะงานซ่อมค้าง แยกตามสาขา</div>
             </a>
 
             <a href="firmware.html" class="menu-card">
-                <div class="card-icon">📱</div>
-                <div class="card-title">เฟิร์มแวร์ล่าสุด (IPSW)</div>
-                <div class="card-desc">ศูนย์ตรวจสอบและดึงลิงก์ดาวน์โหลดไฟล์ระบบปฏิบัติการเวอร์ชันล่าสุดที่เปิด Sign ตรงจากเซิร์ฟเวอร์ Apple สำหรับงานล้างเครื่องและแก้ระบบ</div>
-                <div class="card-link">เปิดใช้งานระบบ &rarr;</div>
+                <div class="menu-icon">⚡</div>
+                <div class="menu-title">รวมลิงก์ IPSW</div>
+                <div class="menu-desc">หน้าดาวน์โหลดเฟิร์มแวร์ล่าสุดสำหรับ iPhone และ iPad</div>
+            </a>
+
+            <a href="macos.html" class="menu-card">
+                <div class="menu-icon">💻</div>
+                <div class="menu-title">macOS Bootable</div>
+                <div class="menu-desc">คำสั่ง Terminal สำหรับทำตัวติดตั้ง macOS ทุกเวอร์ชัน</div>
+            </a>
+
+            <!-- หมวดหมู่: อนาคต -->
+            <a href="stock.html" class="menu-card card-disabled">
+                <div class="menu-icon">📦</div>
+                <div class="menu-title">ระบบสต๊อกสินค้า</div>
+                <div class="menu-desc">ระบบคุมสต๊อกและเบิกจ่ายอะไหล่</div>
+                <div class="badge-soon">ปิดปรับปรุงชั่วคราว</div>
             </a>
 
         </div>

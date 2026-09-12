@@ -46,12 +46,13 @@
             .print-table { width: 100%; border-collapse: collapse; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; color: #000; }
             .print-table td { border: 1px solid #000; padding: 8px 10px; vertical-align: middle; }
             
-            .col-1-barcode { text-align: center; width: 22%; padding: 5px 0 !important; }
+            .col-1-barcode { text-align: center; width: 25%; padding: 5px 0 !important; }
             .col-2-code { text-align: center; width: 15%; font-size: 15px; }
-            .col-3-desc { text-align: left; width: 50%; font-size: 15px; }
-            .col-4-price { text-align: right; width: 13%; font-size: 15px; }
+            .col-3-desc { text-align: left; width: 45%; font-size: 15px; }
+            .col-4-price { text-align: right; width: 15%; font-size: 15px; }
             
-            .col-1-barcode svg { max-width: 100%; height: auto; display: block; margin: 0 auto; } 
+            /* บังคับให้ขอบคมชัดเวลาปริ้น */
+            .col-1-barcode svg { max-width: 100%; height: auto; display: block; margin: 0 auto; shape-rendering: crispEdges; } 
             @page { margin: 10mm; } 
         }
     </style>
@@ -81,12 +82,16 @@
                 <h2>⚙️ ตั้งค่าก่อนพิมพ์</h2>
                 <div class="flex-group form-group">
                     <div class="flex-item">
-                        <label>ขนาดอักษรรหัส: <span id="fontVal">14</span>px</label>
-                        <input type="range" id="fontSize" min="10" max="20" value="14" oninput="updateSettings()">
+                        <label>ความหนาเส้น: <span id="widthVal">2.0</span></label>
+                        <input type="range" id="barWidth" min="1" max="3" step="0.5" value="2" oninput="updateSettings()">
                     </div>
                     <div class="flex-item">
                         <label>ความสูงบาร์โค้ด: <span id="heightVal">45</span>px</label>
                         <input type="range" id="barHeight" min="30" max="80" value="45" oninput="updateSettings()">
+                    </div>
+                    <div class="flex-item">
+                        <label>ขนาดอักษร: <span id="fontVal">14</span>px</label>
+                        <input type="range" id="fontSize" min="10" max="20" value="14" oninput="updateSettings()">
                     </div>
                 </div>
                 <button class="btn-print" onclick="window.print()">🖨️ สั่งพิมพ์เฉพาะรายการที่เลือก</button>
@@ -152,7 +157,6 @@
         window.onload = function() { loadData(false); };
 
         function processData(data) {
-            // สร้างสถานะจำการติ๊กเลือกพิมพ์ให้กับทุกชิ้น (เริ่มต้นให้ติ๊กถูกหมด)
             barcodeData = data.map(item => ({ ...item, _printSelected: true }));
             
             let statusEl = document.getElementById('syncStatus');
@@ -190,8 +194,7 @@
             statusEl.innerText = "กำลังดาวน์โหลดบาร์โค้ดใหม่...";
             statusEl.className = "status-badge";
             statusEl.style.backgroundColor = "#ff9500";
-            document.getElementById('tableBody').innerHTML = `<tr><td colspan="7" style="text-align: center; padding: 30px; color: #0071e3; font-weight: bold;">กำลังดึงข้อมูลล่าสุดจากระบบ...</td></tr>`;
-
+            
             let url = typeof window.WEB_APP_URL !== 'undefined' ? window.WEB_APP_URL : WEB_APP_URL;
 
             fetch(url + "?action=getBarcodes", { redirect: 'follow' })
@@ -203,7 +206,6 @@
                 }).catch(err => {
                     statusEl.innerText = "เชื่อมต่อล้มเหลว (ลองกดรีเฟรชใหม่)";
                     statusEl.style.backgroundColor = "#ff3b30";
-                    document.getElementById('tableBody').innerHTML = `<tr><td colspan="7" style="text-align: center; padding: 30px; color: #ff3b30;">ไม่สามารถดึงข้อมูลได้ กรุณาตรวจสอบอินเทอร์เน็ต</td></tr>`;
                 });
         }
 
@@ -237,13 +239,12 @@
             renderTable();
         }
 
-        // ฟังก์ชันน้ำหนักสำหรับเรียงลำดับอุปกรณ์
         function getDevicePriority(item) {
             let str = (String(item.category || "") + " " + String(item.desc || "") + " " + String(item.model || "")).toLowerCase();
             if (str.includes("iphone")) return 1;
             if (str.includes("ipad")) return 2;
             if (str.includes("apple watch") || str.includes("watch")) return 3;
-            return 4; // กลุ่มอุปกรณ์อื่นๆ
+            return 4;
         }
 
         function renderTable() {
@@ -257,7 +258,6 @@
 
             let displayData = barcodeData;
 
-            // 1. กรองคำค้นหา
             if (keywordsArray.length > 0) {
                 displayData = displayData.filter(item => {
                     let combinedText = (String(item.code || "") + " " + String(item.desc || "") + " " + String(item.model || "") + " " + String(item.category || "")).toLowerCase();
@@ -265,15 +265,12 @@
                 });
             }
 
-            // 2. กรองหมวดหมู่
             displayData = displayData.filter(item => checkedCats.includes(String(item.category || "ทั่วไป").trim()));
 
-            // 3. กรอง "เฉพาะรายการที่เลือกพิมพ์"
             if (showOnlySelected) {
                 displayData = displayData.filter(item => item._printSelected);
             }
 
-            // 4. เรียงลำดับ iPhone -> iPad -> Watch
             displayData.sort((a, b) => {
                 let priorityA = getDevicePriority(a);
                 let priorityB = getDevicePriority(b);
@@ -286,7 +283,6 @@
             
             document.getElementById('totalItems').innerText = displayData.length.toLocaleString();
             
-            // อัปเดตสถานะปุ่ม Master Checkbox หัวตาราง
             let allSelected = displayData.length > 0 && displayData.every(item => item._printSelected);
             document.getElementById('masterCheckbox').checked = allSelected;
             
@@ -313,7 +309,7 @@
                 });
             }
 
-            // วาดโครงสร้างสำหรับสั่งพิมพ์กระดาษ (เฉพาะอันที่เลือก)
+            // วาดโครงสร้างสำหรับสั่งพิมพ์กระดาษ
             let printArea = document.getElementById('printArea');
             printArea.innerHTML = "";
             
@@ -324,11 +320,12 @@
                 
                 let fontSize = document.getElementById('fontSize').value;
                 let barHeight = document.getElementById('barHeight').value;
+                let barWidth = document.getElementById('barWidth').value; // รับค่าความหนาเส้น
 
                 displayData.forEach((item, index) => {
                     let tr = document.createElement('tr');
                     tr.id = "print-tr-" + index; 
-                    if(!item._printSelected) tr.style.display = 'none'; // ซ่อนในหน้าพิมพ์ถ้าไม่ติ๊ก
+                    if(!item._printSelected) tr.style.display = 'none';
 
                     let printDesc = item.desc || "";
                     if(item.model) printDesc += ` (${item.model})`;
@@ -345,40 +342,39 @@
                 printTable.appendChild(printTbody);
                 printArea.appendChild(printTable);
 
+                // สร้างบาร์โค้ดด้วยค่าอัปเดตใหม่
                 displayData.forEach((item, index) => {
                     let barcodeValue = String(item.code || "-"); 
                     JsBarcode("#bc-" + index, barcodeValue, { 
                         format: "CODE128", 
-                        width: 1.5, 
-                        height: barHeight, 
+                        width: parseFloat(barWidth), // 🌟 ปรับความหนาเส้นตาม Slider
+                        height: parseInt(barHeight), 
                         displayValue: true, 
-                        fontSize: fontSize, 
+                        fontSize: parseInt(fontSize), 
                         fontOptions: "bold",
-                        margin: 5 
+                        margin: 15,          // 🌟 เพิ่ม Margin (Quiet Zone) ซ้ายขวาให้กว้างขึ้น
+                        background: "#ffffff",
+                        lineColor: "#000000"
                     });
                 });
             }
         }
 
         function togglePrintRow(code, index, isChecked) {
-            // 1. บันทึกสถานะลงฐานข้อมูลจำลอง
             let item = barcodeData.find(i => i.code === code);
             if (item) item._printSelected = isChecked;
 
             let showOnlySelected = document.getElementById('showOnlySelected').checked;
             
-            // 2. ถ้าเปิดโหมดแสดงเฉพาะที่เลือกไว้ ให้ตารางรีเฟรชใหม่เลย (เพื่อเอาตัวที่เพิ่งเอาติ๊กออกให้หายไป)
             if (showOnlySelected) {
                 renderTable();
             } else {
-                // ถ้าไม่ได้เปิดโหมดนั้น ก็แค่ซ่อน/แสดง ในใบพิมพ์กระดาษ
                 let printRow = document.getElementById('print-tr-' + index);
                 if (printRow) printRow.style.display = isChecked ? '' : 'none';
             }
         }
 
         function toggleAllPrintRows(isChecked) {
-            // บังคับเปลี่ยนเฉพาะตัวที่ "แสดงอยู่บนตาราง" ในปัจจุบันเท่านั้น
             let currentDisplayCodes = Array.from(document.querySelectorAll('.print-row-cb')).map(cb => cb.getAttribute('data-code'));
             
             barcodeData.forEach(item => {
@@ -390,6 +386,7 @@
         }
 
         function updateSettings() {
+            document.getElementById('widthVal').innerText = parseFloat(document.getElementById('barWidth').value).toFixed(1);
             document.getElementById('fontVal').innerText = document.getElementById('fontSize').value;
             document.getElementById('heightVal').innerText = document.getElementById('barHeight').value;
             renderTable();

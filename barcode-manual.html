@@ -38,23 +38,31 @@
 
         #printArea { display: none; }
 
-        /* 🌟 อัปเดต CSS สำหรับการจัดหน้ากระดาษแบบ Grid (ประหยัดพื้นที่) */
+        /* 🌟 รวมสไตล์ทั้งแบบตาราง และแบบ Grid เข้าด้วยกัน สำหรับตอนปริ้น */
         @media print { 
             body { background: white; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
             .navbar, .container { display: none !important; } 
             
             #printArea { display: block; visibility: visible; position: absolute; left: 0; top: 0; width: 100%; padding: 5mm; box-sizing: border-box; }
             
+            /* --- สไตล์สำหรับแบบตาราง (Table) --- */
+            .print-table { width: 100%; border-collapse: collapse; color: #000; }
+            .print-table td { border: 1px solid #000; padding: 8px 10px; vertical-align: middle; }
+            .col-1-barcode { text-align: center; width: 25%; padding: 5px 0 !important; }
+            .col-2-code { text-align: center; width: 15%; font-size: 15px; }
+            .col-3-desc { text-align: left; width: 45%; font-size: 15px; }
+            .col-4-price { text-align: right; width: 15%; font-size: 15px; }
+            .col-1-barcode svg { max-width: 100%; height: auto; display: block; margin: 0 auto; shape-rendering: crispEdges; } 
+
+            /* --- สไตล์สำหรับแบบการ์ดประหยัดกระดาษ (Grid) --- */
             .print-grid { display: grid; gap: 4mm; }
             .cols-1 { grid-template-columns: 1fr; }
             .cols-2 { grid-template-columns: repeat(2, 1fr); }
             .cols-3 { grid-template-columns: repeat(3, 1fr); }
             .cols-4 { grid-template-columns: repeat(4, 1fr); }
             
-            .print-card { border: 1px solid #000; padding: 3mm; border-radius: 4px; text-align: center; page-break-inside: avoid; /* ป้องกันการโดนตัดครึ่งดวงเมื่อขึ้นหน้าใหม่ */ display: flex; flex-direction: column; justify-content: center; align-items: center; }
-            
+            .print-card { border: 1px solid #000; padding: 3mm; border-radius: 4px; text-align: center; page-break-inside: avoid; display: flex; flex-direction: column; justify-content: center; align-items: center; }
             .print-card svg { max-width: 100%; height: auto; display: block; margin: 0 auto; shape-rendering: crispEdges; } 
-            
             .print-desc { font-size: 11px; margin-top: 3px; line-height: 1.2; word-wrap: break-word; color: #000; }
             .print-price { font-size: 13px; font-weight: bold; margin-top: 3px; color: #000; }
             
@@ -99,14 +107,16 @@
                         <input type="range" id="fontSize" min="10" max="20" value="12" oninput="updateSettings()">
                     </div>
                 </div>
-                <!-- 🌟 ตัวเลือกเลย์เอาต์ประหยัดกระดาษ -->
+                
+                <!-- 🌟 ตัวเลือกเลย์เอาต์ (เพิ่มแบบตาราง) -->
                 <div class="form-group">
-                    <label>รูปแบบการจัดเรียงกระดาษ (จำนวนบาร์โค้ดต่อ 1 แถว):</label>
-                    <select id="printColumns" onchange="updateSettings()" style="width: 100%; padding: 8px; border: 1px solid #d2d2d7; border-radius: 6px; font-size: 14px; outline: none;">
-                        <option value="1">1 ดวง / แถว (เต็มหน้า - เปลืองกระดาษ)</option>
-                        <option value="2">2 ดวง / แถว (ขนาดกลาง)</option>
-                        <option value="3" selected>3 ดวง / แถว (แนะนำ - ประหยัดกระดาษ)</option>
-                        <option value="4">4 ดวง / แถว (ขนาดเล็กสุด)</option>
+                    <label>รูปแบบการจัดเรียงกระดาษ:</label>
+                    <select id="printColumns" onchange="updateSettings()" style="width: 100%; padding: 8px; border: 1px solid #d2d2d7; border-radius: 6px; font-size: 14px; outline: none; background-color: #fff9e6;">
+                        <option value="table">📄 แบบตารางดั้งเดิม (รายละเอียดครบแยกช่อง)</option>
+                        <option value="1">📦 แบบการ์ด: 1 ดวง / แถว</option>
+                        <option value="2">📦 แบบการ์ด: 2 ดวง / แถว</option>
+                        <option value="3" selected>📦 แบบการ์ด: 3 ดวง / แถว (แนะนำ - ประหยัดกระดาษ)</option>
+                        <option value="4">📦 แบบการ์ด: 4 ดวง / แถว</option>
                     </select>
                 </div>
                 <button class="btn-print" onclick="window.print()">🖨️ สั่งพิมพ์เฉพาะรายการที่เลือก</button>
@@ -324,41 +334,68 @@
                 });
             }
 
-            // 🌟 สร้างระบบ Grid สำหรับปริ้น (แบบแบ่งคอลัมน์)
+            // 🌟 โครงสร้างสำหรับพิมพ์กระดาษ (เลือกได้ว่าจะเอา Table หรือ Grid)
             let printArea = document.getElementById('printArea');
             printArea.innerHTML = "";
             
             if(displayData.length > 0) {
-                let columns = document.getElementById('printColumns').value;
-                let printGrid = document.createElement('div');
-                printGrid.className = "print-grid cols-" + columns;
-                
+                let columnsStyle = document.getElementById('printColumns').value;
                 let fontSize = document.getElementById('fontSize').value;
                 let barHeight = document.getElementById('barHeight').value;
                 let barWidth = document.getElementById('barWidth').value;
 
-                displayData.forEach((item, index) => {
-                    if(!item._printSelected) return; // ข้ามตัวที่ไม่เลือกพิมพ์
-
-                    let printDesc = item.desc || "";
-                    if(item.model) printDesc += ` (${item.model})`;
-                    let priceText = item.price ? parseFloat(item.price).toLocaleString() + " ฿" : "";
-
-                    let card = document.createElement('div');
-                    card.className = "print-card";
-                    card.id = "print-card-" + index;
+                if (columnsStyle === "table") {
+                    // --- วาดแบบตาราง (Table Layout) ---
+                    let printTable = document.createElement('table');
+                    printTable.className = "print-table";
+                    let printTbody = document.createElement('tbody');
                     
-                    card.innerHTML = `
-                        <svg id="bc-${index}"></svg>
-                        <div class="print-desc">${printDesc}</div>
-                        <div class="print-price">${priceText}</div>
-                    `;
-                    printGrid.appendChild(card);
-                });
-                
-                printArea.appendChild(printGrid);
+                    displayData.forEach((item, index) => {
+                        if(!item._printSelected) return;
+                        
+                        let printDesc = item.desc || "";
+                        if(item.model) printDesc += ` (${item.model})`;
+                        let priceText = item.price ? parseFloat(item.price).toLocaleString() : "";
 
-                // สร้างบาร์โค้ด
+                        let tr = document.createElement('tr');
+                        tr.innerHTML = `
+                            <td class="col-1-barcode"><svg id="bc-${index}"></svg></td>
+                            <td class="col-2-code">${item.code || ""}</td>
+                            <td class="col-3-desc">${printDesc}</td>
+                            <td class="col-4-price">${priceText}</td>
+                        `;
+                        printTbody.appendChild(tr);
+                    });
+                    
+                    printTable.appendChild(printTbody);
+                    printArea.appendChild(printTable);
+
+                } else {
+                    // --- วาดแบบการ์ดประหยัดกระดาษ (Grid Layout) ---
+                    let printGrid = document.createElement('div');
+                    printGrid.className = "print-grid cols-" + columnsStyle;
+                    
+                    displayData.forEach((item, index) => {
+                        if(!item._printSelected) return;
+
+                        let printDesc = item.desc || "";
+                        if(item.model) printDesc += ` (${item.model})`;
+                        let priceText = item.price ? parseFloat(item.price).toLocaleString() + " ฿" : "";
+
+                        let card = document.createElement('div');
+                        card.className = "print-card";
+                        card.innerHTML = `
+                            <svg id="bc-${index}"></svg>
+                            <div class="print-desc">${printDesc}</div>
+                            <div class="print-price">${priceText}</div>
+                        `;
+                        printGrid.appendChild(card);
+                    });
+                    
+                    printArea.appendChild(printGrid);
+                }
+
+                // 🌟 สร้างบาร์โค้ดลงใน Layout ที่วาดเสร็จแล้ว
                 displayData.forEach((item, index) => {
                     if(!item._printSelected) return;
                     let barcodeValue = String(item.code || "-"); 
@@ -369,7 +406,7 @@
                         displayValue: true, 
                         fontSize: parseInt(fontSize), 
                         fontOptions: "bold",
-                        margin: 10,
+                        margin: 15,
                         background: "#ffffff",
                         lineColor: "#000000"
                     });
@@ -380,14 +417,7 @@
         function togglePrintRow(code, index, isChecked) {
             let item = barcodeData.find(i => i.code === code);
             if (item) item._printSelected = isChecked;
-
-            let showOnlySelected = document.getElementById('showOnlySelected').checked;
-            if (showOnlySelected) {
-                renderTable();
-            } else {
-                // อัปเดตแบบเรียลไทม์โดยไม่ต้องรีเรนเดอร์ทั้งหมด
-                renderTable(); // ในระบบ Grid เพื่อให้ช่องไม่แหว่ง ต้องสั่งรีเรนเดอร์ใหม่ครับ
-            }
+            renderTable(); // สั่งให้วาดใหม่ทั้งหมดเพื่อป้องกัน Layout พังเวลาสลับไปมา
         }
 
         function toggleAllPrintRows(isChecked) {

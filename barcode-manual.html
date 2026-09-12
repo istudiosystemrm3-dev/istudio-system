@@ -38,21 +38,26 @@
 
         #printArea { display: none; }
 
+        /* 🌟 อัปเดต CSS สำหรับการจัดหน้ากระดาษแบบ Grid (ประหยัดพื้นที่) */
         @media print { 
-            body { background: white; margin: 0; padding: 0; }
+            body { background: white; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
             .navbar, .container { display: none !important; } 
-            #printArea { display: block; visibility: visible; position: absolute; left: 0; top: 0; width: 100%; padding: 10px; box-sizing: border-box; }
             
-            .print-table { width: 100%; border-collapse: collapse; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; color: #000; }
-            .print-table td { border: 1px solid #000; padding: 8px 10px; vertical-align: middle; }
+            #printArea { display: block; visibility: visible; position: absolute; left: 0; top: 0; width: 100%; padding: 5mm; box-sizing: border-box; }
             
-            .col-1-barcode { text-align: center; width: 25%; padding: 5px 0 !important; }
-            .col-2-code { text-align: center; width: 15%; font-size: 15px; }
-            .col-3-desc { text-align: left; width: 45%; font-size: 15px; }
-            .col-4-price { text-align: right; width: 15%; font-size: 15px; }
+            .print-grid { display: grid; gap: 4mm; }
+            .cols-1 { grid-template-columns: 1fr; }
+            .cols-2 { grid-template-columns: repeat(2, 1fr); }
+            .cols-3 { grid-template-columns: repeat(3, 1fr); }
+            .cols-4 { grid-template-columns: repeat(4, 1fr); }
             
-            /* บังคับให้ขอบคมชัดเวลาปริ้น */
-            .col-1-barcode svg { max-width: 100%; height: auto; display: block; margin: 0 auto; shape-rendering: crispEdges; } 
+            .print-card { border: 1px solid #000; padding: 3mm; border-radius: 4px; text-align: center; page-break-inside: avoid; /* ป้องกันการโดนตัดครึ่งดวงเมื่อขึ้นหน้าใหม่ */ display: flex; flex-direction: column; justify-content: center; align-items: center; }
+            
+            .print-card svg { max-width: 100%; height: auto; display: block; margin: 0 auto; shape-rendering: crispEdges; } 
+            
+            .print-desc { font-size: 11px; margin-top: 3px; line-height: 1.2; word-wrap: break-word; color: #000; }
+            .print-price { font-size: 13px; font-weight: bold; margin-top: 3px; color: #000; }
+            
             @page { margin: 10mm; } 
         }
     </style>
@@ -82,17 +87,27 @@
                 <h2>⚙️ ตั้งค่าก่อนพิมพ์</h2>
                 <div class="flex-group form-group">
                     <div class="flex-item">
-                        <label>ความหนาเส้น: <span id="widthVal">2.0</span></label>
-                        <input type="range" id="barWidth" min="1" max="3" step="0.5" value="2" oninput="updateSettings()">
+                        <label>ความหนาเส้น: <span id="widthVal">1.5</span></label>
+                        <input type="range" id="barWidth" min="1" max="3" step="0.5" value="1.5" oninput="updateSettings()">
                     </div>
                     <div class="flex-item">
-                        <label>ความสูงบาร์โค้ด: <span id="heightVal">45</span>px</label>
-                        <input type="range" id="barHeight" min="30" max="80" value="45" oninput="updateSettings()">
+                        <label>ความสูงบาร์โค้ด: <span id="heightVal">40</span>px</label>
+                        <input type="range" id="barHeight" min="30" max="80" value="40" oninput="updateSettings()">
                     </div>
                     <div class="flex-item">
-                        <label>ขนาดอักษร: <span id="fontVal">14</span>px</label>
-                        <input type="range" id="fontSize" min="10" max="20" value="14" oninput="updateSettings()">
+                        <label>ขนาดอักษร: <span id="fontVal">12</span>px</label>
+                        <input type="range" id="fontSize" min="10" max="20" value="12" oninput="updateSettings()">
                     </div>
+                </div>
+                <!-- 🌟 ตัวเลือกเลย์เอาต์ประหยัดกระดาษ -->
+                <div class="form-group">
+                    <label>รูปแบบการจัดเรียงกระดาษ (จำนวนบาร์โค้ดต่อ 1 แถว):</label>
+                    <select id="printColumns" onchange="updateSettings()" style="width: 100%; padding: 8px; border: 1px solid #d2d2d7; border-radius: 6px; font-size: 14px; outline: none;">
+                        <option value="1">1 ดวง / แถว (เต็มหน้า - เปลืองกระดาษ)</option>
+                        <option value="2">2 ดวง / แถว (ขนาดกลาง)</option>
+                        <option value="3" selected>3 ดวง / แถว (แนะนำ - ประหยัดกระดาษ)</option>
+                        <option value="4">4 ดวง / แถว (ขนาดเล็กสุด)</option>
+                    </select>
                 </div>
                 <button class="btn-print" onclick="window.print()">🖨️ สั่งพิมพ์เฉพาะรายการที่เลือก</button>
             </div>
@@ -309,50 +324,52 @@
                 });
             }
 
-            // วาดโครงสร้างสำหรับสั่งพิมพ์กระดาษ
+            // 🌟 สร้างระบบ Grid สำหรับปริ้น (แบบแบ่งคอลัมน์)
             let printArea = document.getElementById('printArea');
             printArea.innerHTML = "";
             
             if(displayData.length > 0) {
-                let printTable = document.createElement('table');
-                printTable.className = "print-table";
-                let printTbody = document.createElement('tbody');
+                let columns = document.getElementById('printColumns').value;
+                let printGrid = document.createElement('div');
+                printGrid.className = "print-grid cols-" + columns;
                 
                 let fontSize = document.getElementById('fontSize').value;
                 let barHeight = document.getElementById('barHeight').value;
-                let barWidth = document.getElementById('barWidth').value; // รับค่าความหนาเส้น
+                let barWidth = document.getElementById('barWidth').value;
 
                 displayData.forEach((item, index) => {
-                    let tr = document.createElement('tr');
-                    tr.id = "print-tr-" + index; 
-                    if(!item._printSelected) tr.style.display = 'none';
+                    if(!item._printSelected) return; // ข้ามตัวที่ไม่เลือกพิมพ์
 
                     let printDesc = item.desc || "";
                     if(item.model) printDesc += ` (${item.model})`;
+                    let priceText = item.price ? parseFloat(item.price).toLocaleString() + " ฿" : "";
 
-                    tr.innerHTML = `
-                        <td class="col-1-barcode"><svg id="bc-${index}"></svg></td>
-                        <td class="col-2-code">${item.code || ""}</td>
-                        <td class="col-3-desc">${printDesc}</td>
-                        <td class="col-4-price">${item.price ? parseFloat(item.price).toLocaleString() : ""}</td>
+                    let card = document.createElement('div');
+                    card.className = "print-card";
+                    card.id = "print-card-" + index;
+                    
+                    card.innerHTML = `
+                        <svg id="bc-${index}"></svg>
+                        <div class="print-desc">${printDesc}</div>
+                        <div class="print-price">${priceText}</div>
                     `;
-                    printTbody.appendChild(tr);
+                    printGrid.appendChild(card);
                 });
                 
-                printTable.appendChild(printTbody);
-                printArea.appendChild(printTable);
+                printArea.appendChild(printGrid);
 
-                // สร้างบาร์โค้ดด้วยค่าอัปเดตใหม่
+                // สร้างบาร์โค้ด
                 displayData.forEach((item, index) => {
+                    if(!item._printSelected) return;
                     let barcodeValue = String(item.code || "-"); 
                     JsBarcode("#bc-" + index, barcodeValue, { 
                         format: "CODE128", 
-                        width: parseFloat(barWidth), // 🌟 ปรับความหนาเส้นตาม Slider
+                        width: parseFloat(barWidth),
                         height: parseInt(barHeight), 
                         displayValue: true, 
                         fontSize: parseInt(fontSize), 
                         fontOptions: "bold",
-                        margin: 15,          // 🌟 เพิ่ม Margin (Quiet Zone) ซ้ายขวาให้กว้างขึ้น
+                        margin: 10,
                         background: "#ffffff",
                         lineColor: "#000000"
                     });
@@ -365,12 +382,11 @@
             if (item) item._printSelected = isChecked;
 
             let showOnlySelected = document.getElementById('showOnlySelected').checked;
-            
             if (showOnlySelected) {
                 renderTable();
             } else {
-                let printRow = document.getElementById('print-tr-' + index);
-                if (printRow) printRow.style.display = isChecked ? '' : 'none';
+                // อัปเดตแบบเรียลไทม์โดยไม่ต้องรีเรนเดอร์ทั้งหมด
+                renderTable(); // ในระบบ Grid เพื่อให้ช่องไม่แหว่ง ต้องสั่งรีเรนเดอร์ใหม่ครับ
             }
         }
 

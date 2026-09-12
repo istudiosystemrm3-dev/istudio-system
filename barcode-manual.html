@@ -38,26 +38,26 @@
 
         #printArea { display: none; }
 
-        /* 🌟 CSS สำหรับการจัดหน้ากระดาษตอนปริ้น (ย่อขนาดให้จุได้ 23 บรรทัด) */
+        /* 🌟 CSS สำหรับจัดหน้ากระดาษ (บีบอัดขนาดให้จุเยอะขึ้น) */
         @media print { 
             body { background: white; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
             .navbar, .container { display: none !important; } 
             
             #printArea { display: block; visibility: visible; position: absolute; left: 0; top: 0; width: 100%; padding: 5mm; box-sizing: border-box; }
             
-            /* --- สไตล์สำหรับแบบตาราง (Table) บีบอัดให้เล็กลง --- */
+            /* --- สไตล์แบบตาราง (บีบ padding และ font) --- */
             .print-table { width: 100%; border-collapse: collapse; color: #000; }
-            .print-table td { border: 1px solid #000; padding: 3px 5px; vertical-align: middle; } /* ลด Padding ลง */
+            .print-table td { border: 1px solid #000; padding: 3px 5px; vertical-align: middle; }
             .col-1-barcode { text-align: center; width: 25%; padding: 1px 0 !important; }
-            .col-2-code { text-align: center; width: 15%; font-size: 12px; } /* ลด Font Size */
+            .col-2-code { text-align: center; width: 15%; font-size: 12px; }
             .col-3-desc { text-align: left; width: 45%; font-size: 12px; }
             .col-4-price { text-align: right; width: 15%; font-size: 12px; }
             .col-1-barcode svg { max-width: 100%; height: auto; display: block; margin: 0 auto; shape-rendering: crispEdges; } 
             
-            /* 🌟 แถบสีหัวข้อสำหรับคั่นแต่ละหมวดหมู่ */
+            /* แถบสีหัวข้อสำหรับคั่นแต่ละหมวดหมู่ย่อย */
             .print-group-header { background-color: #e8f2fc !important; font-weight: bold !important; font-size: 13px !important; padding: 4px 8px !important; color: #003399 !important; text-align: left !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
 
-            /* --- สไตล์สำหรับแบบการ์ดประหยัดกระดาษ (Grid) --- */
+            /* --- สไตล์แบบการ์ด --- */
             .print-grid { display: grid; gap: 4mm; }
             .cols-1 { grid-template-columns: 1fr; }
             .cols-2 { grid-template-columns: repeat(2, 1fr); }
@@ -102,12 +102,10 @@
                         <input type="range" id="barWidth" min="1" max="3" step="0.5" value="1.5" oninput="updateSettings()">
                     </div>
                     <div class="flex-item">
-                        <!-- 🌟 ปรับค่าพื้นฐานให้เตี้ยลง (35px) เพื่อให้จุได้เยอะขึ้น -->
                         <label>ความสูงบาร์โค้ด: <span id="heightVal">35</span>px</label>
                         <input type="range" id="barHeight" min="20" max="80" value="35" oninput="updateSettings()">
                     </div>
                     <div class="flex-item">
-                        <!-- 🌟 ปรับค่าพื้นฐานตัวหนังสือบาร์โค้ดให้เล็กลง -->
                         <label>ขนาดอักษร: <span id="fontVal">11</span>px</label>
                         <input type="range" id="fontSize" min="8" max="20" value="11" oninput="updateSettings()">
                     </div>
@@ -116,10 +114,10 @@
                 <div class="form-group">
                     <label>รูปแบบการจัดเรียงกระดาษ:</label>
                     <select id="printColumns" onchange="updateSettings()" style="width: 100%; padding: 8px; border: 1px solid #d2d2d7; border-radius: 6px; font-size: 14px; outline: none; background-color: #fff9e6;">
-                        <option value="table" selected>📄 แบบตารางดั้งเดิม (บีบอัด 23 บรรทัด + แยกหมวดหมู่)</option>
+                        <option value="table" selected>📄 แบบตารางดั้งเดิม (บีบอัด + แยกหมวดหมู่ย่อย)</option>
                         <option value="1">📦 แบบการ์ด: 1 ดวง / แถว</option>
                         <option value="2">📦 แบบการ์ด: 2 ดวง / แถว</option>
-                        <option value="3">📦 แบบการ์ด: 3 ดวง / แถว (แนะนำ - ประหยัดกระดาษ)</option>
+                        <option value="3">📦 แบบการ์ด: 3 ดวง / แถว (แนะนำ)</option>
                         <option value="4">📦 แบบการ์ด: 4 ดวง / แถว</option>
                     </select>
                 </div>
@@ -268,12 +266,37 @@
             renderTable();
         }
 
+        // 🌟 1. ฟังก์ชันตรวจจับว่าเป็นอุปกรณ์อะไร
         function getDevicePriority(item) {
             let str = (String(item.category || "") + " " + String(item.desc || "") + " " + String(item.model || "")).toLowerCase();
             if (str.includes("iphone")) return 1;
             if (str.includes("ipad")) return 2;
             if (str.includes("apple watch") || str.includes("watch")) return 3;
-            return 4;
+            if (str.includes("mac") || str.includes("macbook") || str.includes("imac")) return 4;
+            return 5;
+        }
+
+        // 🌟 2. ฟังก์ชันแปลง Priority เป็นชื่ออุปกรณ์
+        function getDeviceName(priority) {
+            if(priority === 1) return "iPhone";
+            if(priority === 2) return "iPad";
+            if(priority === 3) return "Apple Watch";
+            if(priority === 4) return "Mac";
+            return "อื่นๆ";
+        }
+
+        // 🌟 3. ฟังก์ชันแบ่งหมวดหมู่ย่อยสำหรับ AppleCare (เอาไปแสดงในใบปริ้น)
+        function getPrintCategory(item) {
+            let cat = String(item.category || "ทั่วไป").trim();
+            // ตรวจจับถ้าหมวดหมู่คือ AppleCare
+            if (cat.toLowerCase().includes("applecare") || cat.toLowerCase().includes("apple care")) {
+                let priority = getDevicePriority(item);
+                let deviceName = getDeviceName(priority);
+                if(deviceName !== "อื่นๆ") {
+                    return cat + " (" + deviceName + ")";
+                }
+            }
+            return cat;
         }
 
         function renderTable() {
@@ -282,7 +305,6 @@
             
             let checkedCats = [];
             document.querySelectorAll('.cat-checkbox:checked').forEach(cb => checkedCats.push(cb.value));
-
             let showOnlySelected = document.getElementById('showOnlySelected').checked;
 
             let displayData = barcodeData;
@@ -300,19 +322,19 @@
                 displayData = displayData.filter(item => item._printSelected);
             }
 
-            // 🌟 ปรับระบบ Sort ใหม่ เพื่อให้หมวดหมู่เดียวกันอยู่ติดกันเสมอ
+            // 🌟 4. อัปเดตระบบ Sort ให้จัดกลุ่มตาม Category และแยก iPhone/iPad ชัดเจน
             displayData.sort((a, b) => {
+                let mainCatA = String(a.category || "ทั่วไป").trim();
+                let mainCatB = String(b.category || "ทั่วไป").trim();
+                if (mainCatA !== mainCatB) return mainCatA.localeCompare(mainCatB, 'th'); // เรียงหมวดหลักก่อน
+                
                 let priorityA = getDevicePriority(a);
                 let priorityB = getDevicePriority(b);
-                if (priorityA !== priorityB) return priorityA - priorityB;
-                
-                let catA = String(a.category || "ทั่วไป");
-                let catB = String(b.category || "ทั่วไป");
-                if (catA !== catB) return catA.localeCompare(catB, 'th');
+                if (priorityA !== priorityB) return priorityA - priorityB; // เรียง iPhone -> iPad
                 
                 let descA = String(a.desc || "");
                 let descB = String(b.desc || "");
-                return descA.localeCompare(descB, 'th'); 
+                return descA.localeCompare(descB, 'th'); // เรียงตามตัวอักษร
             });
             
             document.getElementById('totalItems').innerText = displayData.length.toLocaleString();
@@ -354,7 +376,7 @@
                 let barWidth = document.getElementById('barWidth').value;
 
                 if (columnsStyle === "table") {
-                    // --- วาดแบบตาราง (บีบอัด + แบ่งกลุ่ม) ---
+                    // --- วาดแบบตาราง ---
                     let printTable = document.createElement('table');
                     printTable.className = "print-table";
                     let printTbody = document.createElement('tbody');
@@ -364,9 +386,9 @@
                     displayData.forEach((item, index) => {
                         if(!item._printSelected) return;
                         
-                        let itemCategory = String(item.category || "ทั่วไป").trim();
+                        // 🌟 ดึงชื่อหมวดหมู่ที่ถูกหั่นย่อยแล้วมาโชว์ (เช่น AppleCare+ (iPhone))
+                        let itemCategory = getPrintCategory(item);
                         
-                        // แทรกบรรทัด Header หากเปลี่ยนหมวดหมู่ใหม่
                         if (itemCategory !== currentCategory) {
                             let trGroup = document.createElement('tr');
                             trGroup.innerHTML = `<td colspan="4" class="print-group-header">📂 หมวดหมู่: ${itemCategory}</td>`;
@@ -392,7 +414,7 @@
                     printArea.appendChild(printTable);
 
                 } else {
-                    // --- วาดแบบการ์ดประหยัดกระดาษ ---
+                    // --- วาดแบบการ์ด ---
                     let printGrid = document.createElement('div');
                     printGrid.className = "print-grid cols-" + columnsStyle;
                     
@@ -416,7 +438,7 @@
                     printArea.appendChild(printGrid);
                 }
 
-                // 🌟 สร้างบาร์โค้ดลงใน Layout ที่วาดเสร็จแล้ว
+                // วาดบาร์โค้ด
                 displayData.forEach((item, index) => {
                     if(!item._printSelected) return;
                     let barcodeValue = String(item.code || "-"); 
@@ -443,7 +465,6 @@
 
         function toggleAllPrintRows(isChecked) {
             let currentDisplayCodes = Array.from(document.querySelectorAll('.print-row-cb')).map(cb => cb.getAttribute('data-code'));
-            
             barcodeData.forEach(item => {
                 if (currentDisplayCodes.includes(item.code)) {
                     item._printSelected = isChecked;

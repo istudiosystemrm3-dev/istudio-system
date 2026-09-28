@@ -88,7 +88,7 @@
                 <div style="display: flex; justify-content: space-between; align-items: center; background: #f5f5f7; padding: 12px 15px; border-radius: 8px; border: 1px solid #d2d2d7;">
                     <div style="font-size: 13px; color: #515154;">
                         <strong>🕒 ข้อมูลอัปเดตเมื่อ:</strong> <span id="lastUpdateText" style="color: #0071e3; font-weight: bold;">-</span><br>
-                        <span style="font-size: 11px; color: #86868b;">(ดึงใหม่อัตโนมัติวันละ 1 ครั้ง)</span>
+                        <span style="font-size: 11px; color: #86868b;">(ดึงใหม่อัตโนมัติทุก 30 วัน หรือกดรีเฟรชเองเมื่อมีอัปเดต)</span>
                     </div>
                     <button onclick="forceRefresh()" style="background: #1d1d1f; color: white; border: none; padding: 8px 12px; border-radius: 6px; font-size: 12px; font-weight: bold; cursor: pointer; transition: 0.2s;">🔄 รีเฟรช</button>
                 </div>
@@ -175,9 +175,10 @@
     <div id="printArea"></div>
 
     <script>
+        // 🌟 ตั้งค่าให้จำข้อมูลยาว 30 วัน
         const CACHE_KEY_BARCODE = 'iserve_barcode_data';
         const CACHE_TIME_KEY_BARCODE = 'iserve_barcode_time';
-        const CACHE_DURATION_BARCODE = 24 * 60 * 60 * 1000; 
+        const CACHE_DURATION_BARCODE = 30 * 24 * 60 * 60 * 1000; 
 
         let barcodeData = [];
 
@@ -242,6 +243,14 @@
             loadData(true);
         }
 
+        // 🌟 ฟังก์ชันแปลงชื่อหมวดหมู่ให้เข้าใจง่ายขึ้นสำหรับแสดงผล
+        function formatCategoryLabel(cat) {
+            let trimmedCat = String(cat).trim();
+            if (trimmedCat === "Applecare Plus") return "Applecare สำหรับ Service";
+            if (trimmedCat === "Applecare+") return "Applecare สำหรับขาย";
+            return trimmedCat;
+        }
+
         function updateCategorySelection() {
             let cats = [...new Set(barcodeData.map(i => String(i.category || "ทั่วไป").trim()))].sort();
             let container = document.getElementById('categoryCheckboxes');
@@ -251,10 +260,11 @@
 
             container.innerHTML = cats.map((cat) => {
                 let isChecked = isFirstLoad ? "checked" : (currentChecked.includes(cat) ? "checked" : "");
+                let displayLabel = formatCategoryLabel(cat); // นำชื่อที่แปลงแล้วไปแสดง
                 return `
                 <label class="checkbox-label">
                     <input type="checkbox" class="cat-checkbox" value="${cat}" ${isChecked} onchange="renderTable()">
-                    ${cat}
+                    ${displayLabel}
                 </label>
                 `;
             }).join('');
@@ -288,15 +298,16 @@
         // 🌟 3. ฟังก์ชันแบ่งหมวดหมู่ย่อยสำหรับ AppleCare (เอาไปแสดงในใบปริ้น)
         function getPrintCategory(item) {
             let cat = String(item.category || "ทั่วไป").trim();
-            // ตรวจจับถ้าหมวดหมู่คือ AppleCare
+            let displayCat = formatCategoryLabel(cat); // ใช้ชื่อที่แปลงแล้ว
+            
             if (cat.toLowerCase().includes("applecare") || cat.toLowerCase().includes("apple care")) {
                 let priority = getDevicePriority(item);
                 let deviceName = getDeviceName(priority);
                 if(deviceName !== "อื่นๆ") {
-                    return cat + " (" + deviceName + ")";
+                    return displayCat + " (" + deviceName + ")";
                 }
             }
-            return cat;
+            return displayCat;
         }
 
         function renderTable() {
@@ -326,15 +337,15 @@
             displayData.sort((a, b) => {
                 let mainCatA = String(a.category || "ทั่วไป").trim();
                 let mainCatB = String(b.category || "ทั่วไป").trim();
-                if (mainCatA !== mainCatB) return mainCatA.localeCompare(mainCatB, 'th'); // เรียงหมวดหลักก่อน
+                if (mainCatA !== mainCatB) return mainCatA.localeCompare(mainCatB, 'th'); 
                 
                 let priorityA = getDevicePriority(a);
                 let priorityB = getDevicePriority(b);
-                if (priorityA !== priorityB) return priorityA - priorityB; // เรียง iPhone -> iPad
+                if (priorityA !== priorityB) return priorityA - priorityB; 
                 
                 let descA = String(a.desc || "");
                 let descB = String(b.desc || "");
-                return descA.localeCompare(descB, 'th'); // เรียงตามตัวอักษร
+                return descA.localeCompare(descB, 'th'); 
             });
             
             document.getElementById('totalItems').innerText = displayData.length.toLocaleString();
@@ -349,6 +360,7 @@
             } else {
                 displayData.forEach((item, index) => {
                     let isChecked = item._printSelected ? "checked" : "";
+                    let displayCat = formatCategoryLabel(item.category || "-"); // แสดงชื่อใหม่ในตาราง
                     let tr = document.createElement('tr');
                     tr.innerHTML = `
                         <td style="text-align: center;">
@@ -357,7 +369,7 @@
                         <td style="font-weight:bold; color:#515154;">${item.code || "-"}</td>
                         <td style="color:#1d1d1f; font-weight:500;">${item.desc || "-"}</td>
                         <td><span class="badge" style="background:#f4e6fa; color:#8a2be2;">${item.model || "-"}</span></td>
-                        <td><span class="badge">${item.category || "-"}</span></td>
+                        <td><span class="badge">${displayCat}</span></td>
                         <td style="text-align: right; color:#ff3b30; font-weight:bold;">${item.price ? parseFloat(item.price).toLocaleString() : '-'}</td>
                         <td style="text-align: center;"><button class="btn-delete" onclick="deleteData('${item.code}')">✕</button></td>
                     `;
@@ -386,7 +398,6 @@
                     displayData.forEach((item, index) => {
                         if(!item._printSelected) return;
                         
-                        // 🌟 ดึงชื่อหมวดหมู่ที่ถูกหั่นย่อยแล้วมาโชว์ (เช่น AppleCare+ (iPhone))
                         let itemCategory = getPrintCategory(item);
                         
                         if (itemCategory !== currentCategory) {

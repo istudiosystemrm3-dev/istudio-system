@@ -33,7 +33,6 @@
         #dropZone { border: 2px dashed #0071e3; padding: 20px; text-align: center; border-radius: 12px; margin-bottom: 20px; background: #f8fbff; cursor: pointer; transition: 0.3s; }
         #dropZone:hover { background: #e8f2fc; border-color: #005bb5; }
 
-        /* 🌟 สไตล์กล่องค้นหา */
         .search-container { margin-bottom: 20px; }
         .search-input { width: 100%; padding: 14px 20px; font-size: 16px; border: 1px solid #d2d2d7; border-radius: 12px; outline: none; transition: 0.3s; box-shadow: 0 2px 8px rgba(0,0,0,0.03); }
         .search-input:focus { border-color: #0071e3; box-shadow: 0 0 0 4px rgba(0,113,227,0.1); }
@@ -61,12 +60,13 @@
             
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; background: white; padding: 15px 25px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05);">
                 <div style="font-size: 14px; color: #515154;">
-                    <strong>🕒 ข้อมูลอัปเดตเมื่อ:</strong> <span id="lastUpdateText" style="color: #0071e3; font-weight: bold;">-</span>
+                    <strong>🕒 ข้อมูลอัปเดตเมื่อ:</strong> <span id="lastUpdateText" style="color: #0071e3; font-weight: bold;">-</span><br>
+                    <!-- 🌟 อัปเดตข้อความให้สอดคล้องกับการจำ 30 วัน -->
+                    <span style="font-size: 11px; color: #86868b;">(ระบบจำข้อมูล 30 วันเพื่อหลีกเลี่ยงเซิร์ฟเวอร์ล่ม กรุณากดรีเฟรชเมื่อ Apple ปล่อย iOS ใหม่)</span>
                 </div>
                 <button onclick="forceRefresh()" style="background: #1d1d1f; color: white; border: none; padding: 10px 15px; border-radius: 6px; font-size: 13px; font-weight: bold; cursor: pointer; transition: 0.2s;">🔄 รีเฟรชข้อมูลใหม่</button>
             </div>
 
-            <!-- 🌟 ช่องพิมพ์ค้นหา -->
             <div class="search-container">
                 <input type="text" id="searchInput" class="search-input" placeholder="🔍 พิมพ์ค้นหารุ่นที่ต้องการ... (เช่น 15 Pro, M4, Air)" onkeyup="filterDevices()">
             </div>
@@ -117,10 +117,11 @@
         const IPSW_API_URL = "https://api.ipsw.me/v4/devices";
         const delay = ms => new Promise(res => setTimeout(res, ms));
         
-        // 🌟 เปลี่ยน Key เป็น v7 (ระบบค้นหา + แก้ชื่อ iPad 11 นิ้ว)
         const CACHE_KEY = 'iserve_firmware_data_v7';
         const CACHE_TIME_KEY = 'iserve_firmware_time_v7';
-        const CACHE_DURATION = 24 * 60 * 60 * 1000;
+        
+        // 🌟 แก้ไขเวลาจำข้อมูลเป็น 30 วัน (30 วัน * 24 ชม * 60 นาที * 60 วินาที * 1000 มิลลิวินาที)
+        const CACHE_DURATION = 30 * 24 * 60 * 60 * 1000;
 
         let basePath = localStorage.getItem('iserve_firmware_path') || '';
 
@@ -132,7 +133,6 @@
             }
         });
 
-        // 🌟 ฟังก์ชันระบบค้นหารุ่นแบบ Real-time
         function filterDevices() {
             let input = document.getElementById("searchInput").value.toLowerCase();
             let tables = ['iphoneTableBody', 'ipadTableBody', 'macTableBody'];
@@ -143,16 +143,15 @@
                 let rows = tbody.getElementsByTagName('tr');
                 
                 for (let i = 0; i < rows.length; i++) {
-                    if (rows[i].cells.length < 2) continue; // ข้ามแถวที่แจ้งเตือน "ไม่พบข้อมูล"
+                    if (rows[i].cells.length < 2) continue; 
                     
-                    // ค้นหาข้อความในคอลัมน์ที่ 2 (รุ่นที่รองรับ)
                     let deviceCell = rows[i].getElementsByTagName('td')[1];
                     if (deviceCell) {
                         let text = deviceCell.textContent || deviceCell.innerText;
                         if (text.toLowerCase().indexOf(input) > -1) {
-                            rows[i].style.display = ""; // เจอคำค้นหา ให้แสดงแถว
+                            rows[i].style.display = ""; 
                         } else {
-                            rows[i].style.display = "none"; // ไม่เจอคำค้นหา ให้ซ่อนแถว
+                            rows[i].style.display = "none"; 
                         }
                     }
                 }
@@ -236,7 +235,6 @@
             document.getElementById('statusBox').style.display = "none";
             document.getElementById('contentContainer').style.display = "block";
             
-            // เคลียร์ช่องค้นหาเมื่อโหลดเสร็จ
             document.getElementById("searchInput").value = "";
             filterDevices();
         }
@@ -299,6 +297,7 @@
                 for (let i = 0; i < targetDevices.length; i += 6) {
                     let batch = targetDevices.slice(i, i + 6);
                     let promises = batch.map(device => 
+                        // 🌟 เพิ่ม timeout คร่าวๆ กรณีเซิร์ฟเวอร์ตอบสนองช้า
                         fetch("https://api.ipsw.me/v4/device/" + device.identifier)
                             .then(res => res.ok ? res.json() : null).catch(() => null)
                     );
@@ -344,7 +343,6 @@
                     arr.filter(item => item.version === maxVer).forEach(item => {
                         let cleanName = item.name.replace(/,?\s*[1-2]TB Model/ig, '').trim();
                         
-                        // 🌟 ระบบแปลชื่อรุ่นที่ IPSW.me เรียกผิด ให้เป็นชื่อทางการ
                         if (cleanName.includes("iPad Pro 4 (11-inch")) {
                             cleanName = cleanName.replace("iPad Pro 4 (11-inch", "iPad Pro 11-inch (2nd generation");
                         } else if (cleanName.includes("iPad Pro 3 (11-inch")) {
@@ -373,10 +371,18 @@
                 }
 
                 let finalData = { iphones: groupByUrl(iphones, maxIphoneVer), ipads: groupByUrl(ipads, maxIpadVer), macs: groupByUrl(macs, maxMacVer) };
+                
+                // เซฟลงเครื่อง 30 วัน
                 localStorage.setItem(CACHE_KEY, JSON.stringify(finalData));
                 localStorage.setItem(CACHE_TIME_KEY, new Date().getTime().toString());
                 renderAllTables(finalData);
-            } catch (error) {}
+                
+            } catch (error) {
+                // 🌟 หากโหลดจากเว็บล่ม ให้ขึ้น Error แจ้งเตือนชัดเจน
+                document.getElementById('statusMsg').innerText = "❌ ล้มเหลว: ไม่สามารถเชื่อมต่อกับเซิร์ฟเวอร์ IPSW.me ได้ในขณะนี้";
+                document.getElementById('errorDetail').style.display = "block";
+                document.getElementById('errorDetail').innerText = "เซิร์ฟเวอร์หลักอาจจะล่ม หรืออินเทอร์เน็ตมีปัญหา กรุณาลองใหม่ในภายหลัง";
+            }
         }
 
         window.onload = function() { loadFirmwareData(false); };

@@ -7,32 +7,16 @@
     <link rel="stylesheet" href="style.css">
     
     <style>
-        .fw-link { color: #0071e3; text-decoration: none; font-weight: bold; word-break: break-all; display: inline-block; margin-bottom: 8px; }
+        .fw-link { color: #0071e3; text-decoration: none; font-weight: bold; word-break: break-all; display: inline-block; margin-bottom: 4px; }
         .fw-link:hover { text-decoration: underline; }
         .version-badge { background-color: #e8f2fc; color: #0071e3; padding: 4px 8px; border-radius: 6px; font-weight: bold; font-size: 13px; display: inline-block; }
         .device-list { margin: 0; padding-left: 20px; color: #333; line-height: 1.6; max-height: 200px; overflow-y: auto; }
         .device-list li { margin-bottom: 4px; }
+        
         #statusBox { background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); text-align: center; margin: 30px 0; }
         #statusMsg { color: #0071e3; font-weight: bold; font-size: 18px; margin-bottom: 10px; }
         #errorDetail { color: #ff3b30; font-size: 14px; display: none; margin-bottom: 20px; }
-        .fallback-section { display: none; border-top: 1px solid #e5e5e7; padding-top: 20px; margin-top: 10px; }
-        .fallback-title { color: #1d1d1f; font-size: 16px; font-weight: bold; margin-bottom: 15px; }
-        .btn-fallback { background-color: #1d1d1f; color: white; text-decoration: none; padding: 10px 20px; border-radius: 8px; font-size: 14px; font-weight: bold; display: inline-block; transition: 0.2s; margin: 5px; }
-        .btn-fallback:hover { opacity: 0.8; transform: translateY(-2px); }
-        .btn-appledb { background-color: #34c759; }
         
-        .copy-box { display: flex; align-items: center; justify-content: space-between; background: #f5f5f7; padding: 6px 10px; border-radius: 6px; border: 1px solid #d2d2d7; }
-        .copy-box span { font-size: 11px; color: #515154; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 250px; }
-        .btn-copy { border: 1px solid #c8e1fa; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 12px; transition: 0.2s; font-weight: bold; }
-        .btn-copy:hover { opacity: 0.8; }
-        
-        #toast { visibility: hidden; min-width: 250px; background-color: #1d1d1f; color: #fff; text-align: center; border-radius: 8px; padding: 12px; position: fixed; z-index: 1000; left: 50%; bottom: 30px; transform: translateX(-50%); font-size: 14px; box-shadow: 0 4px 12px rgba(0,0,0,0.2); }
-        #toast.show { visibility: visible; animation: fadein 0.5s; }
-        @keyframes fadein { from {bottom: 0; opacity: 0;} to {bottom: 30px; opacity: 1;} }
-
-        #dropZone { border: 2px dashed #0071e3; padding: 20px; text-align: center; border-radius: 12px; margin-bottom: 20px; background: #f8fbff; cursor: pointer; transition: 0.3s; }
-        #dropZone:hover { background: #e8f2fc; border-color: #005bb5; }
-
         .search-container { margin-bottom: 20px; }
         .search-input { width: 100%; padding: 14px 20px; font-size: 16px; border: 1px solid #d2d2d7; border-radius: 12px; outline: none; transition: 0.3s; box-shadow: 0 2px 8px rgba(0,0,0,0.03); }
         .search-input:focus { border-color: #0071e3; box-shadow: 0 0 0 4px rgba(0,113,227,0.1); }
@@ -50,18 +34,10 @@
         </div>
         
         <div id="contentContainer" style="display: none;">
-
-            <div id="dropZone" onclick="document.getElementById('fileInput').click()">
-                <div style="font-size: 16px; margin-bottom: 5px;"><strong>📁 โฟลเดอร์เป้าหมาย (External HDD):</strong></div>
-                <div id="currentPath" style="color: #ff3b30; font-weight: bold; margin-bottom: 10px; word-break: break-all;">ยังไม่ได้ตั้งค่า</div>
-                <div style="font-size: 13px; color: #515154;">💡 <strong>วิธีตั้งค่า:</strong> <u>คลิกที่นี่</u> แล้วเลือกไฟล์ IPSW ใดก็ได้ 1 ไฟล์ที่อยู่ใน HDD ของคุณ</div>
-                <input type="file" id="fileInput" accept=".ipsw" style="display: none;" onchange="handleFileSelect(event)">
-            </div>
             
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; background: white; padding: 15px 25px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05);">
                 <div style="font-size: 14px; color: #515154;">
                     <strong>🕒 ข้อมูลอัปเดตเมื่อ:</strong> <span id="lastUpdateText" style="color: #0071e3; font-weight: bold;">-</span><br>
-                    <!-- 🌟 อัปเดตข้อความให้สอดคล้องกับการจำ 30 วัน -->
                     <span style="font-size: 11px; color: #86868b;">(ระบบจำข้อมูล 30 วันเพื่อหลีกเลี่ยงเซิร์ฟเวอร์ล่ม กรุณากดรีเฟรชเมื่อ Apple ปล่อย iOS ใหม่)</span>
                 </div>
                 <button onclick="forceRefresh()" style="background: #1d1d1f; color: white; border: none; padding: 10px 15px; border-radius: 6px; font-size: 13px; font-weight: bold; cursor: pointer; transition: 0.2s;">🔄 รีเฟรชข้อมูลใหม่</button>
@@ -74,7 +50,7 @@
             <div class="card">
                 <h2>📱 iPhone (เวอร์ชันล่าสุด)</h2>
                 <table>
-                    <thead><tr><th width="15%">เวอร์ชัน</th><th width="40%">รุ่นที่รองรับ (เรียงตามฮาร์ดแวร์/ปีที่ผลิต)</th><th width="45%">ดาวน์โหลด & ค้นหาไฟล์</th></tr></thead>
+                    <thead><tr><th width="15%">เวอร์ชัน</th><th width="50%">รุ่นที่รองรับ (เรียงตามฮาร์ดแวร์/ปีที่ผลิต)</th><th width="35%">ดาวน์โหลด (IPSW)</th></tr></thead>
                     <tbody id="iphoneTableBody"></tbody>
                 </table>
             </div>
@@ -82,7 +58,7 @@
             <div class="card">
                 <h2>🖥️ iPad (เวอร์ชันล่าสุด)</h2>
                 <table>
-                    <thead><tr><th width="15%">เวอร์ชัน</th><th width="40%">รุ่นที่รองรับ (เรียงตามฮาร์ดแวร์/ปีที่ผลิต)</th><th width="45%">ดาวน์โหลด & ค้นหาไฟล์</th></tr></thead>
+                    <thead><tr><th width="15%">เวอร์ชัน</th><th width="50%">รุ่นที่รองรับ (เรียงตามฮาร์ดแวร์/ปีที่ผลิต)</th><th width="35%">ดาวน์โหลด (IPSW)</th></tr></thead>
                     <tbody id="ipadTableBody"></tbody>
                 </table>
             </div>
@@ -90,48 +66,20 @@
             <div class="card">
                 <h2>💻 Mac (Apple Silicon / เวอร์ชันล่าสุด)</h2>
                 <table>
-                    <thead><tr><th width="15%">เวอร์ชัน</th><th width="40%">กลุ่มอุปกรณ์ที่รองรับ</th><th width="45%">ดาวน์โหลด & ค้นหาไฟล์</th></tr></thead>
+                    <thead><tr><th width="15%">เวอร์ชัน</th><th width="50%">กลุ่มอุปกรณ์ที่รองรับ</th><th width="35%">ดาวน์โหลด (IPSW)</th></tr></thead>
                     <tbody id="macTableBody"></tbody>
                 </table>
             </div>
         </div>
     </div>
 
-    <div id="toast">🔍 กำลังค้นหาไฟล์...</div>
-
     <script>
-        let shell, exec, pathModule, webUtils;
-        let isDesktopApp = false;
-
-        try {
-            const electron = require('electron');
-            shell = electron.shell;
-            webUtils = electron.webUtils;
-            exec = require('child_process').exec;
-            pathModule = require('path');
-            isDesktopApp = true; 
-        } catch (e) {
-            console.warn("⚠️ คุณกำลังเปิดผ่าน Web Browser ปกติ");
-        }
-
         const IPSW_API_URL = "https://api.ipsw.me/v4/devices";
         const delay = ms => new Promise(res => setTimeout(res, ms));
         
         const CACHE_KEY = 'iserve_firmware_data_v7';
         const CACHE_TIME_KEY = 'iserve_firmware_time_v7';
-        
-        // 🌟 แก้ไขเวลาจำข้อมูลเป็น 30 วัน (30 วัน * 24 ชม * 60 นาที * 60 วินาที * 1000 มิลลิวินาที)
         const CACHE_DURATION = 30 * 24 * 60 * 60 * 1000;
-
-        let basePath = localStorage.getItem('iserve_firmware_path') || '';
-
-        window.addEventListener('DOMContentLoaded', () => {
-            const currentPathSpan = document.getElementById('currentPath');
-            if (basePath) {
-                currentPathSpan.innerText = basePath;
-                currentPathSpan.style.color = '#0071e3';
-            }
-        });
 
         function filterDevices() {
             let input = document.getElementById("searchInput").value.toLowerCase();
@@ -154,63 +102,6 @@
                             rows[i].style.display = "none"; 
                         }
                     }
-                }
-            });
-        }
-
-        function handleFileSelect(event) {
-            if (!isDesktopApp) {
-                alert('❌ ฟังก์ชันนี้ต้องใช้งานผ่านแอป iServe Tools (Desktop) เท่านั้นครับ');
-                return;
-            }
-
-            const files = event.target.files;
-            if (files.length > 0) {
-                const file = files[0];
-                let filePath = file.path; 
-                
-                if (!filePath && typeof webUtils !== 'undefined') {
-                    filePath = webUtils.getPathForFile(file);
-                }
-
-                if (filePath) {
-                    let folderPath = pathModule.dirname(filePath); 
-                    let parentFolder = pathModule.dirname(folderPath); 
-                    
-                    let confirmMessage = `ระบบตรวจพบว่าคุณเลือกไฟล์ในโฟลเดอร์:\n[ ${pathModule.basename(folderPath)} ]\n\nคุณต้องการขยับพื้นที่ค้นหาให้กว้างขึ้นไปที่โฟลเดอร์หลัก:\n[ ${pathModule.basename(parentFolder)} ]\nเพื่อให้ระบบค้นหาเจอทั้ง iPhone, iPad และ Mac พร้อมกันหรือไม่?`;
-                    
-                    if (confirm(confirmMessage)) {
-                        folderPath = parentFolder; 
-                    }
-                    
-                    localStorage.setItem('iserve_firmware_path', folderPath);
-                    basePath = folderPath;
-                    
-                    document.getElementById('currentPath').innerText = basePath;
-                    document.getElementById('currentPath').style.color = '#0071e3';
-                    alert('✅ บันทึกตำแหน่งโฟลเดอร์เป้าหมายเรียบร้อยแล้ว!');
-                } else {
-                    alert('❌ ไม่สามารถอ่านที่อยู่ไฟล์ได้');
-                }
-            }
-            event.target.value = '';
-        }
-
-        function openInFinder(filename) {
-            if (!isDesktopApp) return alert('❌ ฟังก์ชันนี้รองรับเฉพาะแอป iServe Tools เท่านั้นครับ');
-            if (!basePath) return alert('❌ กรุณาตั้งค่า "โฟลเดอร์เป้าหมาย" ก่อนครับ');
-
-            let toast = document.getElementById("toast");
-            toast.innerHTML = "🔍 กำลังค้นหาไฟล์...";
-            toast.className = "show";
-
-            exec(`find "${basePath}" -name "${filename}"`, (error, stdout, stderr) => {
-                setTimeout(() => { toast.className = toast.className.replace("show", ""); }, 500);
-                let resultPaths = stdout.trim().split('\n').filter(p => p !== '');
-                if (resultPaths.length > 0) {
-                    shell.showItemInFolder(resultPaths[0]); 
-                } else {
-                    alert(`❌ ไม่พบไฟล์:\n${filename}\n\nภายในพื้นที่:\n${basePath}`);
                 }
             });
         }
@@ -254,11 +145,8 @@
                     <td>${devicesHTML}</td>
                     <td>
                         <div style="display: flex; flex-direction: column;">
-                            <a href="${group.url}" class="fw-link" target="_blank">⬇️ ดาวน์โหลด (IPSW)</a>
-                            <div class="copy-box">
-                                <span title="${group.filename}">${group.filename}</span>
-                                <button class="btn-copy" style="background-color: #0071e3; color: white;" onclick="openInFinder('${group.filename}')">🔍 ค้นหาและเปิดไฟล์</button>
-                            </div>
+                            <a href="${group.url}" class="fw-link" target="_blank">⬇️ ดาวน์โหลดเฟิร์มแวร์</a>
+                            <span style="font-size: 11px; color: #86868b;">${group.filename}</span>
                         </div>
                     </td>
                 `;
@@ -284,6 +172,7 @@
             document.getElementById('statusBox').style.display = "block";
             document.getElementById('contentContainer').style.display = "none";
             document.getElementById('statusMsg').innerText = "⏳ ระบบกำลังโหลดและจัดเรียงข้อมูลตามปีฮาร์ดแวร์...";
+            document.getElementById('errorDetail').style.display = "none";
 
             try {
                 let response = await fetch(IPSW_API_URL);
@@ -297,7 +186,6 @@
                 for (let i = 0; i < targetDevices.length; i += 6) {
                     let batch = targetDevices.slice(i, i + 6);
                     let promises = batch.map(device => 
-                        // 🌟 เพิ่ม timeout คร่าวๆ กรณีเซิร์ฟเวอร์ตอบสนองช้า
                         fetch("https://api.ipsw.me/v4/device/" + device.identifier)
                             .then(res => res.ok ? res.json() : null).catch(() => null)
                     );
@@ -372,13 +260,11 @@
 
                 let finalData = { iphones: groupByUrl(iphones, maxIphoneVer), ipads: groupByUrl(ipads, maxIpadVer), macs: groupByUrl(macs, maxMacVer) };
                 
-                // เซฟลงเครื่อง 30 วัน
                 localStorage.setItem(CACHE_KEY, JSON.stringify(finalData));
                 localStorage.setItem(CACHE_TIME_KEY, new Date().getTime().toString());
                 renderAllTables(finalData);
                 
             } catch (error) {
-                // 🌟 หากโหลดจากเว็บล่ม ให้ขึ้น Error แจ้งเตือนชัดเจน
                 document.getElementById('statusMsg').innerText = "❌ ล้มเหลว: ไม่สามารถเชื่อมต่อกับเซิร์ฟเวอร์ IPSW.me ได้ในขณะนี้";
                 document.getElementById('errorDetail').style.display = "block";
                 document.getElementById('errorDetail').innerText = "เซิร์ฟเวอร์หลักอาจจะล่ม หรืออินเทอร์เน็ตมีปัญหา กรุณาลองใหม่ในภายหลัง";

@@ -11,7 +11,6 @@ document.addEventListener("DOMContentLoaded", function() {
                 <a href="barcode-manual.html" id="nav-barcode">บาร์โค้ด สำหรับใช้หน้าร้าน</a>
                 <a href="firmware.html" id="nav-firmware">เฟิร์มแวร์ล่าสุด (IPSW)</a>
                 <a href="macos.html" id="nav-macos">💻 macOS Bootable</a>
-                <a href="knowledge.html" id="nav-knowledge">📚 คลังความรู้ (Knowledge)</a>
             </div>
         `;
      

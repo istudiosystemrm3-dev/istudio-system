@@ -5,11 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ระบบคำนวณราคาออนไลน์ - iServe / iStudio</title>
     
-    <!-- ดึงไฟล์ style.css ส่วนกลางมาใช้งาน -->
     <link rel="stylesheet" href="style.css">
     
     <style>
-        /* สไตล์เฉพาะของหน้าคำนวณราคา */
         .container { max-width: 1000px; display: grid; grid-template-columns: 1fr 1.3fr; gap: 20px; }
         @media (max-width: 768px) { .container { grid-template-columns: 1fr; } }
         
@@ -23,7 +21,9 @@
         .settings-box { background-color: #fff9e6; padding: 15px; border-radius: 8px; margin-top: 15px; border: 1px dashed #ffcc00; }
         .checkbox-box { background-color: #f4e6fa; padding: 12px 15px; border-radius: 8px; margin-top: 15px; border: 1px solid #d7bce6; display: flex; align-items: center; gap: 10px; }
         .checkbox-box input { width: 18px; height: 18px; margin: 0; }
-        .cloud-badge { display: inline-block; font-size: 11px; padding: 2px 6px; background-color: #34c759; color: white; border-radius: 4px; margin-left: 5px; }
+        .cloud-badge { display: inline-block; font-size: 11px; padding: 4px 8px; background-color: #ff9500; color: white; border-radius: 4px; margin-left: 5px; }
+        .cloud-badge.success { background-color: #34c759; }
+        .cloud-badge.error { background-color: #ff3b30; }
     </style>
 </head>
 <body>
@@ -78,7 +78,12 @@
                 </div>
             </div>
 
-            <h2 style="margin-top: 25px;">2. เพิ่มรายการอะไหล่ <span id="cloudLoadStatus" class="cloud-badge" style="background-color: #ff9500;">กำลังโหลดคลาวด์...</span></h2>
+            <!-- 🌟 เพิ่มปุ่มรีเฟรชข้อมูลคลาวด์แบบ Manual -->
+            <h2 style="margin-top: 25px; display: flex; align-items: center; justify-content: space-between;">
+                <div>2. เพิ่มรายการอะไหล่ <span id="cloudLoadStatus" class="cloud-badge">กำลังโหลดคลาวด์...</span></div>
+                <button onclick="forceRefreshCloud()" style="background: #1d1d1f; color: white; border: none; padding: 6px 10px; border-radius: 6px; font-size: 11px; font-weight: bold; cursor: pointer;">🔄 รีเฟรชข้อมูลสาขา & อะไหล่</button>
+            </h2>
+
             <div class="form-group">
                 <label>ชื่อรายการ / รายละเอียดอะไหล่ (พิมพ์เพื่อค้นหาได้)</label>
                 <input type="text" id="itemName" list="cloudItemsList" placeholder="พิมพ์รหัส หรือ ชื่ออะไหล่..." onchange="checkAutoFillPrice()">
@@ -156,47 +161,87 @@
     </div>
 
     <script>
+        // 🌟 ตั้งค่าตัวแปรจำข้อมูล 30 วัน
+        const CACHE_KEY_CALC = 'iserve_calc_data';
+        const CACHE_TIME_KEY_CALC = 'iserve_calc_time';
+        const CACHE_DURATION_CALC = 30 * 24 * 60 * 60 * 1000; 
+
         let cart = [];
         let onlineItems = []; 
         let branchData = {}; 
 
         window.onload = function() {
-            loadCloudItems();
-            loadCloudBranches();
+            loadCloudData(false);
         };
 
-        function loadCloudBranches() {
-            fetch(window.WEB_APP_URL + "?action=getBranches", { redirect: 'follow' })
-                .then(res => res.json())
-                .then(data => {
-                    branchData = data;
-                    let select = document.getElementById('branchSelect');
-                    let keys = Object.keys(branchData);
-                    if(keys.length === 0) {
-                        select.innerHTML = `<option value="">-- ไม่พบข้อมูลสาขาในกูเกิลชีต --</option>`;
-                        return;
-                    }
-                    select.innerHTML = keys.map(key => `<option value="${key}">${branchData[key].name}</option>`).join('');
-                })
-                .catch(() => {
-                    document.getElementById('branchSelect').innerHTML = `<option value="">-- การโหลดสาขาผิดพลาด --</option>`;
-                });
+        function processCloudData(data) {
+            branchData = data.branches;
+            onlineItems = data.items;
+
+            // อัปเดต Dropdown สาขา
+            let select = document.getElementById('branchSelect');
+            let keys = Object.keys(branchData);
+            if(keys.length === 0) {
+                select.innerHTML = `<option value="">-- ไม่พบข้อมูลสาขาในกูเกิลชีต --</option>`;
+            } else {
+                select.innerHTML = keys.map(key => `<option value="${key}">${branchData[key].name}</option>`).join('');
+            }
+
+            // อัปเดตรายการอะไหล่
+            let datalist = document.getElementById('cloudItemsList');
+            datalist.innerHTML = onlineItems.map(item => `<option value="${item.desc}"> (รหัส: ${item.code} | ราคา: ${parseFloat(item.price || 0).toLocaleString()} ฿)</option>`).join('');
+            
+            // อัปเดตสถานะป้ายกำกับ
+            let statusBadge = document.getElementById('cloudLoadStatus');
+            statusBadge.innerText = "คลาวด์พร้อมใช้";
+            statusBadge.className = "cloud-badge success";
         }
 
-        function loadCloudItems() {
-            fetch(window.WEB_APP_URL + "?action=getBarcodes", { redirect: 'follow' })
-                .then(res => res.json())
-                .then(data => {
-                    onlineItems = data;
-                    let datalist = document.getElementById('cloudItemsList');
-                    datalist.innerHTML = data.map(item => `<option value="${item.desc}"> (รหัส: ${item.code} | ราคา: ${parseFloat(item.price || 0).toLocaleString()} ฿)</option>`).join('');
-                    document.getElementById('cloudLoadStatus').innerText = "คลาวด์พร้อมใช้";
-                    document.getElementById('cloudLoadStatus').style.backgroundColor = "#34c759";
-                })
-                .catch(() => {
-                    document.getElementById('cloudLoadStatus').innerText = "โหลดคลาวด์พลาด";
-                    document.getElementById('cloudLoadStatus').style.backgroundColor = "#ff3b30";
-                });
+        function loadCloudData(forceUpdate = false) {
+            let statusBadge = document.getElementById('cloudLoadStatus');
+
+            if (!forceUpdate) {
+                let cachedData = localStorage.getItem(CACHE_KEY_CALC);
+                let cacheTime = localStorage.getItem(CACHE_TIME_KEY_CALC);
+                let now = new Date().getTime();
+
+                if (cachedData && cacheTime && (now - cacheTime < CACHE_DURATION_CALC)) {
+                    try {
+                        let parsedData = JSON.parse(cachedData);
+                        processCloudData(parsedData);
+                        return; // จบการทำงาน ดึงข้อมูลจากเครื่องขึ้นมาเลย
+                    } catch (e) {}
+                }
+            }
+
+            statusBadge.innerText = "กำลังโหลด...";
+            statusBadge.className = "cloud-badge";
+
+            let url = typeof window.WEB_APP_URL !== 'undefined' ? window.WEB_APP_URL : WEB_APP_URL;
+            
+            // 🌟 ดึงข้อมูลสาขาและอะไหล่พร้อมกัน (เพื่อลดการโหลด 2 รอบ)
+            Promise.all([
+                fetch(url + "?action=getBranches", { redirect: 'follow' }).then(res => res.json()),
+                fetch(url + "?action=getBarcodes", { redirect: 'follow' }).then(res => res.json())
+            ]).then(([branchesResp, itemsResp]) => {
+                let combinedData = { branches: branchesResp, items: itemsResp };
+                
+                // บันทึกความจำลงเครื่อง
+                localStorage.setItem(CACHE_KEY_CALC, JSON.stringify(combinedData));
+                localStorage.setItem(CACHE_TIME_KEY_CALC, new Date().getTime().toString());
+                
+                processCloudData(combinedData);
+            }).catch(err => {
+                statusBadge.innerText = "เชื่อมต่อล้มเหลว";
+                statusBadge.className = "cloud-badge error";
+                document.getElementById('branchSelect').innerHTML = `<option value="">-- โหลดสาขาผิดพลาด --</option>`;
+            });
+        }
+
+        function forceRefreshCloud() {
+            localStorage.removeItem(CACHE_KEY_CALC);
+            localStorage.removeItem(CACHE_TIME_KEY_CALC);
+            loadCloudData(true);
         }
 
         function checkAutoFillPrice() {

@@ -5,11 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ตารางราคาซ่อมและบริการ - ระบบออนไลน์</title>
     
-    <!-- ดึงไฟล์ style.css ส่วนกลางมาใช้งาน -->
     <link rel="stylesheet" href="style.css">
     
     <style>
-        /* สไตล์เฉพาะของหน้าตารางราคา */
         .container { max-width: 1280px; display: grid; grid-template-columns: 1fr 3.5fr; gap: 20px; }
         @media (max-width: 768px) { .container { grid-template-columns: 1fr; } }
         
@@ -39,11 +37,11 @@
                 สถานะระบบ: <span id="syncStatus" class="status-badge">กำลังเตรียมข้อมูล...</span>
             </div>
             
-            <!-- เพิ่มส่วนควบคุม Caching -->
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; background: #f5f5f7; padding: 12px 15px; border-radius: 8px; border: 1px solid #d2d2d7;">
                 <div style="font-size: 13px; color: #515154;">
                     <strong>🕒 ข้อมูลอัปเดตเมื่อ:</strong> <span id="lastUpdateText" style="color: #0071e3; font-weight: bold;">-</span><br>
-                    <span style="font-size: 11px; color: #86868b;">(ระบบเก็บข้อมูลไว้ในเครื่องเพื่อความเร็ว จะดึงใหม่อัตโนมัติวันละ 1 ครั้ง)</span>
+                    <!-- 🌟 แก้ไขข้อความอธิบายให้สอดคล้องกับระยะเวลาจำ 30 วัน -->
+                    <span style="font-size: 11px; color: #86868b;">(ดึงใหม่อัตโนมัติทุก 30 วัน หรือกดรีเฟรชเองเมื่อมีอัปเดต)</span>
                 </div>
                 <button onclick="forceRefresh()" style="background: #1d1d1f; color: white; border: none; padding: 8px 12px; border-radius: 6px; font-size: 12px; font-weight: bold; cursor: pointer; transition: 0.2s;">🔄 รีเฟรชข้อมูลใหม่</button>
             </div>
@@ -85,26 +83,24 @@
     </div>
     
     <script>
-        // กำหนดตัวแปรสำหรับ Caching
+        // 🌟 แก้ไขอายุ Cache ให้เป็น 30 วัน (30 วัน * 24 ชม * 60 นาที * 60 วินาที * 1000 มิลลิวินาที)
         const CACHE_KEY_PRICE = 'iserve_price_data';
         const CACHE_TIME_KEY_PRICE = 'iserve_price_time';
-        const CACHE_DURATION_PRICE = 24 * 60 * 60 * 1000; // 24 ชั่วโมง
+        const CACHE_DURATION_PRICE = 30 * 24 * 60 * 60 * 1000; 
 
         let priceDatabase = [];
 
         window.onload = function() {
-            loadOnlinePrices(false); // โหลดแบบใช้ Cache
+            loadOnlinePrices(false); 
         };
 
         function processData(data) {
             priceDatabase = data;
             
-            // อัปเดตสถานะการเชื่อมต่อ
             let statusEl = document.getElementById('syncStatus');
             statusEl.innerText = "พร้อมใช้งาน (มีข้อมูลแล้ว)";
             statusEl.className = "status-badge status-connected";
             
-            // แสดงเวลาที่อัปเดตล่าสุด
             let cacheTime = localStorage.getItem(CACHE_TIME_KEY_PRICE);
             if (cacheTime) {
                 let d = new Date(parseInt(cacheTime));
@@ -116,7 +112,6 @@
         }
 
         function loadOnlinePrices(forceUpdate = false) {
-            // 1. ตรวจสอบ Cache ก่อน (ถ้าไม่ได้กดบังคับอัปเดต)
             if (!forceUpdate) {
                 let cachedData = localStorage.getItem(CACHE_KEY_PRICE);
                 let cacheTime = localStorage.getItem(CACHE_TIME_KEY_PRICE);
@@ -126,27 +121,27 @@
                     try {
                         let parsedData = JSON.parse(cachedData);
                         processData(parsedData);
-                        return; // จบการทำงาน ดึงข้อมูลจากเครื่องขึ้นมาแสดงเลย ไม่ต้องต่อเน็ต
+                        return; 
                     } catch (e) {
                         console.log("ข้อมูล Cache มีปัญหา กำลังดึงข้อมูลใหม่...");
                     }
                 }
             }
 
-            // 2. กรณีไม่มี Cache หรือกดบังคับอัปเดต ให้ไปดึงจาก Google Script ใหม่
             let statusEl = document.getElementById('syncStatus');
             statusEl.innerText = "กำลังดาวน์โหลดตารางราคาใหม่...";
             statusEl.className = "status-badge";
             statusEl.style.backgroundColor = "#ff9500";
             document.getElementById('dataTableBody').innerHTML = `<tr><td colspan="6" style="text-align: center; padding: 30px; color: #0071e3; font-weight: bold;">กำลังดึงข้อมูลล่าสุดจากระบบ...</td></tr>`;
 
-            fetch(WEB_APP_URL + "?action=getPrices")
+            // 🌟 เพิ่มความเสถียรในการดึงข้อมูลด้วย redirect: 'follow'
+            let url = typeof window.WEB_APP_URL !== 'undefined' ? window.WEB_APP_URL : WEB_APP_URL;
+
+            fetch(url + "?action=getPrices", { redirect: 'follow' })
                 .then(res => res.json())
                 .then(data => {
-                    // เซฟลง Cache เพื่อให้โหลดเร็วในครั้งหน้า
                     localStorage.setItem(CACHE_KEY_PRICE, JSON.stringify(data));
                     localStorage.setItem(CACHE_TIME_KEY_PRICE, new Date().getTime().toString());
-                    
                     processData(data);
                 })
                 .catch(err => {
@@ -157,7 +152,6 @@
         }
 
         function forceRefresh() {
-            // ลบของเก่าทิ้ง แล้วสั่งให้โหลดใหม่จากคลาวด์
             localStorage.removeItem(CACHE_KEY_PRICE);
             localStorage.removeItem(CACHE_TIME_KEY_PRICE);
             loadOnlinePrices(true);
@@ -166,12 +160,11 @@
         function updateCategoryDropdown() {
             let ids = [...new Set(priceDatabase.map(item => String(item.id || "")).filter(val => val !== ""))];
             let select = document.getElementById('filterCategory');
-            let currentVal = select.value; // จำค่าเดิมที่เลือกไว้
+            let currentVal = select.value; 
 
             select.innerHTML = `<option value="ALL">-- แสดงทั้งหมด --</option>` + 
                                ids.map(c => `<option value="${c}">${c}</option>`).join('');
             
-            // คืนค่าที่เคยเลือก
             if(ids.includes(currentVal)) {
                 select.value = currentVal;
             }

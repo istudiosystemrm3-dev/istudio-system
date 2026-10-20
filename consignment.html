@@ -8,27 +8,28 @@
     <style>
         .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
         
-        /* Login Screen */
         #loginScreen { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 60vh; }
         .login-box { background: white; padding: 40px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); text-align: center; width: 100%; max-width: 400px; }
         .login-box input { width: 100%; padding: 15px; font-size: 20px; text-align: center; letter-spacing: 5px; margin-bottom: 20px; border: 1px solid #d2d2d7; border-radius: 8px; outline: none; }
         .login-box input:focus { border-color: #0071e3; }
         .btn-login { background-color: #0071e3; color: white; border: none; padding: 12px; border-radius: 8px; font-size: 16px; font-weight: bold; width: 100%; cursor: pointer; transition: 0.2s; }
-        .btn-login:hover { background-color: #005bb5; }
         
-        /* Dashboard Screen */
         #dashboardScreen { display: none; }
-        .header-box { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; background: #e8f2fc; padding: 15px 20px; border-radius: 8px; border: 1px solid #c8e1fa; }
-        .branch-title { font-size: 18px; font-weight: bold; color: #003399; margin: 0; }
+        .header-box { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; background: #f5f5f7; padding: 15px 20px; border-radius: 8px; border: 1px solid #e5e5e7; }
+        .branch-title { font-size: 18px; font-weight: bold; color: #1d1d1f; margin: 0; }
         .btn-logout { background-color: #ff3b30; color: white; border: none; padding: 8px 15px; border-radius: 6px; font-size: 13px; font-weight: bold; cursor: pointer; }
         
-        /* Action Panel */
+        /* 🌟 ปุ่มสลับโหมด 2 Database 🌟 */
+        .db-selector { display: flex; gap: 15px; margin-bottom: 20px; }
+        .db-tab { flex: 1; padding: 15px; text-align: center; font-weight: bold; border-radius: 10px; cursor: pointer; border: 2px solid transparent; background: #f5f5f7; color: #515154; transition: 0.3s; font-size: 16px; }
+        .db-tab.active-consign { background: #e8f2fc; color: #0071e3; border-color: #0071e3; box-shadow: 0 4px 12px rgba(0,113,227,0.15); }
+        .db-tab.active-store { background: #e5f9e7; color: #28a745; border-color: #28a745; box-shadow: 0 4px 12px rgba(40,167,69,0.15); }
+
         .action-panel { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px; }
         @media (max-width: 900px) { .action-panel { grid-template-columns: 1fr; } }
         
         .action-card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); border: 1px solid #e5e5e7; }
         
-        /* Type Selector 4 ปุ่ม */
         .type-selector { display: flex; gap: 10px; margin-bottom: 15px; flex-wrap: wrap; }
         .type-btn { flex: 1; padding: 12px 5px; text-align: center; font-weight: bold; border-radius: 8px; cursor: pointer; border: 2px solid transparent; background: #f5f5f7; color: #515154; transition: 0.2s; font-size: 13px; min-width: 100px; }
         .type-btn.active-consume { background: #ffe5e5; color: #ff3b30; border-color: #ff3b30; }
@@ -44,7 +45,6 @@
         
         .btn-submit { color: white; border: none; padding: 15px; border-radius: 8px; font-size: 16px; font-weight: bold; width: 100%; cursor: pointer; transition: 0.2s; margin-top: 10px; }
         
-        /* Tables */
         .table-container { overflow-x: auto; max-height: 440px; overflow-y: auto; border: 1px solid #e5e5e7; border-radius: 8px; }
         table { width: 100%; border-collapse: collapse; white-space: nowrap; }
         th { position: sticky; top: 0; background-color: #f5f5f7; padding: 10px; text-align: left; border-bottom: 2px solid #e5e5e7; font-size: 13px; z-index: 1; }
@@ -61,7 +61,6 @@
         .log-return { background: #fff4e5; color: #ff9500; }
         .log-deposit { background: #fffde5; color: #d4a017; border: 1px solid #f1c40f;}
         
-        /* Toast Notification */
         #toast { visibility: hidden; min-width: 250px; background-color: #34c759; color: #fff; text-align: center; border-radius: 8px; padding: 12px; position: fixed; z-index: 1000; right: 30px; bottom: 30px; font-size: 14px; box-shadow: 0 4px 12px rgba(0,0,0,0.2); transition: 0.3s; }
         #toast.show { visibility: visible; bottom: 40px; }
 
@@ -74,18 +73,14 @@
     <div id="navbar-container"></div>
     <script src="navbar.js"></script>
 
-    <div id="loadingOverlay">
-        <div class="spinner"></div>
-        <div style="font-weight: bold; color: #0071e3;" id="loadingText">กำลังประมวลผล...</div>
-    </div>
-
+    <div id="loadingOverlay"><div class="spinner"></div><div style="font-weight: bold; color: #0071e3;" id="loadingText">กำลังประมวลผล...</div></div>
     <div id="toast">✅ บันทึกสำเร็จ!</div>
 
     <div class="container">
         <!-- หน้าจอ Login -->
         <div id="loginScreen">
             <div class="login-box">
-                <h2 style="margin-top: 0; color: #1d1d1f;">🔐 ระบบ Consignment</h2>
+                <h2 style="margin-top: 0; color: #1d1d1f;">🔐 คลังสินค้า iServe</h2>
                 <p style="color: #86868b; font-size: 14px; margin-bottom: 25px;">กรุณากรอกรหัสผ่านเพื่อเข้าสู่ระบบของสาขา</p>
                 <input type="password" id="pinInput" placeholder="PIN CODE" onkeypress="if(event.key === 'Enter') login()">
                 <button class="btn-login" onclick="login()">เข้าสู่ระบบ</button>
@@ -95,14 +90,20 @@
         <!-- หน้าจอ Dashboard -->
         <div id="dashboardScreen">
             <div class="header-box">
-                <h2 class="branch-title">📍 <span id="displayBranchName">กำลังโหลด...</span></h2>
+                <h2 class="branch-title">📍 สาขา: <span id="displayBranchName" style="color:#0071e3;">กำลังโหลด...</span></h2>
                 <button class="btn-logout" onclick="logout()">ออกจากระบบ</button>
+            </div>
+
+            <!-- 🌟 ปุ่มสลับโหมด 🌟 -->
+            <div class="db-selector">
+                <div id="tabConsign" class="db-tab active-consign" onclick="switchDB('CONSIGN')">📦 สต๊อก Consignment (รอเคลม)</div>
+                <div id="tabStore" class="db-tab" onclick="switchDB('STORE')">🛒 สต๊อกร้านค้า (Commercial)</div>
             </div>
 
             <div class="action-panel">
                 <!-- แผงบันทึกความเคลื่อนไหว -->
                 <div class="action-card">
-                    <h3 style="margin-top: 0; margin-bottom: 15px; border-bottom: 1px solid #e5e5e7; padding-bottom: 10px;">⚡ บันทึกความเคลื่อนไหวสต๊อก</h3>
+                    <h3 id="formTitle" style="margin-top: 0; margin-bottom: 15px; border-bottom: 1px solid #e5e5e7; padding-bottom: 10px; color: #0071e3;">⚡ ทำรายการ: Consignment</h3>
                     
                     <div class="type-selector">
                         <div class="type-btn active-consume" id="btnTypeConsume" onclick="selectActionType('เบิกใช้')">🔴 เบิกใช้ (ซ่อม)</div>
@@ -136,7 +137,7 @@
                             <label>Job / SO Number</label>
                             <input type="text" id="jobNo" placeholder="อ้างอิงใบงานซ่อม...">
                         </div>
-                        <div class="flex-1">
+                        <div class="flex-1" id="repairIdBox">
                             <label>Repair ID (GSX)</label>
                             <input type="text" id="repairId" placeholder="เช่น G123456789...">
                         </div>
@@ -145,7 +146,7 @@
                     <div class="form-row">
                         <div class="flex-1">
                             <label>หมายเหตุ</label>
-                            <input type="text" id="note" placeholder="ข้อความเพิ่มเติม เช่น รออะไหล่เข้าวันศุกร์...">
+                            <input type="text" id="note" placeholder="ข้อความเพิ่มเติม...">
                         </div>
                     </div>
 
@@ -160,17 +161,8 @@
                     </div>
                     <div class="table-container" style="border: none; border-radius: 0; flex: 1;">
                         <table>
-                            <thead>
-                                <tr>
-                                    <th>Part No</th>
-                                    <th>Description</th>
-                                    <th style="text-align: center;">รอของเข้า</th>
-                                    <th style="text-align: right;">คงเหลือ</th>
-                                </tr>
-                            </thead>
-                            <tbody id="stockTableBody">
-                                <tr><td colspan="4" style="text-align: center; padding: 30px; color: #86868b;">กำลังโหลด...</td></tr>
-                            </tbody>
+                            <thead><tr><th>Part No</th><th>Description</th><th style="text-align: center;">รอของเข้า</th><th style="text-align: right;">คงเหลือ</th></tr></thead>
+                            <tbody id="stockTableBody"><tr><td colspan="4" style="text-align: center; padding: 30px; color: #86868b;">กำลังโหลด...</td></tr></tbody>
                         </table>
                     </div>
                 </div>
@@ -184,19 +176,9 @@
                 <div class="table-container" style="border: none; border-radius: 0; max-height: 400px;">
                     <table>
                         <thead>
-                            <tr>
-                                <th>วัน/เวลา</th>
-                                <th>ประเภท</th>
-                                <th>Part No</th>
-                                <th>จำนวน</th>
-                                <th>Job No</th>
-                                <th>Repair ID</th>
-                                <th>หมายเหตุ</th>
-                            </tr>
+                            <tr><th>วัน/เวลา</th><th>ประเภท</th><th>Part No</th><th>จำนวน</th><th>Job No</th><th id="thRepairId">Repair ID</th><th>หมายเหตุ</th></tr>
                         </thead>
-                        <tbody id="logTableBody">
-                            <tr><td colspan="7" style="text-align: center; padding: 30px; color: #86868b;">กำลังโหลดประวัติ...</td></tr>
-                        </tbody>
+                        <tbody id="logTableBody"><tr><td colspan="7" style="text-align: center; padding: 30px; color: #86868b;">กำลังโหลดประวัติ...</td></tr></tbody>
                     </table>
                 </div>
             </div>
@@ -205,11 +187,13 @@
     </div>
 
     <script>
-        // 🌟 ใส่ URL ของ Google Apps Script ตรงนี้ 🌟
-        const CONSIGN_API_URL = "https://script.google.com/macros/s/AKfycbx12YKwIMJyo1Z7qwV6GHzFnuZ3vVbmEhrJyU-ah1XbI5OKtCz3q3UjxqCvuZthdio3nQ/exec"; 
+        // 🌟🌟🌟 ใส่ URL ทั้ง 2 ระบบของคุณที่นี่ 🌟🌟🌟
+        const URL_CONSIGNMENT = "https://script.google.com/macros/s/AKfycbzqv6II1kyP4vitQ3cjjbM5YUJSITUxuM9Uc_JzSEgQANjyEfkQKrJivHy2W8fcu-eU/exec"; 
+        const URL_STORE_STOCK = "https://script.google.com/macros/s/AKfycbx12YKwIMJyo1Z7qwV6GHzFnuZ3vVbmEhrJyU-ah1XbI5OKtCz3q3UjxqCvuZthdio3nQ/exec"; 
         
+        let currentAPI = URL_CONSIGNMENT; // เริ่มต้นที่ Consign
+        let activeMode = "CONSIGN";
         let currentBranch = "";
-        let localStockData = []; 
 
         window.onload = function() {
             let savedBranch = localStorage.getItem('iserve_consign_branch');
@@ -225,9 +209,34 @@
         function showToast(message, isError = false) {
             let toast = document.getElementById("toast");
             toast.innerText = message;
-            toast.style.backgroundColor = isError ? "#ff3b30" : "#34c759";
+            toast.style.backgroundColor = isError ? "#ff3b30" : "#28a745";
             toast.className = "show";
             setTimeout(() => { toast.className = toast.className.replace("show", ""); }, 3000);
+        }
+
+        // --- ระบบสลับโหมด 2 ฐานข้อมูล ---
+        function switchDB(mode) {
+            activeMode = mode;
+            if (mode === 'CONSIGN') {
+                currentAPI = URL_CONSIGNMENT;
+                document.getElementById('tabConsign').className = "db-tab active-consign";
+                document.getElementById('tabStore').className = "db-tab";
+                document.getElementById('formTitle').innerText = "⚡ ทำรายการ: Consignment";
+                document.getElementById('formTitle').style.color = "#0071e3";
+                document.getElementById('repairIdBox').style.display = "block"; // โชว์ช่อง Repair ID
+                document.getElementById('thRepairId').style.display = "table-cell";
+            } else {
+                currentAPI = URL_STORE_STOCK;
+                if(!currentAPI || currentAPI.includes("ใส่_URL")) { alert("คุณยังไม่ได้ใส่ URL สำหรับระบบ Stock ร้านครับ!"); switchDB('CONSIGN'); return; }
+                
+                document.getElementById('tabConsign').className = "db-tab";
+                document.getElementById('tabStore').className = "db-tab active-store";
+                document.getElementById('formTitle').innerText = "⚡ ทำรายการ: สต๊อกร้านค้า";
+                document.getElementById('formTitle').style.color = "#28a745";
+                document.getElementById('repairIdBox').style.display = "none"; // ซ่อนช่อง Repair ID
+                document.getElementById('thRepairId').style.display = "none";
+            }
+            loadData(); // เปลี่ยนโหมดปุ๊บ สั่งโหลดสต๊อกของโหมดนั้นทันที
         }
 
         function login() {
@@ -235,7 +244,8 @@
             if (!pin) { alert("กรุณากรอก PIN"); return; }
             
             showLoading("กำลังตรวจสอบรหัสผ่าน...");
-            fetch(CONSIGN_API_URL, { method: "POST", body: JSON.stringify({ action: "login", pin: pin }), redirect: "follow" })
+            // เช็ครหัสผ่านกับฐานข้อมูลปัจจุบัน
+            fetch(currentAPI, { method: "POST", body: JSON.stringify({ action: "login", pin: pin }), redirect: "follow" })
             .then(res => res.json())
             .then(data => {
                 hideLoading();
@@ -246,7 +256,7 @@
                     showDashboard();
                 } else { alert("❌ รหัสผ่านไม่ถูกต้อง"); }
             })
-            .catch(err => { hideLoading(); alert("❌ เชื่อมต่อระบบล้มเหลว"); });
+            .catch(err => { hideLoading(); alert("❌ เชื่อมต่อระบบล้มเหลว ตรวจสอบ URL API อีกครั้ง"); });
         }
 
         function logout() {
@@ -269,7 +279,6 @@
             document.getElementById('actionType').value = type;
             let btnSubmit = document.getElementById('btnSubmit');
             
-            // เคลียร์คลาสปุ่มทั้งหมด
             document.getElementById('btnTypeConsume').className = "type-btn";
             document.getElementById('btnTypeReceive').className = "type-btn";
             document.getElementById('btnTypeReturn').className = "type-btn";
@@ -281,7 +290,7 @@
                 btnSubmit.innerText = "บันทึกข้อมูล (เบิกใช้)";
             } else if (type === "รับเข้า") {
                 document.getElementById('btnTypeReceive').className = "type-btn active-receive";
-                btnSubmit.style.backgroundColor = "#34c759";
+                btnSubmit.style.backgroundColor = "#28a745";
                 btnSubmit.innerText = "บันทึกข้อมูล (รับของเข้า)";
             } else if (type === "ส่งคืน") {
                 document.getElementById('btnTypeReturn').className = "type-btn active-return";
@@ -296,10 +305,10 @@
         }
 
         function loadData() {
-            document.getElementById('stockTableBody').innerHTML = `<tr><td colspan="4" style="text-align: center; padding: 20px; color: #86868b;">กำลังดึงสต๊อก...</td></tr>`;
-            document.getElementById('logTableBody').innerHTML = `<tr><td colspan="7" style="text-align: center; padding: 20px; color: #86868b;">กำลังดึงประวัติ 150 รายการ...</td></tr>`;
+            document.getElementById('stockTableBody').innerHTML = `<tr><td colspan="4" style="text-align: center; padding: 20px; color: #86868b;">กำลังโหลด...</td></tr>`;
+            document.getElementById('logTableBody').innerHTML = `<tr><td colspan="7" style="text-align: center; padding: 20px; color: #86868b;">กำลังโหลด...</td></tr>`;
             
-            fetch(CONSIGN_API_URL, {
+            fetch(currentAPI, { // ยิง API ตามโหมดที่เลือก (currentAPI)
                 method: "POST",
                 body: JSON.stringify({ action: "getStockAndLogs", branch: currentBranch }),
                 redirect: "follow"
@@ -307,13 +316,12 @@
             .then(res => res.json())
             .then(data => {
                 if (data.status === "success") {
-                    localStockData = data.stock;
-                    renderStockTable(localStockData);
+                    renderStockTable(data.stock);
                     renderLogTable(data.logs);
                 }
             })
             .catch(err => {
-                document.getElementById('stockTableBody').innerHTML = `<tr><td colspan="4" style="text-align: center; color: #ff3b30;">โหลดข้อมูลล้มเหลว</td></tr>`;
+                document.getElementById('stockTableBody').innerHTML = `<tr><td colspan="4" style="text-align: center; color: #ff3b30;">โหลดข้อมูลล้มเหลว (เช็ค URL API)</td></tr>`;
                 document.getElementById('logTableBody').innerHTML = `<tr><td colspan="7" style="text-align: center; color: #ff3b30;">โหลดข้อมูลล้มเหลว</td></tr>`;
             });
         }
@@ -331,8 +339,6 @@
                 let qty = parseInt(item.qty);
                 let pending = parseInt(item.pendingQty);
                 let badgeClass = qty <= 2 ? "qty-low" : "qty-safe"; 
-                
-                // ถ้ารอของเข้า > 0 ให้แสดงป้ายสีเหลือง
                 let pendingHtml = pending > 0 ? `<span class="qty-badge qty-pending">+${pending}</span>` : "-";
 
                 tbody.innerHTML += `
@@ -360,6 +366,8 @@
                 else if (log.type === "เบิกใช้") logTypeClass = "log-consume";
                 else if (log.type === "รับมัดจำ") logTypeClass = "log-deposit";
                 else logTypeClass = "log-return";
+                
+                let repairHtml = activeMode === "CONSIGN" ? `<td>${log.repairId || "-"}</td>` : "";
 
                 tbody.innerHTML += `
                     <tr>
@@ -368,7 +376,7 @@
                         <td style="font-weight: bold;">${log.partNo}</td>
                         <td>${log.qty}</td>
                         <td>${log.job || "-"}</td>
-                        <td>${log.repairId || "-"}</td>
+                        ${repairHtml}
                         <td style="color: #515154; max-width: 150px; overflow: hidden; text-overflow: ellipsis;">${log.note || "-"}</td>
                     </tr>
                 `;
@@ -386,7 +394,9 @@
 
             if (!partNo) { alert("⚠️ กรุณาระบุรหัสอะไหล่ (Part Number)"); return; }
             if (qty <= 0) { alert("⚠️ จำนวนต้องมากกว่า 0"); return; }
-            if (type === "เบิกใช้" && (!jobNo && !repairId)) {
+            
+            // เช็คเงื่อนไข Repair ID เฉพาะตอนอยู่โหมด Consign เท่านั้น
+            if (activeMode === "CONSIGN" && type === "เบิกใช้" && (!jobNo && !repairId)) {
                 if(!confirm("คุณไม่ได้ระบุ Job หรือ Repair ID แน่ใจหรือไม่ที่จะบันทึก?")) return;
             }
 
@@ -403,27 +413,10 @@
                 qty: qty,
                 job: jobNo,
                 repairId: repairId,
-                note: note // ส่งหมายเหตุไปบันทึก
+                note: note 
             };
 
-            // อัปเดต UI ชั่วคราว
-            let tempTime = new Date().toLocaleTimeString('th-TH');
-            let logTypeClass = (type === "รับเข้า") ? "log-receive" : (type === "เบิกใช้" ? "log-consume" : (type === "รับมัดจำ" ? "log-deposit" : "log-return"));
-            let newLogRow = `
-                <tr style="background-color: #f0f7ff; transition: 1s;">
-                    <td style="color: #0071e3; font-weight: bold;">${tempTime} (กำลังบันทึก..)</td>
-                    <td><span class="log-type ${logTypeClass}">${type}</span></td>
-                    <td style="font-weight: bold;">${partNo}</td>
-                    <td>${qty}</td>
-                    <td>${jobNo || "-"}</td>
-                    <td>${repairId || "-"}</td>
-                    <td>${note || "-"}</td>
-                </tr>
-            `;
-            let logBody = document.getElementById('logTableBody');
-            logBody.insertAdjacentHTML('afterbegin', newLogRow);
-
-            fetch(CONSIGN_API_URL, {
+            fetch(currentAPI, { // ยิง API ตามโหมดที่เลือก
                 method: "POST",
                 body: JSON.stringify(payload),
                 redirect: "follow"
@@ -431,7 +424,7 @@
             .then(res => res.json())
             .then(data => {
                 if (data.status === "success") {
-                    showToast(`✅ บันทึก ${type} สำเร็จ! ยอดปัจจุบัน: ${data.newQty} (รอเข้า: ${data.newPending})`);
+                    showToast(`✅ บันทึก ${type} สำเร็จ! ยอดปัจจุบัน: ${data.newQty}`);
                     
                     document.getElementById('partNo').value = "";
                     document.getElementById('partName').value = "";

@@ -4,11 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ระบบจัดการสต๊อก Consignment - iServe</title>
-    
     <link rel="stylesheet" href="style.css">
-    
     <style>
-        .container { max-width: 1000px; margin: 0 auto; padding: 20px; }
+        .container { max-width: 1100px; margin: 0 auto; padding: 20px; }
         
         /* Login Screen */
         #loginScreen { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 60vh; }
@@ -44,13 +42,25 @@
         
         .btn-submit { color: white; border: none; padding: 15px; border-radius: 8px; font-size: 16px; font-weight: bold; width: 100%; cursor: pointer; transition: 0.2s; margin-top: 10px; }
         
-        /* Stock Table */
-        .stock-container { overflow-x: auto; max-height: 500px; overflow-y: auto; border: 1px solid #e5e5e7; border-radius: 8px; }
-        .stock-table th { position: sticky; top: 0; background-color: #f5f5f7; z-index: 1; }
+        /* Tables */
+        .table-container { overflow-x: auto; max-height: 400px; overflow-y: auto; border: 1px solid #e5e5e7; border-radius: 8px; }
+        table { width: 100%; border-collapse: collapse; }
+        th { position: sticky; top: 0; background-color: #f5f5f7; padding: 10px; text-align: left; border-bottom: 2px solid #e5e5e7; font-size: 13px; z-index: 1; }
+        td { padding: 10px; border-bottom: 1px solid #e5e5e7; font-size: 13px; }
+        
         .qty-badge { display: inline-block; padding: 4px 12px; border-radius: 20px; font-weight: bold; font-size: 14px; }
         .qty-safe { background-color: #e5f9e7; color: #34c759; }
         .qty-low { background-color: #ffe5e5; color: #ff3b30; }
+
+        .log-type { padding: 3px 8px; border-radius: 4px; font-size: 11px; font-weight: bold; }
+        .log-consume { background: #ffe5e5; color: #ff3b30; }
+        .log-receive { background: #e5f9e7; color: #34c759; }
+        .log-return { background: #fff4e5; color: #ff9500; }
         
+        /* Toast Notification */
+        #toast { visibility: hidden; min-width: 250px; background-color: #34c759; color: #fff; text-align: center; border-radius: 8px; padding: 12px; position: fixed; z-index: 1000; right: 30px; bottom: 30px; font-size: 14px; box-shadow: 0 4px 12px rgba(0,0,0,0.2); transition: 0.3s; }
+        #toast.show { visibility: visible; bottom: 40px; }
+
         #loadingOverlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.8); display: none; align-items: center; justify-content: center; z-index: 9999; flex-direction: column; }
         .spinner { border: 4px solid #f3f3f3; border-top: 4px solid #0071e3; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin-bottom: 10px; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
@@ -65,8 +75,9 @@
         <div style="font-weight: bold; color: #0071e3;" id="loadingText">กำลังประมวลผล...</div>
     </div>
 
+    <div id="toast">✅ บันทึกสำเร็จ!</div>
+
     <div class="container">
-        
         <!-- หน้าจอ Login -->
         <div id="loginScreen">
             <div class="login-box">
@@ -85,7 +96,7 @@
             </div>
 
             <div class="action-panel">
-                <!-- แผงบันทึกการใช้งาน -->
+                <!-- แผงบันทึกความเคลื่อนไหว -->
                 <div class="action-card">
                     <h3 style="margin-top: 0; margin-bottom: 15px; border-bottom: 1px solid #e5e5e7; padding-bottom: 10px;">⚡ บันทึกความเคลื่อนไหวสต๊อก</h3>
                     
@@ -130,20 +141,14 @@
                 </div>
 
                 <!-- แผงตารางสต๊อกปัจจุบัน -->
-                <div class="action-card" style="padding: 0; overflow: hidden; display: flex; flex-direction: column;">
+                <div class="action-card" style="padding: 0; display: flex; flex-direction: column;">
                     <div style="padding: 15px 20px; background: #f5f5f7; border-bottom: 1px solid #e5e5e7; display: flex; justify-content: space-between; align-items: center;">
                         <h3 style="margin: 0; font-size: 16px;">📦 สต๊อกคงเหลือปัจจุบัน</h3>
-                        <button onclick="loadStock()" style="background: none; border: none; color: #0071e3; cursor: pointer; font-weight: bold; font-size: 13px;">🔄 รีเฟรช</button>
+                        <button onclick="loadData()" style="background: none; border: none; color: #0071e3; cursor: pointer; font-weight: bold; font-size: 13px;">🔄 รีเฟรช</button>
                     </div>
-                    <div class="stock-container" style="flex: 1;">
-                        <table class="stock-table" style="width: 100%; border-collapse: collapse;">
-                            <thead>
-                                <tr>
-                                    <th style="padding: 10px; text-align: left; border-bottom: 2px solid #e5e5e7; font-size: 13px;">Part No</th>
-                                    <th style="padding: 10px; text-align: left; border-bottom: 2px solid #e5e5e7; font-size: 13px;">Description</th>
-                                    <th style="padding: 10px; text-align: right; border-bottom: 2px solid #e5e5e7; font-size: 13px;">คงเหลือ</th>
-                                </tr>
-                            </thead>
+                    <div class="table-container" style="border: none; border-radius: 0; flex: 1;">
+                        <table>
+                            <thead><tr><th>Part No</th><th>Description</th><th style="text-align: right;">คงเหลือ</th></tr></thead>
                             <tbody id="stockTableBody">
                                 <tr><td colspan="3" style="text-align: center; padding: 30px; color: #86868b;">กำลังโหลด...</td></tr>
                             </tbody>
@@ -151,17 +156,41 @@
                     </div>
                 </div>
             </div>
-        </div>
 
+            <!-- 🌟 แผงประวัติ 150 รายการล่าสุด -->
+            <div class="action-card" style="padding: 0; display: flex; flex-direction: column;">
+                <div style="padding: 15px 20px; background: #f5f5f7; border-bottom: 1px solid #e5e5e7;">
+                    <h3 style="margin: 0; font-size: 16px;">🕒 ประวัติทำรายการ 150 รายการล่าสุด</h3>
+                </div>
+                <div class="table-container" style="border: none; border-radius: 0; max-height: 350px;">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th width="15%">วัน/เวลา</th>
+                                <th width="10%">ประเภท</th>
+                                <th width="20%">Part No</th>
+                                <th width="10%">จำนวน</th>
+                                <th width="20%">Job No</th>
+                                <th width="25%">Repair ID</th>
+                            </tr>
+                        </thead>
+                        <tbody id="logTableBody">
+                            <tr><td colspan="6" style="text-align: center; padding: 30px; color: #86868b;">กำลังโหลดประวัติ...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </div>
     </div>
 
     <script>
-        // 🌟🌟🌟 ใส่ URL ใหม่ที่ได้จาก Google Apps Script (iServe_Consignment_DB) ตรงนี้ครับ 🌟🌟🌟
+        // URL ถูกใส่ให้เรียบร้อยแล้วครับ
         const CONSIGN_API_URL = "https://script.google.com/macros/s/AKfycbzqv6II1kyP4vitQ3cjjbM5YUJSITUxuM9Uc_JzSEgQANjyEfkQKrJivHy2W8fcu-eU/exec"; 
         
         let currentBranch = "";
+        let localStockData = []; 
 
-        // ตรวจสอบว่าเคย Login ไว้หรือยัง
         window.onload = function() {
             let savedBranch = localStorage.getItem('iserve_consign_branch');
             if (savedBranch) {
@@ -170,12 +199,15 @@
             }
         };
 
-        function showLoading(text) {
-            document.getElementById('loadingText').innerText = text;
-            document.getElementById('loadingOverlay').style.display = 'flex';
-        }
-        function hideLoading() {
-            document.getElementById('loadingOverlay').style.display = 'none';
+        function showLoading(text) { document.getElementById('loadingText').innerText = text; document.getElementById('loadingOverlay').style.display = 'flex'; }
+        function hideLoading() { document.getElementById('loadingOverlay').style.display = 'none'; }
+        
+        function showToast(message, isError = false) {
+            let toast = document.getElementById("toast");
+            toast.innerText = message;
+            toast.style.backgroundColor = isError ? "#ff3b30" : "#34c759";
+            toast.className = "show";
+            setTimeout(() => { toast.className = toast.className.replace("show", ""); }, 3000);
         }
 
         function login() {
@@ -183,12 +215,7 @@
             if (!pin) { alert("กรุณากรอก PIN"); return; }
             
             showLoading("กำลังตรวจสอบรหัสผ่าน...");
-            
-            fetch(CONSIGN_API_URL, {
-                method: "POST",
-                body: JSON.stringify({ action: "login", pin: pin }),
-                redirect: "follow"
-            })
+            fetch(CONSIGN_API_URL, { method: "POST", body: JSON.stringify({ action: "login", pin: pin }), redirect: "follow" })
             .then(res => res.json())
             .then(data => {
                 hideLoading();
@@ -197,14 +224,9 @@
                     localStorage.setItem('iserve_consign_branch', currentBranch);
                     document.getElementById('pinInput').value = "";
                     showDashboard();
-                } else {
-                    alert("❌ รหัสผ่านไม่ถูกต้อง");
-                }
+                } else { alert("❌ รหัสผ่านไม่ถูกต้อง"); }
             })
-            .catch(err => {
-                hideLoading();
-                alert("❌ เชื่อมต่อระบบล้มเหลว กรุณาตรวจสอบอินเทอร์เน็ต");
-            });
+            .catch(err => { hideLoading(); alert("❌ เชื่อมต่อระบบล้มเหลว"); });
         }
 
         function logout() {
@@ -220,14 +242,13 @@
             document.getElementById('loginScreen').style.display = "none";
             document.getElementById('dashboardScreen').style.display = "block";
             document.getElementById('displayBranchName').innerText = currentBranch;
-            loadStock();
+            loadData();
         }
 
         function selectActionType(type) {
             document.getElementById('actionType').value = type;
             let btnSubmit = document.getElementById('btnSubmit');
             
-            // ล้างสีปุ่มทั้งหมด
             document.getElementById('btnTypeConsume').className = "type-btn";
             document.getElementById('btnTypeReceive').className = "type-btn";
             document.getElementById('btnTypeReturn').className = "type-btn";
@@ -245,49 +266,74 @@
                 btnSubmit.style.backgroundColor = "#ff9500";
                 btnSubmit.innerText = "บันทึกข้อมูล (ส่งคืน)";
             }
-            
             document.getElementById('partNo').focus();
         }
 
-        function loadStock() {
-            document.getElementById('stockTableBody').innerHTML = `<tr><td colspan="3" style="text-align: center; padding: 30px; color: #86868b;">กำลังดึงสต๊อก...</td></tr>`;
+        function loadData() {
+            document.getElementById('stockTableBody').innerHTML = `<tr><td colspan="3" style="text-align: center; padding: 20px; color: #86868b;">กำลังดึงสต๊อก...</td></tr>`;
+            document.getElementById('logTableBody').innerHTML = `<tr><td colspan="6" style="text-align: center; padding: 20px; color: #86868b;">กำลังดึงประวัติ 150 รายการ...</td></tr>`;
             
             fetch(CONSIGN_API_URL, {
                 method: "POST",
-                body: JSON.stringify({ action: "getStock", branch: currentBranch }),
+                body: JSON.stringify({ action: "getStockAndLogs", branch: currentBranch }),
                 redirect: "follow"
             })
             .then(res => res.json())
             .then(data => {
                 if (data.status === "success") {
-                    let tbody = document.getElementById('stockTableBody');
-                    tbody.innerHTML = "";
-                    
-                    if (data.data.length === 0) {
-                        tbody.innerHTML = `<tr><td colspan="3" style="text-align: center; padding: 30px; color: #86868b;">ยังไม่มีข้อมูลสต๊อกของสาขานี้</td></tr>`;
-                        return;
-                    }
-                    
-                    // เรียงให้ของเหลือน้อยขึ้นก่อน
-                    data.data.sort((a, b) => parseInt(a.qty) - parseInt(b.qty));
-                    
-                    data.data.forEach(item => {
-                        let qty = parseInt(item.qty);
-                        let badgeClass = qty <= 2 ? "qty-low" : "qty-safe"; 
-                        let tr = document.createElement('tr');
-                        tr.innerHTML = `
-                            <td style="padding: 10px; border-bottom: 1px solid #e5e5e7; font-weight: bold; color: #1d1d1f; font-size: 13px;">${item.partNo}</td>
-                            <td style="padding: 10px; border-bottom: 1px solid #e5e5e7; color: #515154; font-size: 12px;">${item.name || "-"}</td>
-                            <td style="padding: 10px; border-bottom: 1px solid #e5e5e7; text-align: right;">
-                                <span class="qty-badge ${badgeClass}">${qty}</span>
-                            </td>
-                        `;
-                        tbody.appendChild(tr);
-                    });
+                    localStockData = data.stock;
+                    renderStockTable(localStockData);
+                    renderLogTable(data.logs);
                 }
             })
             .catch(err => {
-                document.getElementById('stockTableBody').innerHTML = `<tr><td colspan="3" style="text-align: center; padding: 30px; color: #ff3b30;">โหลดข้อมูลล้มเหลว</td></tr>`;
+                document.getElementById('stockTableBody').innerHTML = `<tr><td colspan="3" style="text-align: center; color: #ff3b30;">โหลดข้อมูลล้มเหลว</td></tr>`;
+                document.getElementById('logTableBody').innerHTML = `<tr><td colspan="6" style="text-align: center; color: #ff3b30;">โหลดข้อมูลล้มเหลว</td></tr>`;
+            });
+        }
+
+        function renderStockTable(stockArray) {
+            let tbody = document.getElementById('stockTableBody');
+            tbody.innerHTML = "";
+            if (stockArray.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="3" style="text-align: center; padding: 20px; color: #86868b;">ยังไม่มีข้อมูลสต๊อก</td></tr>`;
+                return;
+            }
+            
+            stockArray.sort((a, b) => parseInt(a.qty) - parseInt(b.qty));
+            stockArray.forEach(item => {
+                let qty = parseInt(item.qty);
+                let badgeClass = qty <= 2 ? "qty-low" : "qty-safe"; 
+                tbody.innerHTML += `
+                    <tr>
+                        <td style="font-weight: bold; color: #1d1d1f;">${item.partNo}</td>
+                        <td style="color: #515154;">${item.name || "-"}</td>
+                        <td style="text-align: right;"><span class="qty-badge ${badgeClass}">${qty}</span></td>
+                    </tr>
+                `;
+            });
+        }
+
+        function renderLogTable(logArray) {
+            let tbody = document.getElementById('logTableBody');
+            tbody.innerHTML = "";
+            if (logArray.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; padding: 20px; color: #86868b;">ยังไม่มีประวัติทำรายการ</td></tr>`;
+                return;
+            }
+            
+            logArray.forEach(log => {
+                let logTypeClass = (log.type === "รับเข้า") ? "log-receive" : (log.type === "เบิกใช้" ? "log-consume" : "log-return");
+                tbody.innerHTML += `
+                    <tr>
+                        <td style="color: #515154;">${log.time}</td>
+                        <td><span class="log-type ${logTypeClass}">${log.type}</span></td>
+                        <td style="font-weight: bold;">${log.partNo}</td>
+                        <td>${log.qty}</td>
+                        <td>${log.job || "-"}</td>
+                        <td>${log.repairId || "-"}</td>
+                    </tr>
+                `;
             });
         }
 
@@ -295,7 +341,7 @@
             let type = document.getElementById('actionType').value;
             let partNo = document.getElementById('partNo').value.trim();
             let partName = document.getElementById('partName').value.trim();
-            let qty = document.getElementById('qty').value;
+            let qty = parseInt(document.getElementById('qty').value) || 0;
             let jobNo = document.getElementById('jobNo').value.trim();
             let repairId = document.getElementById('repairId').value.trim();
 
@@ -305,7 +351,9 @@
                 if(!confirm("คุณไม่ได้ระบุ Job หรือ Repair ID แน่ใจหรือไม่ที่จะบันทึก?")) return;
             }
 
-            showLoading(`กำลังบันทึกรายการ ${type}...`);
+            let btnSubmit = document.getElementById('btnSubmit');
+            btnSubmit.disabled = true;
+            btnSubmit.innerText = "กำลังประมวลผล...";
 
             let payload = {
                 action: "updateStock",
@@ -318,6 +366,21 @@
                 repairId: repairId
             };
 
+            let tempTime = new Date().toLocaleTimeString('th-TH');
+            let logTypeClass = (type === "รับเข้า") ? "log-receive" : (type === "เบิกใช้" ? "log-consume" : "log-return");
+            let newLogRow = `
+                <tr style="background-color: #f0f7ff; transition: 1s;">
+                    <td style="color: #0071e3; font-weight: bold;">${tempTime} (กำลังบันทึก..)</td>
+                    <td><span class="log-type ${logTypeClass}">${type}</span></td>
+                    <td style="font-weight: bold;">${partNo}</td>
+                    <td>${qty}</td>
+                    <td>${jobNo || "-"}</td>
+                    <td>${repairId || "-"}</td>
+                </tr>
+            `;
+            let logBody = document.getElementById('logTableBody');
+            logBody.insertAdjacentHTML('afterbegin', newLogRow);
+
             fetch(CONSIGN_API_URL, {
                 method: "POST",
                 body: JSON.stringify(payload),
@@ -325,26 +388,29 @@
             })
             .then(res => res.json())
             .then(data => {
-                hideLoading();
                 if (data.status === "success") {
-                    // ล้างฟอร์ม
+                    showToast(`✅ บันทึก ${type} สำเร็จ! ยอดล่าสุด: ${data.newQty}`);
+                    
                     document.getElementById('partNo').value = "";
                     document.getElementById('partName').value = "";
                     document.getElementById('qty').value = "1";
                     document.getElementById('jobNo').value = "";
                     document.getElementById('repairId').value = "";
-                    
-                    alert(`✅ บันทึกข้อมูลสำเร็จ!\nยอดคงเหลือปัจจุบัน: ${data.newQty} ชิ้น`);
                     document.getElementById('partNo').focus();
                     
-                    loadStock(); // รีเฟรชตารางสต๊อกทันที
+                    loadData(); 
                 } else {
-                    alert("❌ เกิดข้อผิดพลาด: " + data.message);
+                    alert("❌ เกิดข้อผิดพลาดจากเซิร์ฟเวอร์: " + data.message);
+                    loadData();
                 }
             })
             .catch(err => {
-                hideLoading();
-                alert("❌ เชื่อมต่อระบบล้มเหลว");
+                showToast("❌ เชื่อมต่อระบบล้มเหลว กรุณาลองใหม่", true);
+                loadData();
+            })
+            .finally(() => {
+                btnSubmit.disabled = false;
+                selectActionType(document.getElementById('actionType').value);
             });
         }
     </script>

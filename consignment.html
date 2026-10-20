@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ระบบจัดการสต๊อก Consignment - iServe</title>
+    <title>ระบบจัดการสต๊อก - iServe</title>
     <link rel="stylesheet" href="style.css">
     <style>
         .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
@@ -217,24 +217,23 @@
         // --- ระบบสลับโหมด 2 ฐานข้อมูล ---
         function switchDB(mode) {
             activeMode = mode;
+            
+            // 🌟 บังคับให้แสดงช่อง Repair ID เสมอ ทั้ง 2 โหมด
+            document.getElementById('repairIdBox').style.display = "block"; 
+            document.getElementById('thRepairId').style.display = "table-cell";
+
             if (mode === 'CONSIGN') {
                 currentAPI = URL_CONSIGNMENT;
                 document.getElementById('tabConsign').className = "db-tab active-consign";
                 document.getElementById('tabStore').className = "db-tab";
                 document.getElementById('formTitle').innerText = "⚡ ทำรายการ: Consignment";
                 document.getElementById('formTitle').style.color = "#0071e3";
-                document.getElementById('repairIdBox').style.display = "block"; // โชว์ช่อง Repair ID
-                document.getElementById('thRepairId').style.display = "table-cell";
             } else {
                 currentAPI = URL_STORE_STOCK;
-                if(!currentAPI || currentAPI.includes("ใส่_URL")) { alert("คุณยังไม่ได้ใส่ URL สำหรับระบบ Stock ร้านครับ!"); switchDB('CONSIGN'); return; }
-                
                 document.getElementById('tabConsign').className = "db-tab";
                 document.getElementById('tabStore').className = "db-tab active-store";
                 document.getElementById('formTitle').innerText = "⚡ ทำรายการ: สต๊อกร้านค้า";
                 document.getElementById('formTitle').style.color = "#28a745";
-                document.getElementById('repairIdBox').style.display = "none"; // ซ่อนช่อง Repair ID
-                document.getElementById('thRepairId').style.display = "none";
             }
             loadData(); // เปลี่ยนโหมดปุ๊บ สั่งโหลดสต๊อกของโหมดนั้นทันที
         }
@@ -344,111 +343,3 @@
                 tbody.innerHTML += `
                     <tr>
                         <td style="font-weight: bold; color: #1d1d1f;">${item.partNo}</td>
-                        <td style="color: #515154;">${item.name || "-"}</td>
-                        <td style="text-align: center;">${pendingHtml}</td>
-                        <td style="text-align: right;"><span class="qty-badge ${badgeClass}">${qty}</span></td>
-                    </tr>
-                `;
-            });
-        }
-
-        function renderLogTable(logArray) {
-            let tbody = document.getElementById('logTableBody');
-            tbody.innerHTML = "";
-            if (logArray.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="7" style="text-align: center; padding: 20px; color: #86868b;">ยังไม่มีประวัติทำรายการ</td></tr>`;
-                return;
-            }
-            
-            logArray.forEach(log => {
-                let logTypeClass = "";
-                if (log.type === "รับเข้า") logTypeClass = "log-receive";
-                else if (log.type === "เบิกใช้") logTypeClass = "log-consume";
-                else if (log.type === "รับมัดจำ") logTypeClass = "log-deposit";
-                else logTypeClass = "log-return";
-                
-                let repairHtml = activeMode === "CONSIGN" ? `<td>${log.repairId || "-"}</td>` : "";
-
-                tbody.innerHTML += `
-                    <tr>
-                        <td style="color: #515154;">${log.time}</td>
-                        <td><span class="log-type ${logTypeClass}">${log.type}</span></td>
-                        <td style="font-weight: bold;">${log.partNo}</td>
-                        <td>${log.qty}</td>
-                        <td>${log.job || "-"}</td>
-                        ${repairHtml}
-                        <td style="color: #515154; max-width: 150px; overflow: hidden; text-overflow: ellipsis;">${log.note || "-"}</td>
-                    </tr>
-                `;
-            });
-        }
-
-        function submitStockAction() {
-            let type = document.getElementById('actionType').value;
-            let partNo = document.getElementById('partNo').value.trim();
-            let partName = document.getElementById('partName').value.trim();
-            let qty = parseInt(document.getElementById('qty').value) || 0;
-            let jobNo = document.getElementById('jobNo').value.trim();
-            let repairId = document.getElementById('repairId').value.trim();
-            let note = document.getElementById('note').value.trim();
-
-            if (!partNo) { alert("⚠️ กรุณาระบุรหัสอะไหล่ (Part Number)"); return; }
-            if (qty <= 0) { alert("⚠️ จำนวนต้องมากกว่า 0"); return; }
-            
-            // เช็คเงื่อนไข Repair ID เฉพาะตอนอยู่โหมด Consign เท่านั้น
-            if (activeMode === "CONSIGN" && type === "เบิกใช้" && (!jobNo && !repairId)) {
-                if(!confirm("คุณไม่ได้ระบุ Job หรือ Repair ID แน่ใจหรือไม่ที่จะบันทึก?")) return;
-            }
-
-            let btnSubmit = document.getElementById('btnSubmit');
-            btnSubmit.disabled = true;
-            btnSubmit.innerText = "กำลังประมวลผล...";
-
-            let payload = {
-                action: "updateStock",
-                branch: currentBranch,
-                type: type,
-                partNo: partNo,
-                partName: partName,
-                qty: qty,
-                job: jobNo,
-                repairId: repairId,
-                note: note 
-            };
-
-            fetch(currentAPI, { // ยิง API ตามโหมดที่เลือก
-                method: "POST",
-                body: JSON.stringify(payload),
-                redirect: "follow"
-            })
-            .then(res => res.json())
-            .then(data => {
-                if (data.status === "success") {
-                    showToast(`✅ บันทึก ${type} สำเร็จ! ยอดปัจจุบัน: ${data.newQty}`);
-                    
-                    document.getElementById('partNo').value = "";
-                    document.getElementById('partName').value = "";
-                    document.getElementById('qty').value = "1";
-                    document.getElementById('jobNo').value = "";
-                    document.getElementById('repairId').value = "";
-                    document.getElementById('note').value = "";
-                    document.getElementById('partNo').focus();
-                    
-                    loadData(); 
-                } else {
-                    alert("❌ เกิดข้อผิดพลาดจากเซิร์ฟเวอร์: " + data.message);
-                    loadData();
-                }
-            })
-            .catch(err => {
-                showToast("❌ เชื่อมต่อระบบล้มเหลว กรุณาลองใหม่", true);
-                loadData();
-            })
-            .finally(() => {
-                btnSubmit.disabled = false;
-                selectActionType(document.getElementById('actionType').value);
-            });
-        }
-    </script>
-</body>
-</html>

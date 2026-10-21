@@ -15,27 +15,36 @@
         .btn-login { background-color: #0071e3; color: white; border: none; padding: 12px; border-radius: 8px; font-size: 16px; font-weight: bold; width: 100%; cursor: pointer; transition: 0.2s; }
         
         #dashboardScreen { display: none; }
-        .header-box { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; background: #f5f5f7; padding: 15px 20px; border-radius: 8px; border: 1px solid #e5e5e7; }
-        .branch-title { font-size: 18px; font-weight: bold; color: #1d1d1f; margin: 0; }
+        .header-box { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; background: #f5f5f7; padding: 15px 20px; border-radius: 8px; border: 1px solid #e5e5e7; }
+        .branch-title { font-size: 18px; font-weight: bold; color: #1d1d1f; margin: 0; display: flex; align-items: center; gap: 15px; }
         .btn-logout { background-color: #ff3b30; color: white; border: none; padding: 8px 15px; border-radius: 6px; font-size: 13px; font-weight: bold; cursor: pointer; }
         
-        /* 🌟 ปุ่มสลับโหมด 2 Database 🌟 */
-        .db-selector { display: flex; gap: 15px; margin-bottom: 20px; }
+        .db-selector { display: flex; gap: 15px; margin-bottom: 15px; }
         .db-tab { flex: 1; padding: 15px; text-align: center; font-weight: bold; border-radius: 10px; cursor: pointer; border: 2px solid transparent; background: #f5f5f7; color: #515154; transition: 0.3s; font-size: 16px; }
         .db-tab.active-consign { background: #e8f2fc; color: #0071e3; border-color: #0071e3; box-shadow: 0 4px 12px rgba(0,113,227,0.15); }
         .db-tab.active-store { background: #e5f9e7; color: #28a745; border-color: #28a745; box-shadow: 0 4px 12px rgba(40,167,69,0.15); }
 
-        .action-panel { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px; }
-        @media (max-width: 900px) { .action-panel { grid-template-columns: 1fr; } }
+        .search-box { width: 100%; padding: 12px 15px; font-size: 16px; border-radius: 8px; border: 1px solid #d2d2d7; margin-bottom: 20px; outline: none; box-sizing: border-box; transition: 0.2s; background: #fff url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="%2386868b" viewBox="0 0 16 16"><path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z"/></svg>') no-repeat 15px center; padding-left: 45px; }
+        .search-box:focus { border-color: #0071e3; box-shadow: 0 0 0 3px rgba(0,113,227,0.1); }
+        #adminBranchFilter { padding: 8px 12px; font-size: 14px; border-radius: 6px; border: 1px solid #d2d2d7; outline: none; background: white; color: #0071e3; font-weight: bold; }
+
+        .action-panel { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px; transition: 0.3s; }
+        @media (max-width: 900px) { .action-panel { grid-template-columns: 1fr !important; } }
         
         .action-card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); border: 1px solid #e5e5e7; }
         
-        .type-selector { display: flex; gap: 10px; margin-bottom: 15px; flex-wrap: wrap; }
-        .type-btn { flex: 1; padding: 12px 5px; text-align: center; font-weight: bold; border-radius: 8px; cursor: pointer; border: 2px solid transparent; background: #f5f5f7; color: #515154; transition: 0.2s; font-size: 13px; min-width: 100px; }
+        .type-selector { display: flex; gap: 8px; margin-bottom: 15px; flex-wrap: wrap; }
+        .type-btn { flex: 1; padding: 10px 5px; text-align: center; font-weight: bold; border-radius: 8px; cursor: pointer; border: 2px solid transparent; background: #f5f5f7; color: #515154; transition: 0.2s; font-size: 12px; min-width: 75px; }
+        
         .type-btn.active-consume { background: #ffe5e5; color: #ff3b30; border-color: #ff3b30; }
+        .type-btn.active-sell { background: #e8f2fc; color: #0071e3; border-color: #0071e3; }
         .type-btn.active-receive { background: #e5f9e7; color: #34c759; border-color: #34c759; }
+        .type-btn.active-refund { background: #e0f8f5; color: #00a88f; border-color: #00a88f; }
+        .type-btn.active-transfer-out { background: #fce4ec; color: #d81b60; border-color: #d81b60; }
+        .type-btn.active-transfer-in { background: #e3f2fd; color: #1e88e5; border-color: #1e88e5; }
         .type-btn.active-return { background: #fff4e5; color: #ff9500; border-color: #ff9500; }
         .type-btn.active-deposit { background: #fffde5; color: #d4a017; border-color: #f1c40f; }
+        .type-btn.active-audit { background: #f3e5f5; color: #8e24aa; border-color: #8e24aa; }
         
         .form-row { display: flex; gap: 10px; margin-bottom: 12px; }
         .form-row .flex-1 { flex: 1; }
@@ -43,6 +52,10 @@
         .action-card input { width: 100%; padding: 10px; border: 1px solid #d2d2d7; border-radius: 6px; font-size: 14px; box-sizing: border-box; outline: none; }
         .action-card input:focus { border-color: #0071e3; }
         
+        #transferBox { background: #fce4ec; padding: 10px; border-radius: 8px; border: 1px dashed #d81b60; margin-bottom: 12px; }
+        /* 🌟 กล่องระบุสต๊อกคลังจริงสำหรับ Audit 🌟 */
+        #mainStockBox { background: #f3e5f5; padding: 10px; border-radius: 8px; border: 1px dashed #8e24aa; margin-bottom: 12px; }
+
         .btn-submit { color: white; border: none; padding: 15px; border-radius: 8px; font-size: 16px; font-weight: bold; width: 100%; cursor: pointer; transition: 0.2s; margin-top: 10px; }
         
         .table-container { overflow-x: auto; max-height: 440px; overflow-y: auto; border: 1px solid #e5e5e7; border-radius: 8px; }
@@ -54,12 +67,18 @@
         .qty-safe { background-color: #e5f9e7; color: #34c759; }
         .qty-low { background-color: #ffe5e5; color: #ff3b30; }
         .qty-pending { background-color: #fffde5; color: #d4a017; border: 1px solid #f1c40f; }
+        .branch-badge { background: #e8f2fc; color: #0071e3; padding: 2px 8px; border-radius: 10px; font-size: 11px; font-weight: bold; }
 
         .log-type { padding: 3px 8px; border-radius: 4px; font-size: 11px; font-weight: bold; }
         .log-consume { background: #ffe5e5; color: #ff3b30; }
+        .log-sell { background: #e8f2fc; color: #0071e3; border: 1px solid #c8e1fa; }
         .log-receive { background: #e5f9e7; color: #34c759; }
+        .log-refund { background: #e0f8f5; color: #00a88f; border: 1px solid #b2dfdb; }
+        .log-transfer-out { background: #fce4ec; color: #d81b60; border: 1px solid #f48fb1; }
+        .log-transfer-in { background: #e3f2fd; color: #1e88e5; border: 1px solid #90caf9; }
         .log-return { background: #fff4e5; color: #ff9500; }
         .log-deposit { background: #fffde5; color: #d4a017; border: 1px solid #f1c40f;}
+        .log-audit { background: #f3e5f5; color: #8e24aa; border: 1px solid #ab47bc;}
         
         #toast { visibility: hidden; min-width: 250px; background-color: #34c759; color: #fff; text-align: center; border-radius: 8px; padding: 12px; position: fixed; z-index: 1000; right: 30px; bottom: 30px; font-size: 14px; box-shadow: 0 4px 12px rgba(0,0,0,0.2); transition: 0.3s; }
         #toast.show { visibility: visible; bottom: 40px; }
@@ -90,7 +109,12 @@
         <!-- หน้าจอ Dashboard -->
         <div id="dashboardScreen">
             <div class="header-box">
-                <h2 class="branch-title">📍 สาขา: <span id="displayBranchName" style="color:#0071e3;">กำลังโหลด...</span></h2>
+                <h2 class="branch-title">
+                    📍 <span id="displayBranchName" style="color:#0071e3;">กำลังโหลด...</span>
+                    <select id="adminBranchFilter" style="display:none;" onchange="filterTables()">
+                        <option value="ALL">รวมทุกสาขา</option>
+                    </select>
+                </h2>
                 <button class="btn-logout" onclick="logout()">ออกจากระบบ</button>
             </div>
 
@@ -100,16 +124,23 @@
                 <div id="tabStore" class="db-tab" onclick="switchDB('STORE')">🛒 สต๊อกร้านค้า (Commercial)</div>
             </div>
 
-            <div class="action-panel">
+            <input type="text" id="searchInput" class="search-box" placeholder="ค้นหา Part No, ชื่ออะไหล่, Job, Repair ID, หมายเหตุ..." onkeyup="filterTables()">
+
+            <div class="action-panel" id="mainActionPanel">
                 <!-- แผงบันทึกความเคลื่อนไหว -->
-                <div class="action-card">
+                <div class="action-card" id="actionFormCard">
                     <h3 id="formTitle" style="margin-top: 0; margin-bottom: 15px; border-bottom: 1px solid #e5e5e7; padding-bottom: 10px; color: #0071e3;">⚡ ทำรายการ: Consignment</h3>
                     
                     <div class="type-selector">
-                        <div class="type-btn active-consume" id="btnTypeConsume" onclick="selectActionType('เบิกใช้')">🔴 เบิกใช้ (ซ่อม)</div>
-                        <div class="type-btn" id="btnTypeReceive" onclick="selectActionType('รับเข้า')">🟢 รับของเข้า</div>
+                        <div class="type-btn active-consume" id="btnTypeConsume" onclick="selectActionType('เบิกใช้')">🔴 เบิกใช้(เคลม)</div>
+                        <div class="type-btn" id="btnTypeSell" onclick="selectActionType('ขายขาด')" style="display:none;">🛍️ ขายขาด</div>
+                        <div class="type-btn" id="btnTypeReceive" onclick="selectActionType('รับเข้า')">🟢 รับเข้า</div>
+                        <div class="type-btn" id="btnTypeRefund" onclick="selectActionType('คืนสต๊อก')" style="display:none;">↩️ คืนสต๊อก</div>
+                        <div class="type-btn" id="btnTypeTransferOut" onclick="selectActionType('โอนออก')">📤 โอนออก</div>
+                        <div class="type-btn" id="btnTypeTransferIn" onclick="selectActionType('รับโอน')">📥 รับโอน</div>
                         <div class="type-btn" id="btnTypeReturn" onclick="selectActionType('ส่งคืน')">🟠 ส่งคืน</div>
-                        <div class="type-btn" id="btnTypeDeposit" onclick="selectActionType('รับมัดจำ')">🟡 รับมัดจำ (สั่งของ)</div>
+                        <div class="type-btn" id="btnTypeDeposit" onclick="selectActionType('รับมัดจำ')">🟡 รับมัดจำ</div>
+                        <div class="type-btn" id="btnTypeAudit" onclick="selectActionType('ตรวจนับยอด')">📝 ตรวจนับ</div>
                     </div>
                     
                     <input type="hidden" id="actionType" value="เบิกใช้">
@@ -119,9 +150,25 @@
                             <label>Part Number *</label>
                             <input type="text" id="partNo" placeholder="สแกนหรือพิมพ์รหัส..." autofocus>
                         </div>
-                        <div style="width: 80px;">
-                            <label>จำนวน *</label>
-                            <input type="number" id="qty" value="1" min="1">
+                        <div style="width: 100px;">
+                            <label id="qtyLabel">จำนวน *</label>
+                            <input type="number" id="qty" value="1" min="0">
+                        </div>
+                    </div>
+
+                    <!-- กล่องระบุสาขาโอนออก -->
+                    <div class="form-row" id="transferBox" style="display:none;">
+                        <div class="flex-1">
+                            <label id="transferLabel">ระบุสาขาปลายทาง *</label>
+                            <input type="text" id="transferBranch" placeholder="เช่น iStudio Central World...">
+                        </div>
+                    </div>
+
+                    <!-- 🌟 กล่องระบุสต๊อกคลังจริง (สำหรับตอน Audit) 🌟 -->
+                    <div class="form-row" id="mainStockBox" style="display:none;">
+                        <div class="flex-1">
+                            <label style="color: #8e24aa;">สต๊อกคลังจริง (ระบบ POS/HQ)</label>
+                            <input type="number" id="mainStock" placeholder="ใส่ยอดจากระบบหลักเพื่อเปรียบเทียบ..." min="0">
                         </div>
                     </div>
 
@@ -135,7 +182,7 @@
                     <div class="form-row">
                         <div class="flex-1">
                             <label>Job / SO Number</label>
-                            <input type="text" id="jobNo" placeholder="อ้างอิงใบงานซ่อม...">
+                            <input type="text" id="jobNo" placeholder="อ้างอิงใบงานซ่อม/บิลขาย...">
                         </div>
                         <div class="flex-1" id="repairIdBox">
                             <label>Repair ID (GSX)</label>
@@ -154,31 +201,33 @@
                 </div>
 
                 <!-- แผงตารางสต๊อกปัจจุบัน -->
-                <div class="action-card" style="padding: 0; display: flex; flex-direction: column;">
+                <div class="action-card" id="stockViewCard" style="padding: 0; display: flex; flex-direction: column;">
                     <div style="padding: 15px 20px; background: #f5f5f7; border-bottom: 1px solid #e5e5e7; display: flex; justify-content: space-between; align-items: center;">
                         <h3 style="margin: 0; font-size: 16px;">📦 สต๊อกคงเหลือปัจจุบัน</h3>
                         <button onclick="loadData()" style="background: none; border: none; color: #0071e3; cursor: pointer; font-weight: bold; font-size: 13px;">🔄 รีเฟรช</button>
                     </div>
                     <div class="table-container" style="border: none; border-radius: 0; flex: 1;">
-                        <table>
-                            <thead><tr><th>Part No</th><th>Description</th><th style="text-align: center;">รอของเข้า</th><th style="text-align: right;">คงเหลือ</th></tr></thead>
-                            <tbody id="stockTableBody"><tr><td colspan="4" style="text-align: center; padding: 30px; color: #86868b;">กำลังโหลด...</td></tr></tbody>
+                        <table id="stockTable">
+                            <thead id="stockTableHead">
+                                <tr><th>Part No</th><th>Description</th><th style="text-align: center;">รอของเข้า</th><th style="text-align: right;">คงเหลือ</th></tr>
+                            </thead>
+                            <tbody id="stockTableBody"><tr><td colspan="5" style="text-align: center; padding: 30px; color: #86868b;">กำลังโหลด...</td></tr></tbody>
                         </table>
                     </div>
                 </div>
             </div>
 
-            <!-- 🌟 แผงประวัติ 150 รายการล่าสุด -->
+            <!-- 🌟 แผงประวัติ -->
             <div class="action-card" style="padding: 0; display: flex; flex-direction: column;">
                 <div style="padding: 15px 20px; background: #f5f5f7; border-bottom: 1px solid #e5e5e7;">
-                    <h3 style="margin: 0; font-size: 16px;">🕒 ประวัติทำรายการ 150 รายการล่าสุด</h3>
+                    <h3 id="logTitle" style="margin: 0; font-size: 16px;">🕒 ประวัติทำรายการ 150 รายการล่าสุด</h3>
                 </div>
                 <div class="table-container" style="border: none; border-radius: 0; max-height: 400px;">
-                    <table>
-                        <thead>
+                    <table id="logTable">
+                        <thead id="logTableHead">
                             <tr><th>วัน/เวลา</th><th>ประเภท</th><th>Part No</th><th>จำนวน</th><th>Job No</th><th id="thRepairId">Repair ID</th><th>หมายเหตุ</th></tr>
                         </thead>
-                        <tbody id="logTableBody"><tr><td colspan="7" style="text-align: center; padding: 30px; color: #86868b;">กำลังโหลดประวัติ...</td></tr></tbody>
+                        <tbody id="logTableBody"><tr><td colspan="8" style="text-align: center; padding: 30px; color: #86868b;">กำลังโหลดประวัติ...</td></tr></tbody>
                     </table>
                 </div>
             </div>
@@ -187,11 +236,11 @@
     </div>
 
     <script>
-        // 🌟🌟🌟 ใส่ URL ทั้ง 2 ระบบของคุณที่นี่ 🌟🌟🌟
+        // 🌟🌟🌟 URL API 🌟🌟🌟
         const URL_CONSIGNMENT = "https://script.google.com/macros/s/AKfycbzqv6II1kyP4vitQ3cjjbM5YUJSITUxuM9Uc_JzSEgQANjyEfkQKrJivHy2W8fcu-eU/exec"; 
         const URL_STORE_STOCK = "https://script.google.com/macros/s/AKfycbx12YKwIMJyo1Z7qwV6GHzFnuZ3vVbmEhrJyU-ah1XbI5OKtCz3q3UjxqCvuZthdio3nQ/exec"; 
         
-        let currentAPI = URL_CONSIGNMENT; // เริ่มต้นที่ Consign
+        let currentAPI = URL_CONSIGNMENT; 
         let activeMode = "CONSIGN";
         let currentBranch = "";
 
@@ -214,13 +263,35 @@
             setTimeout(() => { toast.className = toast.className.replace("show", ""); }, 3000);
         }
 
-        // --- ระบบสลับโหมด 2 ฐานข้อมูล ---
+        function filterTables() {
+            let input = document.getElementById("searchInput").value.toUpperCase();
+            let selectedBranch = document.getElementById("adminBranchFilter").value;
+            
+            let filterRow = (row) => {
+                let rowText = row.innerText.toUpperCase();
+                let rowBranch = row.getAttribute("data-branch") || "";
+                let matchText = (rowText.indexOf(input) > -1 || row.innerHTML.includes("กำลังโหลด"));
+                let matchBranch = (selectedBranch === "ALL" || rowBranch === selectedBranch || currentBranch !== "Admin");
+
+                if (matchText && matchBranch) {
+                    row.style.display = "";
+                } else {
+                    row.style.display = "none";
+                }
+            };
+
+            let stockRows = document.getElementById("stockTableBody").getElementsByTagName("tr");
+            for (let i = 0; i < stockRows.length; i++) filterRow(stockRows[i]);
+
+            let logRows = document.getElementById("logTableBody").getElementsByTagName("tr");
+            for (let i = 0; i < logRows.length; i++) filterRow(logRows[i]);
+        }
+
         function switchDB(mode) {
             activeMode = mode;
-            
-            // 🌟 บังคับให้แสดงช่อง Repair ID เสมอ ทั้ง 2 โหมด
             document.getElementById('repairIdBox').style.display = "block"; 
             document.getElementById('thRepairId').style.display = "table-cell";
+            document.getElementById("searchInput").value = ""; 
 
             if (mode === 'CONSIGN') {
                 currentAPI = URL_CONSIGNMENT;
@@ -228,14 +299,22 @@
                 document.getElementById('tabStore').className = "db-tab";
                 document.getElementById('formTitle').innerText = "⚡ ทำรายการ: Consignment";
                 document.getElementById('formTitle').style.color = "#0071e3";
+                
+                document.getElementById('btnTypeSell').style.display = "none";
+                document.getElementById('btnTypeRefund').style.display = "none";
+                selectActionType('เบิกใช้');
             } else {
                 currentAPI = URL_STORE_STOCK;
                 document.getElementById('tabConsign').className = "db-tab";
                 document.getElementById('tabStore').className = "db-tab active-store";
                 document.getElementById('formTitle').innerText = "⚡ ทำรายการ: สต๊อกร้านค้า";
                 document.getElementById('formTitle').style.color = "#28a745";
+                
+                document.getElementById('btnTypeSell').style.display = "block";
+                document.getElementById('btnTypeRefund').style.display = "block";
+                selectActionType('เบิกใช้');
             }
-            loadData(); // เปลี่ยนโหมดปุ๊บ สั่งโหลดสต๊อกของโหมดนั้นทันที
+            loadData(); 
         }
 
         function login() {
@@ -243,7 +322,6 @@
             if (!pin) { alert("กรุณากรอก PIN"); return; }
             
             showLoading("กำลังตรวจสอบรหัสผ่าน...");
-            // เช็ครหัสผ่านกับฐานข้อมูลปัจจุบัน
             fetch(currentAPI, { method: "POST", body: JSON.stringify({ action: "login", pin: pin }), redirect: "follow" })
             .then(res => res.json())
             .then(data => {
@@ -270,27 +348,77 @@
         function showDashboard() {
             document.getElementById('loginScreen').style.display = "none";
             document.getElementById('dashboardScreen').style.display = "block";
-            document.getElementById('displayBranchName').innerText = currentBranch;
+            
+            if (currentBranch === "Admin") {
+                document.getElementById('displayBranchName').innerText = "ผู้ดูแลระบบ (HQ)";
+                document.getElementById('displayBranchName').style.color = "#8e24aa"; 
+                document.getElementById('adminBranchFilter').style.display = "block"; 
+                
+                document.getElementById('actionFormCard').style.display = "none";
+                document.getElementById('mainActionPanel').style.gridTemplateColumns = "1fr";
+                document.getElementById('logTitle').innerText = "🕒 ประวัติทำรายการ 500 รายการล่าสุด";
+            } else {
+                document.getElementById('displayBranchName').innerText = currentBranch;
+                document.getElementById('displayBranchName').style.color = "#0071e3";
+                document.getElementById('adminBranchFilter').style.display = "none";
+                
+                document.getElementById('actionFormCard').style.display = "block";
+                document.getElementById('mainActionPanel').style.gridTemplateColumns = "1fr 1fr";
+                document.getElementById('logTitle').innerText = "🕒 ประวัติทำรายการ 150 รายการล่าสุด";
+            }
+            
             loadData();
         }
 
         function selectActionType(type) {
             document.getElementById('actionType').value = type;
             let btnSubmit = document.getElementById('btnSubmit');
+            let qtyLabel = document.getElementById('qtyLabel');
             
             document.getElementById('btnTypeConsume').className = "type-btn";
+            document.getElementById('btnTypeSell').className = "type-btn";
             document.getElementById('btnTypeReceive').className = "type-btn";
+            document.getElementById('btnTypeRefund').className = "type-btn";
+            document.getElementById('btnTypeTransferOut').className = "type-btn";
+            document.getElementById('btnTypeTransferIn').className = "type-btn";
             document.getElementById('btnTypeReturn').className = "type-btn";
             document.getElementById('btnTypeDeposit').className = "type-btn";
+            document.getElementById('btnTypeAudit').className = "type-btn";
+            
+            qtyLabel.innerText = "จำนวน *"; 
+            document.getElementById('transferBox').style.display = "none";
+            document.getElementById('mainStockBox').style.display = "none"; // ปิดช่องคลังจริง
+            document.getElementById('transferBranch').value = "";
+            document.getElementById('mainStock').value = "";
             
             if (type === "เบิกใช้") {
                 document.getElementById('btnTypeConsume').className = "type-btn active-consume";
                 btnSubmit.style.backgroundColor = "#ff3b30";
                 btnSubmit.innerText = "บันทึกข้อมูล (เบิกใช้)";
+            } else if (type === "ขายขาด") {
+                document.getElementById('btnTypeSell').className = "type-btn active-sell";
+                btnSubmit.style.backgroundColor = "#0071e3";
+                btnSubmit.innerText = "บันทึกข้อมูล (ขายขาด)";
             } else if (type === "รับเข้า") {
                 document.getElementById('btnTypeReceive').className = "type-btn active-receive";
-                btnSubmit.style.backgroundColor = "#28a745";
+                btnSubmit.style.backgroundColor = "#34c759";
                 btnSubmit.innerText = "บันทึกข้อมูล (รับของเข้า)";
+            } else if (type === "คืนสต๊อก") {
+                document.getElementById('btnTypeRefund').className = "type-btn active-refund";
+                btnSubmit.style.backgroundColor = "#00a88f";
+                btnSubmit.innerText = "บันทึกข้อมูล (รับคืนจากลูกค้า)";
+            } else if (type === "โอนออก") {
+                document.getElementById('btnTypeTransferOut').className = "type-btn active-transfer-out";
+                btnSubmit.style.backgroundColor = "#d81b60";
+                btnSubmit.innerText = "บันทึกข้อมูล (โอนออกให้สาขาอื่น)";
+                document.getElementById('transferBox').style.display = "flex";
+                document.getElementById('transferLabel').innerText = "ระบุสาขาปลายทาง (โอนให้ใคร) *";
+            } else if (type === "รับโอน") {
+                document.getElementById('btnTypeTransferIn').className = "type-btn active-transfer-in";
+                btnSubmit.style.backgroundColor = "#1e88e5";
+                btnSubmit.innerText = "บันทึกข้อมูล (รับโอนจากสาขาอื่น)";
+                document.getElementById('transferBox').style.display = "flex";
+                document.getElementById('transferLabel').innerText = "ระบุสาขาต้นทาง (รับจากใคร) *";
             } else if (type === "ส่งคืน") {
                 document.getElementById('btnTypeReturn').className = "type-btn active-return";
                 btnSubmit.style.backgroundColor = "#ff9500";
@@ -299,15 +427,21 @@
                 document.getElementById('btnTypeDeposit').className = "type-btn active-deposit";
                 btnSubmit.style.backgroundColor = "#f1c40f";
                 btnSubmit.innerText = "บันทึกข้อมูล (รับมัดจำ)";
+            } else if (type === "ตรวจนับยอด") {
+                document.getElementById('btnTypeAudit').className = "type-btn active-audit";
+                btnSubmit.style.backgroundColor = "#8e24aa"; 
+                btnSubmit.innerText = "บันทึกข้อมูล (ปรับยอดจริง)";
+                qtyLabel.innerText = "นับจริง (หน้าตู้) *"; 
+                document.getElementById('mainStockBox').style.display = "flex"; // 🌟 เปิดช่องคลังจริง
             }
             document.getElementById('partNo').focus();
         }
 
         function loadData() {
-            document.getElementById('stockTableBody').innerHTML = `<tr><td colspan="4" style="text-align: center; padding: 20px; color: #86868b;">กำลังโหลด...</td></tr>`;
-            document.getElementById('logTableBody').innerHTML = `<tr><td colspan="7" style="text-align: center; padding: 20px; color: #86868b;">กำลังโหลด...</td></tr>`;
+            document.getElementById('stockTableBody').innerHTML = `<tr><td colspan="5" style="text-align: center; padding: 20px; color: #86868b;">กำลังโหลด...</td></tr>`;
+            document.getElementById('logTableBody').innerHTML = `<tr><td colspan="8" style="text-align: center; padding: 20px; color: #86868b;">กำลังโหลด...</td></tr>`;
             
-            fetch(currentAPI, { // ยิง API ตามโหมดที่เลือก (currentAPI)
+            fetch(currentAPI, { 
                 method: "POST",
                 body: JSON.stringify({ action: "getStockAndLogs", branch: currentBranch }),
                 redirect: "follow"
@@ -315,21 +449,34 @@
             .then(res => res.json())
             .then(data => {
                 if (data.status === "success") {
+                    if (currentBranch === "Admin" && data.branches) {
+                        let dropdown = document.getElementById('adminBranchFilter');
+                        let currentVal = dropdown.value;
+                        dropdown.innerHTML = `<option value="ALL">รวมทุกสาขา</option>`;
+                        data.branches.forEach(b => { dropdown.innerHTML += `<option value="${b}">${b}</option>`; });
+                        dropdown.value = currentVal; 
+                    }
+                    
                     renderStockTable(data.stock);
                     renderLogTable(data.logs);
+                    filterTables(); 
                 }
             })
             .catch(err => {
-                document.getElementById('stockTableBody').innerHTML = `<tr><td colspan="4" style="text-align: center; color: #ff3b30;">โหลดข้อมูลล้มเหลว (เช็ค URL API)</td></tr>`;
-                document.getElementById('logTableBody').innerHTML = `<tr><td colspan="7" style="text-align: center; color: #ff3b30;">โหลดข้อมูลล้มเหลว</td></tr>`;
+                document.getElementById('stockTableBody').innerHTML = `<tr><td colspan="5" style="text-align: center; color: #ff3b30;">โหลดข้อมูลล้มเหลว (เช็ค URL API)</td></tr>`;
+                document.getElementById('logTableBody').innerHTML = `<tr><td colspan="8" style="text-align: center; color: #ff3b30;">โหลดข้อมูลล้มเหลว</td></tr>`;
             });
         }
 
         function renderStockTable(stockArray) {
+            let isAdmin = (currentBranch === "Admin");
+            let thead = `<tr>${isAdmin ? "<th>สาขา</th>" : ""}<th>Part No</th><th>Description</th><th style="text-align: center;">รอของเข้า</th><th style="text-align: right;">คงเหลือ</th></tr>`;
+            document.getElementById('stockTableHead').innerHTML = thead;
+
             let tbody = document.getElementById('stockTableBody');
             tbody.innerHTML = "";
             if (stockArray.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="4" style="text-align: center; padding: 20px; color: #86868b;">ยังไม่มีข้อมูลสต๊อก</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; padding: 20px; color: #86868b;">ยังไม่มีข้อมูลสต๊อก</td></tr>`;
                 return;
             }
             
@@ -339,9 +486,11 @@
                 let pending = parseInt(item.pendingQty);
                 let badgeClass = qty <= 2 ? "qty-low" : "qty-safe"; 
                 let pendingHtml = pending > 0 ? `<span class="qty-badge qty-pending">+${pending}</span>` : "-";
+                let branchHtml = isAdmin ? `<td><span class="branch-badge">${item.branch}</span></td>` : "";
 
                 tbody.innerHTML += `
-                    <tr>
+                    <tr data-branch="${item.branch}">
+                        ${branchHtml}
                         <td style="font-weight: bold; color: #1d1d1f;">${item.partNo}</td>
                         <td style="color: #515154;">${item.name || "-"}</td>
                         <td style="text-align: center;">${pendingHtml}</td>
@@ -352,10 +501,16 @@
         }
 
         function renderLogTable(logArray) {
+            let isAdmin = (currentBranch === "Admin");
+            let thead = `<tr><th>วัน/เวลา</th>${isAdmin ? "<th>สาขา</th>" : ""}<th>ประเภท</th><th>Part No</th><th>จำนวน</th><th>Job No</th><th id="thRepairId">Repair ID</th><th>หมายเหตุ</th></tr>`;
+            document.getElementById('logTableHead').innerHTML = thead;
+            
+            if(!isAdmin) document.getElementById('thRepairId').style.display = "table-cell";
+
             let tbody = document.getElementById('logTableBody');
             tbody.innerHTML = "";
             if (logArray.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="7" style="text-align: center; padding: 20px; color: #86868b;">ยังไม่มีประวัติทำรายการ</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="8" style="text-align: center; padding: 20px; color: #86868b;">ยังไม่มีประวัติทำรายการ</td></tr>`;
                 return;
             }
             
@@ -363,21 +518,27 @@
                 let logTypeClass = "";
                 if (log.type === "รับเข้า") logTypeClass = "log-receive";
                 else if (log.type === "เบิกใช้") logTypeClass = "log-consume";
+                else if (log.type === "ขายขาด") logTypeClass = "log-sell";
+                else if (log.type === "คืนสต๊อก") logTypeClass = "log-refund";
+                else if (log.type === "โอนออก") logTypeClass = "log-transfer-out";
+                else if (log.type === "รับโอน") logTypeClass = "log-transfer-in";
                 else if (log.type === "รับมัดจำ") logTypeClass = "log-deposit";
+                else if (log.type === "ตรวจนับยอด") logTypeClass = "log-audit";
                 else logTypeClass = "log-return";
                 
-                // 🌟 แสดงผล Repair ID ตลอดเวลา
                 let repairHtml = `<td>${log.repairId || "-"}</td>`;
+                let branchHtml = isAdmin ? `<td><span class="branch-badge">${log.branch}</span></td>` : "";
 
                 tbody.innerHTML += `
-                    <tr>
+                    <tr data-branch="${log.branch}">
                         <td style="color: #515154;">${log.time}</td>
+                        ${branchHtml}
                         <td><span class="log-type ${logTypeClass}">${log.type}</span></td>
                         <td style="font-weight: bold;">${log.partNo}</td>
                         <td>${log.qty}</td>
                         <td>${log.job || "-"}</td>
                         ${repairHtml}
-                        <td style="color: #515154; max-width: 150px; overflow: hidden; text-overflow: ellipsis;">${log.note || "-"}</td>
+                        <td style="color: #515154; max-width: 250px; overflow: hidden; text-overflow: ellipsis;">${log.note || "-"}</td>
                     </tr>
                 `;
             });
@@ -391,14 +552,24 @@
             let jobNo = document.getElementById('jobNo').value.trim();
             let repairId = document.getElementById('repairId').value.trim();
             let note = document.getElementById('note').value.trim();
+            let transferBranch = document.getElementById('transferBranch').value.trim();
+            let mainStock = document.getElementById('mainStock').value.trim(); // รับค่าคลังจริง
 
             if (!partNo) { alert("⚠️ กรุณาระบุรหัสอะไหล่ (Part Number)"); return; }
-            if (qty <= 0) { alert("⚠️ จำนวนต้องมากกว่า 0"); return; }
+            if (qty < 0) { alert("⚠️ จำนวนต้องไม่ติดลบ"); return; }
             
-            // เช็คการกรอก Job / Repair ID (เตือนเฉพาะโหมด Consign ถ้าไม่กรอก)
             if (activeMode === "CONSIGN" && type === "เบิกใช้" && (!jobNo && !repairId)) {
                 if(!confirm("คุณไม่ได้ระบุ Job หรือ Repair ID แน่ใจหรือไม่ที่จะบันทึก?")) return;
             }
+
+            if ((type === "โอนออก" || type === "รับโอน") && !transferBranch) {
+                alert("⚠️ กรุณาระบุสาขาที่โอน/รับโอนด้วยครับ");
+                return;
+            }
+
+            let finalNote = note;
+            if (type === "โอนออก") finalNote = "โอนไป: " + transferBranch + (note ? " | " + note : "");
+            else if (type === "รับโอน") finalNote = "รับจาก: " + transferBranch + (note ? " | " + note : "");
 
             let btnSubmit = document.getElementById('btnSubmit');
             btnSubmit.disabled = true;
@@ -413,7 +584,8 @@
                 qty: qty,
                 job: jobNo,
                 repairId: repairId,
-                note: note 
+                note: finalNote,
+                mainStock: mainStock // ส่งค่ายอด POS ไปหลังบ้าน
             };
 
             fetch(currentAPI, { 
@@ -432,6 +604,8 @@
                     document.getElementById('jobNo').value = "";
                     document.getElementById('repairId').value = "";
                     document.getElementById('note').value = "";
+                    document.getElementById('transferBranch').value = "";
+                    document.getElementById('mainStock').value = "";
                     document.getElementById('partNo').focus();
                     
                     loadData(); 

@@ -24,7 +24,7 @@
         .db-tab.active-consign { background: #e8f2fc; color: #0071e3; border-color: #0071e3; box-shadow: 0 4px 12px rgba(0,113,227,0.15); }
         .db-tab.active-store { background: #e5f9e7; color: #28a745; border-color: #28a745; box-shadow: 0 4px 12px rgba(40,167,69,0.15); }
 
-        /* 🌟 ช่องค้นหา 🌟 */
+        /* 🌟 ช่องค้นหา (แก้ปัญหาแว่นขยายทับตัวหนังสือด้วย !important) 🌟 */
         .search-box { width: 100%; padding: 12px 15px 12px 45px !important; font-size: 16px; border-radius: 8px; border: 1px solid #d2d2d7; margin-bottom: 20px; outline: none; box-sizing: border-box; transition: 0.2s; background: #fff url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="%2386868b" viewBox="0 0 16 16"><path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z"/></svg>') no-repeat 15px center; }
         .search-box:focus { border-color: #0071e3; box-shadow: 0 0 0 3px rgba(0,113,227,0.1); }
         #adminBranchFilter { padding: 8px 12px; font-size: 14px; border-radius: 6px; border: 1px solid #d2d2d7; outline: none; background: white; color: #0071e3; font-weight: bold; }
@@ -45,6 +45,8 @@
         .type-btn.active-transfer-in { background: #e3f2fd; color: #1e88e5; border-color: #1e88e5; }
         .type-btn.active-return { background: #fff4e5; color: #ff9500; border-color: #ff9500; }
         .type-btn.active-deposit { background: #fffde5; color: #d4a017; border-color: #f1c40f; }
+        /* สีปุ่มล้างมัดจำ */
+        .type-btn.active-clear-deposit { background: #e8f5e9; color: #388e3c; border-color: #388e3c; }
         .type-btn.active-audit { background: #f3e5f5; color: #8e24aa; border-color: #8e24aa; }
         
         .form-row { display: flex; gap: 10px; margin-bottom: 12px; }
@@ -54,7 +56,6 @@
         .action-card input:focus { border-color: #0071e3; }
         
         #transferBox { background: #fce4ec; padding: 10px; border-radius: 8px; border: 1px dashed #d81b60; margin-bottom: 12px; }
-        /* 🌟 กล่องระบุสต๊อกคลังจริงสำหรับ Audit 🌟 */
         #mainStockBox { background: #f3e5f5; padding: 10px; border-radius: 8px; border: 1px dashed #8e24aa; margin-bottom: 12px; }
 
         .btn-submit { color: white; border: none; padding: 15px; border-radius: 8px; font-size: 16px; font-weight: bold; width: 100%; cursor: pointer; transition: 0.2s; margin-top: 10px; }
@@ -79,6 +80,7 @@
         .log-transfer-in { background: #e3f2fd; color: #1e88e5; border: 1px solid #90caf9; }
         .log-return { background: #fff4e5; color: #ff9500; }
         .log-deposit { background: #fffde5; color: #d4a017; border: 1px solid #f1c40f;}
+        .log-clear-deposit { background: #e8f5e9; color: #388e3c; border: 1px solid #a5d6a7;}
         .log-audit { background: #f3e5f5; color: #8e24aa; border: 1px solid #ab47bc;}
         
         #toast { visibility: hidden; min-width: 250px; background-color: #34c759; color: #fff; text-align: center; border-radius: 8px; padding: 12px; position: fixed; z-index: 1000; right: 30px; bottom: 30px; font-size: 14px; box-shadow: 0 4px 12px rgba(0,0,0,0.2); transition: 0.3s; }
@@ -141,6 +143,8 @@
                         <div class="type-btn" id="btnTypeTransferIn" onclick="selectActionType('รับโอน')">📥 รับโอน</div>
                         <div class="type-btn" id="btnTypeReturn" onclick="selectActionType('ส่งคืน')">🟠 ส่งคืน</div>
                         <div class="type-btn" id="btnTypeDeposit" onclick="selectActionType('รับมัดจำ')">🟡 รับมัดจำ</div>
+                        <!-- ปุ่มล้างมัดจำใหม่ -->
+                        <div class="type-btn" id="btnTypeClearDeposit" onclick="selectActionType('ล้างมัดจำ')">✅ ล้างมัดจำ</div>
                         <div class="type-btn" id="btnTypeAudit" onclick="selectActionType('ตรวจนับยอด')">📝 ตรวจนับ</div>
                     </div>
                     
@@ -157,7 +161,6 @@
                         </div>
                     </div>
 
-                    <!-- กล่องระบุสาขาโอนออก -->
                     <div class="form-row" id="transferBox" style="display:none;">
                         <div class="flex-1">
                             <label id="transferLabel">ระบุสาขาปลายทาง *</label>
@@ -165,7 +168,6 @@
                         </div>
                     </div>
 
-                    <!-- 🌟 กล่องระบุสต๊อกคลังจริง (สำหรับตอน Audit) 🌟 -->
                     <div class="form-row" id="mainStockBox" style="display:none;">
                         <div class="flex-1">
                             <label style="color: #8e24aa;">สต๊อกคลังจริง (ระบบ POS/HQ)</label>
@@ -376,6 +378,7 @@
             let btnSubmit = document.getElementById('btnSubmit');
             let qtyLabel = document.getElementById('qtyLabel');
             
+            // ล้างสีปุ่ม
             document.getElementById('btnTypeConsume').className = "type-btn";
             document.getElementById('btnTypeSell').className = "type-btn";
             document.getElementById('btnTypeReceive').className = "type-btn";
@@ -384,11 +387,12 @@
             document.getElementById('btnTypeTransferIn').className = "type-btn";
             document.getElementById('btnTypeReturn').className = "type-btn";
             document.getElementById('btnTypeDeposit').className = "type-btn";
+            document.getElementById('btnTypeClearDeposit').className = "type-btn";
             document.getElementById('btnTypeAudit').className = "type-btn";
             
             qtyLabel.innerText = "จำนวน *"; 
             document.getElementById('transferBox').style.display = "none";
-            document.getElementById('mainStockBox').style.display = "none"; // ปิดช่องคลังจริง
+            document.getElementById('mainStockBox').style.display = "none"; 
             document.getElementById('transferBranch').value = "";
             document.getElementById('mainStock').value = "";
             
@@ -427,13 +431,17 @@
             } else if (type === "รับมัดจำ") {
                 document.getElementById('btnTypeDeposit').className = "type-btn active-deposit";
                 btnSubmit.style.backgroundColor = "#f1c40f";
-                btnSubmit.innerText = "บันทึกข้อมูล (รับมัดจำ)";
+                btnSubmit.innerText = "บันทึกข้อมูล (รับมัดจำจองของ)";
+            } else if (type === "ล้างมัดจำ") {
+                document.getElementById('btnTypeClearDeposit').className = "type-btn active-clear-deposit";
+                btnSubmit.style.backgroundColor = "#388e3c";
+                btnSubmit.innerText = "บันทึกข้อมูล (ล้างมัดจำ/ปิดจ๊อบ)";
             } else if (type === "ตรวจนับยอด") {
                 document.getElementById('btnTypeAudit').className = "type-btn active-audit";
                 btnSubmit.style.backgroundColor = "#8e24aa"; 
                 btnSubmit.innerText = "บันทึกข้อมูล (ปรับยอดจริง)";
-                qtyLabel.innerText = "นับจริง (หน้าตู้) *"; 
-                document.getElementById('mainStockBox').style.display = "flex"; // 🌟 เปิดช่องคลังจริง
+                qtyLabel.innerText = "นับจริงหน้าตู้ *"; 
+                document.getElementById('mainStockBox').style.display = "flex"; 
             }
             document.getElementById('partNo').focus();
         }
@@ -524,6 +532,7 @@
                 else if (log.type === "โอนออก") logTypeClass = "log-transfer-out";
                 else if (log.type === "รับโอน") logTypeClass = "log-transfer-in";
                 else if (log.type === "รับมัดจำ") logTypeClass = "log-deposit";
+                else if (log.type === "ล้างมัดจำ") logTypeClass = "log-clear-deposit";
                 else if (log.type === "ตรวจนับยอด") logTypeClass = "log-audit";
                 else logTypeClass = "log-return";
                 
@@ -554,12 +563,12 @@
             let repairId = document.getElementById('repairId').value.trim();
             let note = document.getElementById('note').value.trim();
             let transferBranch = document.getElementById('transferBranch').value.trim();
-            let mainStock = document.getElementById('mainStock').value.trim(); // รับค่าคลังจริง
+            let mainStock = document.getElementById('mainStock').value.trim(); 
 
             if (!partNo) { alert("⚠️ กรุณาระบุรหัสอะไหล่ (Part Number)"); return; }
             if (qty < 0) { alert("⚠️ จำนวนต้องไม่ติดลบ"); return; }
             
-            if (activeMode === "CONSIGN" && type === "เบิกใช้" && (!jobNo && !repairId)) {
+            if (activeMode === "CONSIGN" && (type === "เบิกใช้" || type === "ล้างมัดจำ") && (!jobNo && !repairId)) {
                 if(!confirm("คุณไม่ได้ระบุ Job หรือ Repair ID แน่ใจหรือไม่ที่จะบันทึก?")) return;
             }
 
@@ -586,7 +595,7 @@
                 job: jobNo,
                 repairId: repairId,
                 note: finalNote,
-                mainStock: mainStock // ส่งค่ายอด POS ไปหลังบ้าน
+                mainStock: mainStock 
             };
 
             fetch(currentAPI, { 

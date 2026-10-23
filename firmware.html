@@ -48,7 +48,7 @@
             </div>
 
             <div class="card">
-                <h2>📱 iPhone (เวอร์ชันล่าสุด)</h2>
+                <h2>📱 iPhone (เวอร์ชันที่รองรับ)</h2>
                 <table>
                     <thead><tr><th width="15%">เวอร์ชัน</th><th width="50%">รุ่นที่รองรับ (เรียงตามฮาร์ดแวร์/ปีที่ผลิต)</th><th width="35%">ดาวน์โหลด (IPSW)</th></tr></thead>
                     <tbody id="iphoneTableBody"></tbody>
@@ -56,7 +56,7 @@
             </div>
 
             <div class="card">
-                <h2>🖥️ iPad (เวอร์ชันล่าสุด)</h2>
+                <h2>🖥️ iPad (เวอร์ชันที่รองรับ)</h2>
                 <table>
                     <thead><tr><th width="15%">เวอร์ชัน</th><th width="50%">รุ่นที่รองรับ (เรียงตามฮาร์ดแวร์/ปีที่ผลิต)</th><th width="35%">ดาวน์โหลด (IPSW)</th></tr></thead>
                     <tbody id="ipadTableBody"></tbody>
@@ -64,7 +64,7 @@
             </div>
 
             <div class="card">
-                <h2>💻 Mac (Apple Silicon / เวอร์ชันล่าสุด)</h2>
+                <h2>💻 Mac (Apple Silicon)</h2>
                 <table>
                     <thead><tr><th width="15%">เวอร์ชัน</th><th width="50%">กลุ่มอุปกรณ์ที่รองรับ</th><th width="35%">ดาวน์โหลด (IPSW)</th></tr></thead>
                     <tbody id="macTableBody"></tbody>
@@ -216,19 +216,10 @@
                     await delay(1000); 
                 }
 
-                function getMaxVersion(arr) {
-                    let maxVer = "0";
-                    arr.forEach(item => { if (item.version.localeCompare(maxVer, undefined, { numeric: true, sensitivity: 'base' }) > 0) maxVer = item.version; });
-                    return maxVer;
-                }
-
-                let maxIphoneVer = getMaxVersion(iphones);
-                let maxIpadVer = getMaxVersion(ipads);
-                let maxMacVer = getMaxVersion(macs);
-
-                function groupByUrl(arr, maxVer) {
+                // ปรับปรุงฟังก์ชัน groupByUrl ให้รับเฉพาะ array และไม่กรองเวอร์ชันทิ้ง
+                function groupByUrl(arr) {
                     let grouped = {};
-                    arr.filter(item => item.version === maxVer).forEach(item => {
+                    arr.forEach(item => {
                         let cleanName = item.name.replace(/,?\s*[1-2]TB Model/ig, '').trim();
                         
                         if (cleanName.includes("iPad Pro 4 (11-inch")) {
@@ -255,10 +246,16 @@
                         group.devices.sort((a, b) => b.score - a.score);
                         group.devices = group.devices.map(d => d.name);
                         return group;
-                    }).sort((a, b) => b.maxScore - a.maxScore);
+                    }).sort((a, b) => {
+                        // เรียงตามเวอร์ชัน (มากไปน้อย) และตามด้วยฮาร์ดแวร์สกอร์
+                        let verCompare = b.version.localeCompare(a.version, undefined, { numeric: true, sensitivity: 'base' });
+                        if (verCompare !== 0) return verCompare;
+                        return b.maxScore - a.maxScore;
+                    });
                 }
 
-                let finalData = { iphones: groupByUrl(iphones, maxIphoneVer), ipads: groupByUrl(ipads, maxIpadVer), macs: groupByUrl(macs, maxMacVer) };
+                // เรียกใช้งานได้เลย ไม่ต้องใช้ฟังก์ชัน getMaxVersion แล้ว
+                let finalData = { iphones: groupByUrl(iphones), ipads: groupByUrl(ipads), macs: groupByUrl(macs) };
                 
                 localStorage.setItem(CACHE_KEY, JSON.stringify(finalData));
                 localStorage.setItem(CACHE_TIME_KEY, new Date().getTime().toString());

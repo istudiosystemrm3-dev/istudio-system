@@ -64,7 +64,6 @@
         .diff-missing { background-color: #ffebee; color: #c62828; font-weight: bold; }
         .diff-extra { background-color: #fff3e0; color: #ef6c00; font-weight: bold; }
         
-        /* 🌟 สไตล์กล่องเลือกวันที่ 🌟 */
         .date-filter-group { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
         .date-input { padding: 6px 10px; border: 1px solid #d2d2d7; border-radius: 6px; font-size: 13px; outline: none; }
         .date-input:focus { border-color: #0071e3; }
@@ -199,12 +198,20 @@
                 </div>
             </div>
 
-            <!-- 🌟 แผงประวัติพร้อมตัวกรองวันที่ 🌟 -->
+            <!-- 🌟 แผงประวัติพร้อมตัวกรองวันที่และตัวกรอง Job 🌟 -->
             <div class="action-card" style="padding: 0; display: flex; flex-direction: column;" id="historyCard">
                 <div style="padding: 15px 20px; background: #f5f5f7; border-bottom: 1px solid #e5e5e7; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
                     <h3 id="logTitle" style="margin: 0; font-size: 16px;">🕒 ประวัติทำรายการ 150 รายการล่าสุด</h3>
                     
                     <div class="date-filter-group">
+                        <!-- 🌟 เมนูตัวกรองประวัติเพิ่มใหม่ 🌟 -->
+                        <select id="logTypeFilter" class="date-input" onchange="filterTables()" style="font-weight: bold; color: #0071e3; cursor: pointer;">
+                            <option value="ALL">รายการทั้งหมด</option>
+                            <option value="HAS_JOB">📌 เฉพาะที่มี Job No</option>
+                            <option value="เบิกใช้">🔴 เฉพาะ "เบิกใช้"</option>
+                            <option value="รับเข้า">🟢 เฉพาะ "รับเข้า"</option>
+                        </select>
+
                         <input type="date" id="filterStartDate" class="date-input">
                         <span style="font-size: 13px; color: #515154; font-weight: bold;">ถึง</span>
                         <input type="date" id="filterEndDate" class="date-input">
@@ -227,8 +234,8 @@
     </div>
 
     <script>
-        // 🌟🌟🌟 URL API ของคุณ 🌟🌟🌟
-        const CONSIGN_API_URL = "https://script.google.com/macros/s/AKfycbzqv6II1kyP4vitQ3cjjbM5YUJSITUxuM9Uc_JzSEgQANjyEfkQKrJivHy2W8fcu-eU/exec"; 
+        // 🌟🌟🌟 ใส่ URL API ของ CONSIGNMENT อย่างเดียว 🌟🌟🌟
+        const CONSIGN_API_URL = "ใส่_URL_ของคุณตรงนี้ครับ"; 
         
         let currentBranch = "";
         let currentLocalStock = []; 
@@ -252,6 +259,7 @@
             setTimeout(() => { toast.className = toast.className.replace("show", ""); }, 3000);
         }
 
+        // 🌟 อัปเดตฟังก์ชัน filter ให้รองรับเงื่อนไข Dropdown 🌟
         function filterTables() {
             let input = document.getElementById("searchInput").value.toUpperCase();
             
@@ -269,11 +277,30 @@
                 else compRows[i].style.display = "none";
             }
 
+            let logFilter = document.getElementById("logTypeFilter") ? document.getElementById("logTypeFilter").value : "ALL";
             let logRows = document.getElementById("logTableBody").getElementsByTagName("tr");
+            
             for (let i = 0; i < logRows.length; i++) {
-                let rowText = logRows[i].innerText.toUpperCase();
-                if (rowText.indexOf(input) > -1 || logRows[i].innerHTML.includes("กำลังโหลด")) logRows[i].style.display = "";
-                else logRows[i].style.display = "none";
+                let row = logRows[i];
+                let rowText = row.innerText.toUpperCase();
+                
+                let matchType = true;
+                if (logFilter !== "ALL" && !row.innerHTML.includes("กำลังโหลด")) {
+                    let typeCell = row.cells[1] ? row.cells[1].innerText.trim() : "";
+                    let jobCell = row.cells[4] ? row.cells[4].innerText.trim() : "";
+                    
+                    if (logFilter === "HAS_JOB") {
+                        if (jobCell === "-" || jobCell === "") matchType = false;
+                    } else {
+                        if (typeCell !== logFilter) matchType = false;
+                    }
+                }
+
+                if ((rowText.indexOf(input) > -1 || row.innerHTML.includes("กำลังโหลด")) && matchType) {
+                    row.style.display = "";
+                } else {
+                    row.style.display = "none";
+                }
             }
         }
 
@@ -459,7 +486,6 @@
             });
         }
 
-        // 🌟 ฟังก์ชันดึงรายงานตามวันที่ 🌟
         function fetchReport() {
             let sDate = document.getElementById('filterStartDate').value;
             let eDate = document.getElementById('filterEndDate').value;
@@ -481,7 +507,7 @@
                 if (data.status === "success") {
                     document.getElementById('logTitle').innerText = `📊 รายงานวันที่: ${sDate} ถึง ${eDate} (พบ ${data.logs.length} รายการ)`;
                     renderLogTable(data.logs);
-                    filterTables(); // ถ้ามีคำค้นหาค้างอยู่ ให้กรองทับด้วย
+                    filterTables(); 
                 }
             })
             .catch(err => {
@@ -490,10 +516,10 @@
             });
         }
 
-        // 🌟 ฟังก์ชันล้างตัวกรองกลับเป็น 150 รายการล่าสุด 🌟
         function clearReportFilter() {
             document.getElementById('filterStartDate').value = "";
             document.getElementById('filterEndDate').value = "";
+            if(document.getElementById('logTypeFilter')) document.getElementById('logTypeFilter').value = "ALL";
             document.getElementById('logTitle').innerText = "🕒 ประวัติทำรายการ 150 รายการล่าสุด";
             document.getElementById('searchInput').value = ""; 
             loadData();
@@ -605,7 +631,6 @@
                     document.getElementById('note').value = "";
                     document.getElementById('partNo').focus();
                     
-                    // กลับมาดึงข้อมูลใหม่แบบ 150 รายการ (ล้างตัวกรองวันที่อัตโนมัติเมื่อทำรายการใหม่)
                     clearReportFilter(); 
                 } else {
                     alert("❌ เกิดข้อผิดพลาดจากเซิร์ฟเวอร์: " + data.message);

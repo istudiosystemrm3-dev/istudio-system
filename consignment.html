@@ -41,12 +41,10 @@
         .type-btn.active-audit { background: #f3e5f5; color: #8e24aa; border-color: #8e24aa; }
         .type-btn.active-compare { background: #e0f7fa; color: #00838f; border-color: #00838f; }
         
-        .type-btn.active-sell { background: #e8f2fc; color: #0071e3; border-color: #0071e3; }
+        /* ปุ่มสำหรับสต๊อกร้านค้า */
         .type-btn.active-refund { background: #e0f8f5; color: #00a88f; border-color: #00a88f; }
         .type-btn.active-transfer-out { background: #fce4ec; color: #d81b60; border-color: #d81b60; }
         .type-btn.active-transfer-in { background: #e3f2fd; color: #1e88e5; border-color: #1e88e5; }
-        .type-btn.active-deposit { background: #fffde5; color: #d4a017; border-color: #f1c40f; }
-        .type-btn.active-clear-deposit { background: #e8f5e9; color: #388e3c; border-color: #388e3c; }
         
         .form-row { display: flex; gap: 10px; margin-bottom: 12px; }
         .form-row .flex-1 { flex: 1; }
@@ -56,7 +54,13 @@
         
         #transferBox { background: #fce4ec; padding: 10px; border-radius: 8px; border: 1px dashed #d81b60; margin-bottom: 12px; }
         #mainStockBox { background: #f3e5f5; padding: 10px; border-radius: 8px; border: 1px dashed #8e24aa; margin-bottom: 12px; }
+        
+        /* 🌟 สไตล์กล่องตัวเลือกย่อยของการเบิกใช้แบบใหม่ (มี 4 ตัวเลือก) 🌟 */
         #consumeSubOptions { background: #f0f7ff; padding: 12px; border-radius: 8px; border: 1px solid #c8e1fa; margin-bottom: 15px; }
+        .sub-option-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+        .sub-radio-label { display: flex; align-items: center; gap: 5px; cursor: pointer; font-size: 13px; background: #fff; padding: 8px 10px; border-radius: 6px; border: 1px solid #d2d2d7; font-weight: bold; color: #1d1d1f; transition: 0.2s; }
+        .sub-radio-label:hover { border-color: #0071e3; }
+        .sub-radio-label input[type="radio"] { width: 16px; height: 16px; margin: 0; cursor: pointer; }
 
         /* 🌟 สไตล์ปุ่มโหมดยิงต่อเนื่อง 🌟 */
         #autoScanBox { margin-bottom: 12px; padding: 10px; background: #fffde5; border: 1px solid #f1c40f; border-radius: 8px; display: inline-block; transition: 0.3s; }
@@ -154,15 +158,13 @@
                         <div class="type-btn" id="btnTypeCompare" onclick="selectActionType('เทียบสต๊อก')">📊 เทียบไฟล์ Apple</div>
                     </div>
 
-                    <!-- 🌟 ชุดปุ่ม สต๊อกร้านค้า 🌟 -->
+                    <!-- 🌟 ชุดปุ่ม สต๊อกร้านค้า (ปรับปุ่มมัดจำออก เอามารวมในเบิกใช้) 🌟 -->
                     <div class="type-selector" id="storeButtons" style="display: none;">
                         <div class="type-btn" id="btnTypeConsumeStore" onclick="selectActionType('เบิกใช้')">🔴 เบิกใช้</div>
                         <div class="type-btn" id="btnTypeReceiveStore" onclick="selectActionType('รับเข้า')">🟢 รับเข้า</div>
                         <div class="type-btn" id="btnTypeRefund" onclick="selectActionType('คืนสต๊อก')">↩️ คืนสต๊อก</div>
                         <div class="type-btn" id="btnTypeTransferOut" onclick="selectActionType('โอนออก')">📤 โอนออก</div>
                         <div class="type-btn" id="btnTypeTransferIn" onclick="selectActionType('รับโอน')">📥 รับโอน</div>
-                        <div class="type-btn" id="btnTypeDeposit" onclick="selectActionType('รับมัดจำ')">🟡 รับมัดจำ</div>
-                        <div class="type-btn" id="btnTypeClearDeposit" onclick="selectActionType('ล้างมัดจำ')">✅ ล้างมัดจำ</div>
                         <div class="type-btn" id="btnTypeAuditStore" onclick="selectActionType('ตรวจนับยอด')">📝 ตรวจนับ</div>
                         <div class="type-btn" id="btnTypeCompareStore" onclick="selectActionType('เทียบสต๊อก')">📊 เทียบไฟล์ Excel</div>
                     </div>
@@ -178,21 +180,28 @@
                             </label>
                         </div>
 
-                        <!-- 🌟 ตัวเลือกย่อยสำหรับ การเบิกใช้ในสต๊อกร้านค้า 🌟 -->
+                        <!-- 🌟 ตัวเลือกย่อยสำหรับ การเบิกใช้ในสต๊อกร้านค้า (อัปเดตใหม่ 4 ตัวเลือก) 🌟 -->
                         <div id="consumeSubOptions" style="display: none;">
-                            <label style="display: block; font-size: 13px; margin-bottom: 8px; color: #0071e3; font-weight: bold;">เลือกรูปแบบการเบิกใช้ *</label>
-                            <label style="margin-right: 20px; cursor: pointer; font-size: 14px;">
-                                <input type="radio" name="consumeMode" value="ขายขาด" checked> 🛍️ ตัดขายขาด (ไม่รอของเข้า)
-                            </label>
-                            <label style="cursor: pointer; font-size: 14px;">
-                                <input type="radio" name="consumeMode" value="เบิกใช้"> 🔄 หมุนเวียน (เพิ่มยอดรอของเข้า)
-                            </label>
+                            <label style="display: block; font-size: 13px; margin-bottom: 8px; color: #0071e3; font-weight: bold;">เลือกรูปแบบการเบิกใช้ / ทำรายการ *</label>
+                            <div class="sub-option-grid">
+                                <label class="sub-radio-label">
+                                    <input type="radio" name="consumeMode" value="ขายขาด" onchange="updateConsumeModeBtn()" checked> 🛍️ ตัดขายขาด (ไม่รอของ)
+                                </label>
+                                <label class="sub-radio-label">
+                                    <input type="radio" name="consumeMode" value="เบิกใช้" onchange="updateConsumeModeBtn()"> 🔄 หมุนเวียน (หักสต๊อก+รอเข้า)
+                                </label>
+                                <label class="sub-radio-label">
+                                    <input type="radio" name="consumeMode" value="รับมัดจำ" onchange="updateConsumeModeBtn()"> 🟡 รับมัดจำ (ของหมด+รอสั่ง)
+                                </label>
+                                <label class="sub-radio-label">
+                                    <input type="radio" name="consumeMode" value="ล้างมัดจำ" onchange="updateConsumeModeBtn()"> ✅ ล้างมัดจำ (ส่งเครื่องปิดจ๊อบ)
+                                </label>
+                            </div>
                         </div>
 
                         <div class="form-row">
                             <div class="flex-1">
                                 <label>Part Number *</label>
-                                <!-- 🌟 เพิ่ม Event OnKeyPress เพื่อรองรับการยิงปืนบาร์โค้ด 🌟 -->
                                 <input type="text" id="partNo" placeholder="สแกนหรือพิมพ์รหัส..." onkeypress="handleBarcodeEnter(event)" autofocus>
                             </div>
                             <div style="width: 100px;">
@@ -240,7 +249,7 @@
                             </div>
                         </div>
 
-                        <button class="btn-submit" id="btnSubmit" style="background-color: #ff3b30;" onclick="submitStockAction()">บันทึกข้อมูล (เบิกใช้)</button>
+                        <button class="btn-submit" id="btnSubmit" style="background-color: #0071e3;" onclick="submitStockAction()">บันทึกข้อมูล (ขายขาด)</button>
                     </div>
 
                     <div id="compareForm" style="display: none;">
@@ -287,9 +296,10 @@
                         <select id="logTypeFilter" class="date-input" onchange="filterTables()" style="font-weight: bold; color: #0071e3; cursor: pointer;">
                             <option value="ALL">รายการทั้งหมด</option>
                             <option value="HAS_JOB">📌 เฉพาะที่มี Job No</option>
-                            <option value="เบิกใช้">🔴 เฉพาะ "เบิกใช้"</option>
+                            <option value="เบิกใช้">🔴 เฉพาะ "เบิกใช้/หมุนเวียน"</option>
                             <option value="ขายขาด">🛍️ เฉพาะ "ขายขาด"</option>
                             <option value="รับเข้า">🟢 เฉพาะ "รับเข้า"</option>
+                            <option value="รับมัดจำ">🟡 เฉพาะ "รับมัดจำ"</option>
                         </select>
 
                         <input type="date" id="filterStartDate" class="date-input">
@@ -342,19 +352,27 @@
             setTimeout(() => { toast.className = toast.className.replace("show", ""); }, 3000);
         }
 
-        // 🌟 ฟังก์ชันจัดการเมื่อปืนสแกนบาร์โค้ดยิงเสร็จ (ส่งปุ่ม Enter) 🌟
+        // 🌟 ฟังก์ชันจัดการปุ่มเซฟเมื่อเลือก Radio Button ตัวเลือกย่อย 🌟
+        function updateConsumeModeBtn() {
+            let mode = document.querySelector('input[name="consumeMode"]:checked').value;
+            let btn = document.getElementById('btnSubmit');
+            if(mode === "ขายขาด") { btn.style.backgroundColor = "#0071e3"; btn.innerText = "บันทึกข้อมูล (ขายขาด)"; }
+            else if(mode === "เบิกใช้") { btn.style.backgroundColor = "#ff3b30"; btn.innerText = "บันทึกข้อมูล (หมุนเวียน/เบิกใช้)"; }
+            else if(mode === "รับมัดจำ") { btn.style.backgroundColor = "#f1c40f"; btn.innerText = "บันทึกข้อมูล (รับมัดจำจองของ)"; }
+            else if(mode === "ล้างมัดจำ") { btn.style.backgroundColor = "#388e3c"; btn.innerText = "บันทึกข้อมูล (ล้างมัดจำปิดบิล)"; }
+        }
+
         function handleBarcodeEnter(e) {
             if (e.key === 'Enter') {
                 e.preventDefault();
                 let isAuto = document.getElementById('autoScanToggle') && document.getElementById('autoScanToggle').checked;
                 let actionType = document.getElementById('actionType').value;
                 
-                // ถ้ายิงเสร็จแล้วติ๊กโหมดออโต้ไว้ + อยู่ในหมวดที่ทำงานเซฟได้ทันที
-                if (isAuto && ["เบิกใช้", "รับเข้า", "ส่งคืน", "คืนสต๊อก"].includes(actionType)) {
-                    document.getElementById('qty').value = 1; // บังคับให้จำนวนเป็น 1
+                // ตรวจนับยอด ถูกเพิ่มเข้ามาในรายชื่อที่อนุญาตให้ Auto-save ทำงานได้
+                if (isAuto && ["เบิกใช้", "รับเข้า", "ส่งคืน", "คืนสต๊อก", "ตรวจนับยอด"].includes(actionType)) {
+                    document.getElementById('qty').value = 1; 
                     submitStockAction();
                 } else {
-                    // ถ้าไม่ได้เปิดออโต้ ให้โฟกัสเด้งไปที่ช่องจำนวนเพื่อให้พนักงานพิมพ์เลขต่อ
                     document.getElementById('qty').focus();
                 }
             }
@@ -508,8 +526,9 @@
             document.getElementById('stockBoxTitle').innerText = "📦 สต๊อกคงเหลือปัจจุบัน";
             document.getElementById('historyCard').style.display = "flex";
             
+            // ล้างคลาสปุ่มทั้งหมด
             let btnIds = ['btnTypeConsume', 'btnTypeReceive', 'btnTypeReturn', 'btnTypeAudit', 'btnTypeCompare', 'btnTypeCompareStore',
-                          'btnTypeConsumeStore', 'btnTypeReceiveStore', 'btnTypeRefund', 'btnTypeTransferOut', 'btnTypeTransferIn', 'btnTypeDeposit', 'btnTypeClearDeposit', 'btnTypeAuditStore'];
+                          'btnTypeConsumeStore', 'btnTypeReceiveStore', 'btnTypeRefund', 'btnTypeTransferOut', 'btnTypeTransferIn', 'btnTypeAuditStore'];
             btnIds.forEach(id => { if(document.getElementById(id)) document.getElementById(id).className = "type-btn"; });
             
             qtyLabel.innerText = "จำนวน *"; 
@@ -519,9 +538,9 @@
             document.getElementById('transferBranch').value = "";
             document.getElementById('mainStock').value = "";
             
-            // 🌟 ซ่อนหรือโชว์กล่อง "โหมดยิงต่อเนื่อง" ตามประเภทรายการที่ปลอดภัย
+            // 🌟 ซ่อนหรือโชว์กล่อง "โหมดยิงต่อเนื่อง" ตามประเภทรายการที่ปลอดภัย (เพิ่ม ตรวจนับยอด เข้าไปแล้ว) 🌟
             let autoScanBox = document.getElementById('autoScanBox');
-            let safeForAuto = ["เบิกใช้", "รับเข้า", "ส่งคืน", "คืนสต๊อก"];
+            let safeForAuto = ["เบิกใช้", "รับเข้า", "ส่งคืน", "คืนสต๊อก", "ตรวจนับยอด"];
             if (safeForAuto.includes(type)) {
                 if(autoScanBox) autoScanBox.style.display = "inline-block";
             } else {
@@ -532,12 +551,13 @@
             if (type === "เบิกใช้") {
                 if (activeMode === 'CONSIGN') {
                     document.getElementById('btnTypeConsume').className = "type-btn active-consume";
+                    btnSubmit.style.backgroundColor = "#ff3b30";
+                    btnSubmit.innerText = "บันทึกข้อมูล (เบิกใช้)";
                 } else {
                     document.getElementById('btnTypeConsumeStore').className = "type-btn active-consume";
                     document.getElementById('consumeSubOptions').style.display = "block"; 
+                    updateConsumeModeBtn(); // เรียกใช้เพื่อให้สีปุ่มตรงกับ Radio ที่ถูกเลือกค้างไว้
                 }
-                btnSubmit.style.backgroundColor = "#ff3b30";
-                btnSubmit.innerText = "บันทึกข้อมูล (เบิกใช้)";
             } else if (type === "รับเข้า") {
                 if(activeMode === 'CONSIGN') document.getElementById('btnTypeReceive').className = "type-btn active-receive";
                 else document.getElementById('btnTypeReceiveStore').className = "type-btn active-receive";
@@ -562,14 +582,6 @@
                 btnSubmit.innerText = "บันทึกข้อมูล (รับโอนจากสาขาอื่น)";
                 document.getElementById('transferBox').style.display = "flex";
                 document.getElementById('transferLabel').innerText = "ระบุสาขาต้นทาง (รับจากใคร) *";
-            } else if (type === "รับมัดจำ") {
-                document.getElementById('btnTypeDeposit').className = "type-btn active-deposit";
-                btnSubmit.style.backgroundColor = "#f1c40f";
-                btnSubmit.innerText = "บันทึกข้อมูล (มัดจำจองของ)";
-            } else if (type === "ล้างมัดจำ") {
-                document.getElementById('btnTypeClearDeposit').className = "type-btn active-clear-deposit";
-                btnSubmit.style.backgroundColor = "#388e3c";
-                btnSubmit.innerText = "บันทึกข้อมูล (ล้างมัดจำส่งเครื่อง)";
             } else if (type === "ตรวจนับยอด") {
                 if(activeMode === 'CONSIGN') document.getElementById('btnTypeAudit').className = "type-btn active-audit";
                 else document.getElementById('btnTypeAuditStore').className = "type-btn active-audit";

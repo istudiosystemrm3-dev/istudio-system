@@ -28,13 +28,11 @@
         .action-card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); border: 1px solid #e5e5e7; }
         
         .type-selector { display: flex; gap: 8px; margin-bottom: 15px; flex-wrap: wrap; }
-        .type-btn { flex: 1; padding: 10px 5px; text-align: center; font-weight: bold; border-radius: 8px; cursor: pointer; border: 2px solid transparent; background: #f5f5f7; color: #515154; transition: 0.2s; font-size: 12px; min-width: 80px; }
+        .type-btn { flex: 1; padding: 10px 5px; text-align: center; font-weight: bold; border-radius: 8px; cursor: pointer; border: 2px solid transparent; background: #f5f5f7; color: #515154; transition: 0.2s; font-size: 13px; min-width: 80px; }
         
         .type-btn.active-consume { background: #ffe5e5; color: #ff3b30; border-color: #ff3b30; }
         .type-btn.active-receive { background: #e5f9e7; color: #34c759; border-color: #34c759; }
         .type-btn.active-return { background: #fff4e5; color: #ff9500; border-color: #ff9500; }
-        .type-btn.active-deposit { background: #fffde5; color: #d4a017; border-color: #f1c40f; }
-        .type-btn.active-clear-deposit { background: #e8f5e9; color: #388e3c; border-color: #388e3c; }
         .type-btn.active-audit { background: #f3e5f5; color: #8e24aa; border-color: #8e24aa; }
         .type-btn.active-compare { background: #e0f7fa; color: #00838f; border-color: #00838f; }
         
@@ -64,7 +62,6 @@
         .log-clear-deposit { background: #e8f5e9; color: #388e3c; border: 1px solid #a5d6a7;}
         .log-audit { background: #f3e5f5; color: #8e24aa; border: 1px solid #ab47bc;}
 
-        /* CSS สำหรับตารางเปรียบเทียบ Apple */
         .diff-match { background-color: #e8f5e9; color: #2e7d32; font-weight: bold; }
         .diff-missing { background-color: #ffebee; color: #c62828; font-weight: bold; }
         .diff-extra { background-color: #fff3e0; color: #ef6c00; font-weight: bold; }
@@ -113,16 +110,12 @@
                         <div class="type-btn active-consume" id="btnTypeConsume" onclick="selectActionType('เบิกใช้')">🔴 เบิกใช้</div>
                         <div class="type-btn" id="btnTypeReceive" onclick="selectActionType('รับเข้า')">🟢 รับเข้า</div>
                         <div class="type-btn" id="btnTypeReturn" onclick="selectActionType('ส่งคืน')">🟠 ส่งคืน</div>
-                        <div class="type-btn" id="btnTypeDeposit" onclick="selectActionType('รับมัดจำ')">🟡 รับมัดจำ</div>
-                        <div class="type-btn" id="btnTypeClearDeposit" onclick="selectActionType('ล้างมัดจำ')">✅ ล้างมัดจำ</div>
                         <div class="type-btn" id="btnTypeAudit" onclick="selectActionType('ตรวจนับยอด')">📝 ตรวจนับ</div>
-                        <!-- 🌟 ปุ่มใหม่: เทียบสต๊อก Apple 🌟 -->
                         <div class="type-btn" id="btnTypeCompare" onclick="selectActionType('เทียบสต๊อก')">📊 เทียบไฟล์ Apple</div>
                     </div>
                     
                     <input type="hidden" id="actionType" value="เบิกใช้">
 
-                    <!-- ฟอร์มปกติสำหรับการทำรายการ -->
                     <div id="standardForm">
                         <div class="form-row">
                             <div class="flex-1">
@@ -163,7 +156,6 @@
                         <button class="btn-submit" id="btnSubmit" style="background-color: #ff3b30;" onclick="submitStockAction()">บันทึกข้อมูล (เบิกใช้)</button>
                     </div>
 
-                    <!-- 🌟 ฟอร์มพิเศษสำหรับระบบเทียบไฟล์ Apple (จะโชว์เมื่อกดปุ่มเทียบสต๊อก) 🌟 -->
                     <div id="compareForm" style="display: none;">
                         <p style="font-size: 13px; color: #515154; margin-bottom: 10px;">
                             <strong>วิธีใช้:</strong> เปิดไฟล์ Excel จาก Apple > ลากคลุมคอลัมน์ <b>Part Number</b> และ <b>จำนวน</b> > กด Copy (Ctrl+C) > นำมาคลิกขวา Paste (Ctrl+V) ลงในกล่องด้านล่างนี้
@@ -173,7 +165,7 @@
                     </div>
                 </div>
 
-                <!-- แผงตารางสต๊อกปัจจุบัน (จะถูกซ่อนถ้าแสดงผลเทียบไฟล์) -->
+                <!-- แผงตารางสต๊อกปัจจุบัน -->
                 <div class="action-card" id="stockViewCard" style="padding: 0; display: flex; flex-direction: column;">
                     <div style="padding: 15px 20px; background: #f5f5f7; border-bottom: 1px solid #e5e5e7; display: flex; justify-content: space-between; align-items: center;">
                         <h3 id="stockBoxTitle" style="margin: 0; font-size: 16px;">📦 สต๊อกคงเหลือปัจจุบัน</h3>
@@ -181,13 +173,11 @@
                     </div>
                     <div class="table-container" style="border: none; border-radius: 0; flex: 1;">
                         
-                        <!-- ตารางสต๊อกปกติ -->
                         <table id="stockTable">
                             <thead><tr><th>Part No</th><th>Description</th><th style="text-align: center;">รอของเข้า</th><th style="text-align: right;">คงเหลือ</th></tr></thead>
                             <tbody id="stockTableBody"><tr><td colspan="4" style="text-align: center; padding: 30px; color: #86868b;">กำลังโหลด...</td></tr></tbody>
                         </table>
                         
-                        <!-- 🌟 ตารางเปรียบเทียบผลลัพธ์ Apple 🌟 -->
                         <table id="compareTable" style="display: none;">
                             <thead>
                                 <tr>
@@ -204,7 +194,7 @@
                 </div>
             </div>
 
-            <!-- แผงประวัติ (ตัดตารางส่วนเกินของสต๊อกร้านค้าออก) -->
+            <!-- แผงประวัติ -->
             <div class="action-card" style="padding: 0; display: flex; flex-direction: column;" id="historyCard">
                 <div style="padding: 15px 20px; background: #f5f5f7; border-bottom: 1px solid #e5e5e7;">
                     <h3 style="margin: 0; font-size: 16px;">🕒 ประวัติทำรายการ 150 รายการล่าสุด</h3>
@@ -224,10 +214,10 @@
 
     <script>
         // 🌟🌟🌟 ใส่ URL API ของ CONSIGNMENT อย่างเดียว 🌟🌟🌟
-        const CONSIGN_API_URL = "https://script.google.com/macros/s/AKfycbzqv6II1kyP4vitQ3cjjbM5YUJSITUxuM9Uc_JzSEgQANjyEfkQKrJivHy2W8fcu-eU/exec"; 
+        const CONSIGN_API_URL = "https://script.google.com/macros/library/d/1gGjr5ZdIdBDxNELhP2WvT0l66DbKH5ucUjHNgfoPUo7z0x0MNMruXmgt/1"; 
         
         let currentBranch = "";
-        let currentLocalStock = []; // เก็บสต๊อก iServe ปัจจุบันไว้ในแรมเพื่อใช้เทียบ
+        let currentLocalStock = []; 
 
         window.onload = function() {
             let savedBranch = localStorage.getItem('iserve_consign_branch');
@@ -251,7 +241,6 @@
         function filterTables() {
             let input = document.getElementById("searchInput").value.toUpperCase();
             
-            // กรองตารางสต๊อก
             let stockRows = document.getElementById("stockTableBody").getElementsByTagName("tr");
             for (let i = 0; i < stockRows.length; i++) {
                 let rowText = stockRows[i].innerText.toUpperCase();
@@ -259,7 +248,6 @@
                 else stockRows[i].style.display = "none";
             }
 
-            // กรองตารางเปรียบเทียบ (เผื่อเปิดใช้งานอยู่)
             let compRows = document.getElementById("compareTableBody").getElementsByTagName("tr");
             for (let i = 0; i < compRows.length; i++) {
                 let rowText = compRows[i].innerText.toUpperCase();
@@ -267,7 +255,6 @@
                 else compRows[i].style.display = "none";
             }
 
-            // กรองประวัติ
             let logRows = document.getElementById("logTableBody").getElementsByTagName("tr");
             for (let i = 0; i < logRows.length; i++) {
                 let rowText = logRows[i].innerText.toUpperCase();
@@ -316,7 +303,6 @@
             let btnSubmit = document.getElementById('btnSubmit');
             let qtyLabel = document.getElementById('qtyLabel');
             
-            // คืนค่า UI ตารางกลับเป็นปกติก่อน
             document.getElementById('standardForm').style.display = "block";
             document.getElementById('compareForm').style.display = "none";
             document.getElementById('stockTable').style.display = "table";
@@ -324,8 +310,7 @@
             document.getElementById('stockBoxTitle').innerText = "📦 สต๊อกคงเหลือปัจจุบัน";
             document.getElementById('historyCard').style.display = "flex";
             
-            // ล้างคลาสปุ่ม
-            let btnIds = ['btnTypeConsume', 'btnTypeReceive', 'btnTypeReturn', 'btnTypeDeposit', 'btnTypeClearDeposit', 'btnTypeAudit', 'btnTypeCompare'];
+            let btnIds = ['btnTypeConsume', 'btnTypeReceive', 'btnTypeReturn', 'btnTypeAudit', 'btnTypeCompare'];
             btnIds.forEach(id => document.getElementById(id).className = "type-btn");
             
             qtyLabel.innerText = "จำนวน *"; 
@@ -342,42 +327,31 @@
                 document.getElementById('btnTypeReturn').className = "type-btn active-return";
                 btnSubmit.style.backgroundColor = "#ff9500";
                 btnSubmit.innerText = "บันทึกข้อมูล (ส่งคืน)";
-            } else if (type === "รับมัดจำ") {
-                document.getElementById('btnTypeDeposit').className = "type-btn active-deposit";
-                btnSubmit.style.backgroundColor = "#f1c40f";
-                btnSubmit.innerText = "บันทึกข้อมูล (รับมัดจำจองของ)";
-            } else if (type === "ล้างมัดจำ") {
-                document.getElementById('btnTypeClearDeposit').className = "type-btn active-clear-deposit";
-                btnSubmit.style.backgroundColor = "#388e3c";
-                btnSubmit.innerText = "บันทึกข้อมูล (ล้างมัดจำ/ปิดจ๊อบ)";
             } else if (type === "ตรวจนับยอด") {
                 document.getElementById('btnTypeAudit').className = "type-btn active-audit";
                 btnSubmit.style.backgroundColor = "#8e24aa"; 
                 btnSubmit.innerText = "บันทึกข้อมูล (ปรับยอดจริง)";
                 qtyLabel.innerText = "นับจริงหน้าตู้ *"; 
             } else if (type === "เทียบสต๊อก") {
-                // 🌟 เมื่อเข้าสู่โหมดเทียบไฟล์ Apple
                 document.getElementById('btnTypeCompare').className = "type-btn active-compare";
                 document.getElementById('standardForm').style.display = "none";
                 document.getElementById('compareForm').style.display = "block";
-                document.getElementById('historyCard').style.display = "none"; // ซ่อนประวัติไปก่อน
+                document.getElementById('historyCard').style.display = "none"; 
                 document.getElementById('excelPasteArea').focus();
             }
             
             if(type !== "เทียบสต๊อก") document.getElementById('partNo').focus();
         }
 
-        // 🌟 ฟังก์ชันจัดการการเปรียบเทียบ Excel กับฐานข้อมูล 🌟
         function processExcelCompare() {
             let rawData = document.getElementById('excelPasteArea').value.trim();
             if(!rawData) { alert("กรุณาวางข้อมูลจาก Excel ก่อนครับ"); return; }
             
-            // 1. แปลงข้อมูลที่วางจาก Excel ให้เป็น Array (Apple Stock)
             let rows = rawData.split('\n');
             let appleStockMap = {}; 
             
             rows.forEach(row => {
-                let cols = row.split('\t'); // Excel เวลา Copy มา วรรคจะถูกเปลี่ยนเป็นแท็บ (\t)
+                let cols = row.split('\t'); 
                 if(cols.length >= 1) {
                     let part = cols[0].trim().toUpperCase();
                     let qty = 0;
@@ -386,22 +360,19 @@
                 }
             });
 
-            // 2. ดึงสต๊อก iServe ปัจจุบันมาเตรียมไว้
             let iserveStockMap = {};
             currentLocalStock.forEach(item => {
                 iserveStockMap[item.partNo.toUpperCase()] = parseInt(item.qty);
             });
 
-            // 3. เริ่มทำการเปรียบเทียบข้ามไปมา (Reconciliation)
             let compareResults = [];
             let allUniqueParts = new Set([...Object.keys(appleStockMap), ...Object.keys(iserveStockMap)]);
 
             allUniqueParts.forEach(part => {
                 let iQty = iserveStockMap[part] || 0;
                 let aQty = appleStockMap[part] || 0;
-                let diff = aQty - iQty; // อิง Apple เป็นหลัก (ถ้า Apple มากกว่าเรา แปลว่าของในระบบเราขาด)
+                let diff = aQty - iQty; 
                 
-                // ไม่เอาสินค้าที่ยอดเป็น 0 ทั้งสองฝั่ง
                 if (iQty === 0 && aQty === 0) return;
 
                 compareResults.push({
@@ -412,10 +383,8 @@
                 });
             });
 
-            // เรียงลำดับ: เอาอันที่มีปัญหา (Diff != 0) ขึ้นก่อน
             compareResults.sort((a, b) => Math.abs(b.diff) - Math.abs(a.diff));
 
-            // 4. แสดงผลลงในตาราง
             let tbody = document.getElementById('compareTableBody');
             tbody.innerHTML = "";
             
@@ -427,10 +396,10 @@
                     let diffText = "ตรงกัน";
                     
                     if(res.diff > 0) {
-                        diffClass = "diff-extra"; // Apple เยอะกว่า iServe (iServe ของขาด)
+                        diffClass = "diff-extra"; 
                         diffText = `+${res.diff} (ใน iServe ขาดไป)`;
                     } else if (res.diff < 0) {
-                        diffClass = "diff-missing"; // iServe เยอะกว่า Apple (iServe ของเกิน)
+                        diffClass = "diff-missing"; 
                         diffText = `${res.diff} (ใน iServe เกินมา)`;
                     }
 
@@ -445,11 +414,10 @@
                 });
             }
 
-            // สลับ UI ให้โชว์ตารางผลลัพธ์
             document.getElementById('stockTable').style.display = "none";
             document.getElementById('compareTable').style.display = "table";
             document.getElementById('stockBoxTitle').innerText = "📊 ผลการเปรียบเทียบสต๊อกกับไฟล์ Apple";
-            document.getElementById('searchInput').value = ""; // ล้างช่องค้นหาเผื่อค้างไว้
+            document.getElementById('searchInput').value = ""; 
             filterTables();
         }
 
@@ -465,7 +433,7 @@
             .then(res => res.json())
             .then(data => {
                 if (data.status === "success") {
-                    currentLocalStock = data.stock; // เซฟเก็บไว้ในแรมเผื่อใช้ตอนเทียบ Excel
+                    currentLocalStock = data.stock; 
                     renderStockTable(data.stock);
                     renderLogTable(data.logs);
                     filterTables(); 
@@ -547,7 +515,7 @@
             if (!partNo) { alert("⚠️ กรุณาระบุรหัสอะไหล่ (Part Number)"); return; }
             if (qty < 0) { alert("⚠️ จำนวนต้องไม่ติดลบ"); return; }
             
-            if ((type === "เบิกใช้" || type === "ล้างมัดจำ") && (!jobNo && !repairId)) {
+            if (type === "เบิกใช้" && (!jobNo && !repairId)) {
                 if(!confirm("คุณไม่ได้ระบุ Job หรือ Repair ID แน่ใจหรือไม่ที่จะบันทึก?")) return;
             }
 

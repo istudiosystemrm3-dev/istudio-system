@@ -38,3 +38,891 @@
         
         .type-selector { display: flex; gap: 8px; margin-bottom: 15px; flex-wrap: wrap; }
         .type-btn { flex: 1; padding: 10px 5px; text-align: center; font-weight: bold; border-radius: 8px; cursor: pointer; border: 2px solid transparent; background: #f5f5f7; color: #515154; transition: 0.2s; font-size: 13px; min-width: 80px; }
+        
+        .type-btn.active-consume { background: #ffe5e5; color: #ff3b30; border-color: #ff3b30; }
+        .type-btn.active-receive { background: #e5f9e7; color: #34c759; border-color: #34c759; }
+        .type-btn.active-return { background: #fff4e5; color: #ff9500; border-color: #ff9500; }
+        .type-btn.active-audit { background: #f3e5f5; color: #8e24aa; border-color: #8e24aa; }
+        .type-btn.active-compare { background: #e0f7fa; color: #00838f; border-color: #00838f; }
+        
+        .type-btn.active-refund { background: #e0f8f5; color: #00a88f; border-color: #00a88f; }
+        .type-btn.active-transfer-out { background: #fce4ec; color: #d81b60; border-color: #d81b60; }
+        .type-btn.active-transfer-in { background: #e3f2fd; color: #1e88e5; border-color: #1e88e5; }
+        
+        .form-row { display: flex; gap: 10px; margin-bottom: 12px; }
+        .form-row .flex-1 { flex: 1; }
+        .action-card label { display: block; font-size: 12px; font-weight: bold; color: #515154; margin-bottom: 5px; }
+        .action-card input, .action-card textarea { width: 100%; padding: 10px; border: 1px solid #d2d2d7; border-radius: 6px; font-size: 14px; box-sizing: border-box; outline: none; }
+        .action-card input:focus, .action-card textarea:focus { border-color: #0071e3; }
+        
+        #transferBox { background: #fce4ec; padding: 10px; border-radius: 8px; border: 1px dashed #d81b60; margin-bottom: 12px; }
+        #mainStockBox { background: #f3e5f5; padding: 10px; border-radius: 8px; border: 1px dashed #8e24aa; margin-bottom: 12px; }
+        
+        #consumeSubOptions { background: #f0f7ff; padding: 12px; border-radius: 8px; border: 1px solid #c8e1fa; margin-bottom: 15px; }
+        .sub-option-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+        .sub-radio-label { display: flex; align-items: center; gap: 5px; cursor: pointer; font-size: 13px; background: #fff; padding: 8px 10px; border-radius: 6px; border: 1px solid #d2d2d7; font-weight: bold; color: #1d1d1f; transition: 0.2s; }
+        .sub-radio-label:hover { border-color: #0071e3; }
+        .sub-radio-label input[type="radio"] { width: 16px; height: 16px; margin: 0; cursor: pointer; }
+
+        #autoScanBox { margin-bottom: 12px; padding: 10px; background: #fffde5; border: 1px solid #f1c40f; border-radius: 8px; display: inline-block; transition: 0.3s; }
+        #autoScanBox label { margin: 0; cursor: pointer; font-weight: bold; color: #d4a017; font-size: 13px; display: flex; align-items: center; gap: 8px; }
+        #autoScanBox input[type="checkbox"] { width: 16px; height: 16px; cursor: pointer; margin: 0; padding: 0; }
+
+        .btn-submit { color: white; border: none; padding: 15px; border-radius: 8px; font-size: 16px; font-weight: bold; width: 100%; cursor: pointer; transition: 0.2s; margin-top: 10px; }
+        .btn-submit:disabled { background-color: #86868b !important; cursor: not-allowed; }
+        
+        .table-container { overflow-x: auto; max-height: 440px; overflow-y: auto; border: 1px solid #e5e5e7; border-radius: 8px; }
+        table { width: 100%; border-collapse: collapse; white-space: nowrap; }
+        th { position: sticky; top: 0; background-color: #f5f5f7; padding: 10px; text-align: left; border-bottom: 2px solid #e5e5e7; font-size: 13px; z-index: 1; }
+        td { padding: 10px; border-bottom: 1px solid #e5e5e7; font-size: 13px; }
+        
+        .qty-badge { display: inline-block; padding: 4px 12px; border-radius: 20px; font-weight: bold; font-size: 14px; }
+        .qty-safe { background-color: #e5f9e7; color: #34c759; }
+        .qty-low { background-color: #ffe5e5; color: #ff3b30; }
+        .qty-pending { background-color: #fffde5; color: #d4a017; border: 1px solid #f1c40f; }
+        .branch-badge { background: #e8f2fc; color: #0071e3; padding: 2px 8px; border-radius: 10px; font-size: 11px; font-weight: bold; }
+
+        .log-type { padding: 3px 8px; border-radius: 4px; font-size: 11px; font-weight: bold; }
+        .log-consume { background: #ffe5e5; color: #ff3b30; }
+        .log-receive { background: #e5f9e7; color: #34c759; }
+        .log-return { background: #fff4e5; color: #ff9500; }
+        .log-audit { background: #f3e5f5; color: #8e24aa; border: 1px solid #ab47bc;}
+        .log-sell { background: #e8f2fc; color: #0071e3; border: 1px solid #c8e1fa; }
+        .log-refund { background: #e0f8f5; color: #00a88f; border: 1px solid #b2dfdb; }
+        .log-transfer-out { background: #fce4ec; color: #d81b60; border: 1px solid #f48fb1; }
+        .log-transfer-in { background: #e3f2fd; color: #1e88e5; border: 1px solid #90caf9; }
+        .log-deposit { background: #fffde5; color: #d4a017; border: 1px solid #f1c40f;}
+        .log-clear-deposit { background: #e8f5e9; color: #388e3c; border: 1px solid #a5d6a7;}
+
+        .diff-match { background-color: #e8f5e9; color: #2e7d32; font-weight: bold; }
+        .diff-missing { background-color: #ffebee; color: #c62828; font-weight: bold; }
+        .diff-extra { background-color: #fff3e0; color: #ef6c00; font-weight: bold; }
+        
+        .date-filter-group { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+        .date-input { padding: 6px 10px; border: 1px solid #d2d2d7; border-radius: 6px; font-size: 13px; outline: none; }
+        .date-input:focus { border-color: #0071e3; }
+        .btn-filter { background: #0071e3; color: white; border: none; padding: 7px 12px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 13px; }
+        .btn-clear { background: #86868b; color: white; border: none; padding: 7px 12px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 13px; }
+
+        #toast { visibility: hidden; min-width: 250px; background-color: #34c759; color: #fff; text-align: center; border-radius: 8px; padding: 12px; position: fixed; z-index: 1000; right: 30px; bottom: 30px; font-size: 14px; box-shadow: 0 4px 12px rgba(0,0,0,0.2); transition: 0.3s; }
+        #toast.show { visibility: visible; bottom: 40px; }
+        
+        #realtimeIndicator { font-size: 12px; color: #34c759; font-weight: bold; display: flex; align-items: center; gap: 5px; }
+        .pulse { display: inline-block; width: 8px; height: 8px; background-color: #34c759; border-radius: 50%; animation: blink 1.5s infinite; }
+        @keyframes blink { 0% { opacity: 1; } 50% { opacity: 0.3; } 100% { opacity: 1; } }
+
+        #loadingOverlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.8); display: none; align-items: center; justify-content: center; z-index: 9999; flex-direction: column; }
+        .spinner { border: 4px solid #f3f3f3; border-top: 4px solid #0071e3; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin-bottom: 10px; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    </style>
+</head>
+<body>
+    <div id="navbar-container"></div>
+    <script src="navbar.js"></script>
+
+    <div id="loadingOverlay"><div class="spinner"></div><div style="font-weight: bold; color: #0071e3;" id="loadingText">กำลังประมวลผล...</div></div>
+    <div id="toast">✅ บันทึกสำเร็จ!</div>
+
+    <div class="container">
+        <!-- หน้าจอ Login -->
+        <div id="loginScreen">
+            <div class="login-box">
+                <h2 style="margin-top: 0; color: #1d1d1f;">🔐 ระบบคลังสินค้า iServe</h2>
+                <p style="color: #86868b; font-size: 14px; margin-bottom: 25px;">กรุณากรอกรหัสผ่านเพื่อเข้าสู่ระบบของสาขา</p>
+                <input type="password" id="pinInput" placeholder="PIN CODE" onkeypress="if(event.key === 'Enter') login()">
+                <button class="btn-login" onclick="login()">เข้าสู่ระบบ</button>
+            </div>
+        </div>
+
+        <!-- หน้าจอ Dashboard -->
+        <div id="dashboardScreen">
+            <div class="header-box" id="mainHeader">
+                <div style="display: flex; flex-direction: column;">
+                    <h2 class="branch-title">📍 สาขา: <span id="displayBranchName" style="color:inherit;">กำลังโหลด...</span></h2>
+                    <div id="realtimeIndicator"><span class="pulse"></span> ⚡ เชื่อมต่อฐานข้อมูล Real-time สำเร็จ</div>
+                </div>
+                <button class="btn-logout" onclick="logout()">ออกจากระบบ</button>
+            </div>
+
+            <!-- 🌟 ปุ่มสลับโหมด 🌟 -->
+            <div class="db-selector">
+                <div id="tabConsign" class="db-tab active-consign" onclick="switchDB('CONSIGN')">📦 สต๊อก Consignment (เคลม)</div>
+                <div id="tabStore" class="db-tab" onclick="switchDB('STORE')">🛒 สต๊อกร้านค้า (Commercial)</div>
+            </div>
+
+            <input type="text" id="searchInput" class="search-box" placeholder="ค้นหา Part No, ชื่ออะไหล่, Job, Repair ID, หมายเหตุ..." onkeyup="filterTables()">
+
+            <div class="action-panel">
+                <!-- แผงบันทึกความเคลื่อนไหว -->
+                <div class="action-card" id="actionFormCard">
+                    <h3 id="formTitle" style="margin-top: 0; margin-bottom: 15px; border-bottom: 1px solid #e5e5e7; padding-bottom: 10px; color: #0071e3;">⚡ ทำรายการ: Consignment</h3>
+                    
+                    <!-- 🌟 ชุดปุ่ม Consignment 🌟 -->
+                    <div class="type-selector" id="consignButtons">
+                        <div class="type-btn active-consume" id="btnTypeConsume" onclick="selectActionType('เบิกใช้')">🔴 เบิกใช้</div>
+                        <div class="type-btn" id="btnTypeReceive" onclick="selectActionType('รับเข้า')">🟢 รับเข้า</div>
+                        <div class="type-btn" id="btnTypeReturn" onclick="selectActionType('ส่งคืน')">🟠 ส่งคืน</div>
+                        <div class="type-btn" id="btnTypeAudit" onclick="selectActionType('ตรวจนับยอด')">📝 ตรวจนับ</div>
+                        <div class="type-btn" id="btnTypeCompare" onclick="selectActionType('เทียบสต๊อก')">📊 เทียบไฟล์ Apple</div>
+                    </div>
+
+                    <!-- 🌟 ชุดปุ่ม สต๊อกร้านค้า 🌟 -->
+                    <div class="type-selector" id="storeButtons" style="display: none;">
+                        <div class="type-btn" id="btnTypeConsumeStore" onclick="selectActionType('เบิกใช้')">🔴 เบิกใช้</div>
+                        <div class="type-btn" id="btnTypeReceiveStore" onclick="selectActionType('รับเข้า')">🟢 รับเข้า</div>
+                        <div class="type-btn" id="btnTypeRefund" onclick="selectActionType('คืนสต๊อก')">↩️ คืนสต๊อก</div>
+                        <div class="type-btn" id="btnTypeTransferOut" onclick="selectActionType('โอนออก')">📤 โอนออก</div>
+                        <div class="type-btn" id="btnTypeTransferIn" onclick="selectActionType('รับโอน')">📥 รับโอน</div>
+                        <div class="type-btn" id="btnTypeAuditStore" onclick="selectActionType('ตรวจนับยอด')">📝 ตรวจนับ</div>
+                        <div class="type-btn" id="btnTypeCompareStore" onclick="selectActionType('เทียบสต๊อก')">📊 เทียบไฟล์ Excel</div>
+                    </div>
+                    
+                    <input type="hidden" id="actionType" value="เบิกใช้">
+
+                    <div id="standardForm">
+                        
+                        <!-- 🌟 ตัวเลือกโหมดยิงต่อเนื่อง (Auto-Save) 🌟 -->
+                        <div id="autoScanBox">
+                            <label>
+                                <input type="checkbox" id="autoScanToggle"> ⚡ โหมดยิงบาร์โค้ดต่อเนื่อง (สแกนปุ๊บ บันทึกปั๊บ จำนวน=1)
+                            </label>
+                        </div>
+
+                        <!-- 🌟 ตัวเลือกย่อยสำหรับ การเบิกใช้ในสต๊อกร้านค้า 🌟 -->
+                        <div id="consumeSubOptions" style="display: none;">
+                            <label style="display: block; font-size: 13px; margin-bottom: 8px; color: #0071e3; font-weight: bold;">เลือกรูปแบบการเบิกใช้ / ทำรายการ *</label>
+                            <div class="sub-option-grid">
+                                <label class="sub-radio-label">
+                                    <input type="radio" name="consumeMode" value="ขายขาด" onchange="updateConsumeModeBtn()" checked> 🛍️ ตัดขายขาด (ไม่รอของ)
+                                </label>
+                                <label class="sub-radio-label">
+                                    <input type="radio" name="consumeMode" value="เบิกใช้" onchange="updateConsumeModeBtn()"> 🔄 หมุนเวียน (หักสต๊อก+รอเข้า)
+                                </label>
+                                <label class="sub-radio-label">
+                                    <input type="radio" name="consumeMode" value="รับมัดจำ" onchange="updateConsumeModeBtn()"> 🟡 รับมัดจำ (ของหมด+รอสั่ง)
+                                </label>
+                                <label class="sub-radio-label">
+                                    <input type="radio" name="consumeMode" value="ล้างมัดจำ" onchange="updateConsumeModeBtn()"> ✅ ล้างมัดจำ (ส่งเครื่องปิดจ๊อบ)
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="flex-1">
+                                <label>Part Number *</label>
+                                <input type="text" id="partNo" placeholder="สแกนหรือพิมพ์รหัส..." onkeypress="handleBarcodeEnter(event)" autofocus>
+                            </div>
+                            <div style="width: 100px;">
+                                <label id="qtyLabel">จำนวน *</label>
+                                <input type="number" id="qty" value="1" min="0">
+                            </div>
+                        </div>
+
+                        <div class="form-row" id="transferBox" style="display:none;">
+                            <div class="flex-1">
+                                <label id="transferLabel">ระบุสาขาปลายทาง *</label>
+                                <input type="text" id="transferBranch" placeholder="เช่น iStudio Central World...">
+                            </div>
+                        </div>
+
+                        <div class="form-row" id="mainStockBox" style="display:none;">
+                            <div class="flex-1">
+                                <label style="color: #8e24aa;">สต๊อกคลังจริง (ระบบ POS/HQ)</label>
+                                <input type="number" id="mainStock" placeholder="ใส่ยอดจากระบบหลักเพื่อเปรียบเทียบ..." min="0">
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="flex-1">
+                                <label>Description (ชื่อสินค้า/อะไหล่)</label>
+                                <input type="text" id="partName" placeholder="เช่น แบตเตอรี่, ฟิล์มกระจก...">
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="flex-1">
+                                <label>Job / SO Number</label>
+                                <input type="text" id="jobNo" placeholder="อ้างอิงใบงานซ่อม/บิลขาย...">
+                            </div>
+                            <div class="flex-1" id="repairIdBox">
+                                <label>Repair ID (GSX)</label>
+                                <input type="text" id="repairId" placeholder="เช่น G123456789...">
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="flex-1">
+                                <label>หมายเหตุ</label>
+                                <input type="text" id="note" placeholder="ข้อความเพิ่มเติม...">
+                            </div>
+                        </div>
+
+                        <button class="btn-submit" id="btnSubmit" style="background-color: #0071e3;" onclick="submitStockAction()">บันทึกข้อมูล (ขายขาด)</button>
+                    </div>
+
+                    <div id="compareForm" style="display: none;">
+                        <p id="compareInstructions" style="font-size: 13px; color: #515154; margin-bottom: 10px;">
+                            <!-- ข้อความจะเปลี่ยนอัตโนมัติตามโหมด -->
+                        </p>
+                        <textarea id="excelPasteArea" rows="6" placeholder="วางข้อมูลจาก Excel ลงที่นี่... (Part No [เว้นวรรค/Tab] จำนวน)"></textarea>
+                        <button class="btn-submit" style="background-color: #00838f;" onclick="processExcelCompare()">🔍 เริ่มเปรียบเทียบยอด</button>
+                    </div>
+                </div>
+
+                <!-- แผงตารางสต๊อกปัจจุบัน -->
+                <div class="action-card" id="stockViewCard" style="padding: 0; display: flex; flex-direction: column;">
+                    <div style="padding: 15px 20px; background: #f5f5f7; border-bottom: 1px solid #e5e5e7; display: flex; justify-content: space-between; align-items: center;">
+                        <h3 id="stockBoxTitle" style="margin: 0; font-size: 16px;">📦 สต๊อกคงเหลือปัจจุบัน</h3>
+                    </div>
+                    <div class="table-container" style="border: none; border-radius: 0; flex: 1;">
+                        
+                        <table id="stockTable">
+                            <thead id="stockTableHead"><tr><th>Part No</th><th>Description</th><th style="text-align: center;">รอของเข้า</th><th style="text-align: right;">คงเหลือ</th></tr></thead>
+                            <tbody id="stockTableBody"><tr><td colspan="5" style="text-align: center; padding: 30px; color: #86868b;">กำลังเชื่อมต่อฐานข้อมูล...</td></tr></tbody>
+                        </table>
+                        
+                        <table id="compareTable" style="display: none;">
+                            <thead>
+                                <tr id="compareTableHeadRow">
+                                    <!-- หัวตารางจะเปลี่ยนตามโหมด -->
+                                </tr>
+                            </thead>
+                            <tbody id="compareTableBody"></tbody>
+                        </table>
+
+                    </div>
+                </div>
+            </div>
+
+            <!-- 🌟 แผงประวัติ -->
+            <div class="action-card" style="padding: 0; display: flex; flex-direction: column;" id="historyCard">
+                <div style="padding: 15px 20px; background: #f5f5f7; border-bottom: 1px solid #e5e5e7; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+                    <h3 id="logTitle" style="margin: 0; font-size: 16px;">🕒 ประวัติทำรายการล่าสุด</h3>
+                    
+                    <div class="date-filter-group">
+                        <select id="logTypeFilter" class="date-input" onchange="filterTables()" style="font-weight: bold; color: #0071e3; cursor: pointer;">
+                            <option value="ALL">รายการทั้งหมด</option>
+                            <option value="HAS_JOB">📌 เฉพาะที่มี Job No</option>
+                            <option value="เบิกใช้">🔴 เฉพาะ "เบิกใช้/หมุนเวียน"</option>
+                            <option value="ขายขาด">🛍️ เฉพาะ "ขายขาด"</option>
+                            <option value="รับเข้า">🟢 เฉพาะ "รับเข้า"</option>
+                            <option value="รับมัดจำ">🟡 เฉพาะ "รับมัดจำ"</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="table-container" style="border: none; border-radius: 0; max-height: 400px;">
+                    <table id="logTable">
+                        <thead id="logTableHead">
+                            <tr><th>วัน/เวลา</th><th>ประเภท</th><th>Part No</th><th>จำนวน</th><th>Job No</th><th id="thRepairId">Repair ID</th><th>หมายเหตุ</th></tr>
+                        </thead>
+                        <tbody id="logTableBody"><tr><td colspan="8" style="text-align: center; padding: 30px; color: #86868b;">กำลังเชื่อมต่อประวัติ...</td></tr></tbody>
+                    </table>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        // 🔥 1. นำชุด firebaseConfig มาวางตรงนี้ 🔥
+        const firebaseConfig = {
+            apiKey: "AIzaSyANa2y5uR8iBBmjxFprTG7BUooHjQfSTn0",
+            authDomain: "iserve-stock.firebaseapp.com",
+            projectId: "iserve-stock",
+            storageBucket: "iserve-stock.firebasestorage.app",
+            messagingSenderId: "191058506009",
+            appId: "1:191058506009:web:06d3a6ed639be8e8359588",
+            measurementId: "G-JPLR9P28NM"
+        };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+
+        let activeMode = "CONSIGN"; // 'CONSIGN' หรือ 'STORE'
+        let currentBranch = "";
+        let currentLocalStock = []; 
+        let unsubscribeStock = null;
+        let unsubscribeLogs = null;
+
+        window.onload = function() {
+            let savedBranch = localStorage.getItem('iserve_consign_branch');
+            if (savedBranch) {
+                currentBranch = savedBranch;
+                showDashboard();
+            }
+        };
+
+        function showLoading(text) { document.getElementById('loadingText').innerText = text; document.getElementById('loadingOverlay').style.display = 'flex'; }
+        function hideLoading() { document.getElementById('loadingOverlay').style.display = 'none'; }
+        
+        function showToast(message, isError = false) {
+            let toast = document.getElementById("toast");
+            toast.innerText = message;
+            toast.style.backgroundColor = isError ? "#ff3b30" : "#34c759";
+            toast.className = "show";
+            setTimeout(() => { toast.className = toast.className.replace("show", ""); }, 3000);
+        }
+
+        // 🌟 ฟังก์ชัน Login (อ่านจาก Firestore) 🌟
+        async function login() {
+            let pin = document.getElementById('pinInput').value.trim();
+            if (!pin) { alert("กรุณากรอก PIN"); return; }
+            
+            showLoading("กำลังตรวจสอบรหัสผ่าน...");
+            try {
+                // ระบบเช็คอัตโนมัติ: ถ้าตาราง Users ยังไม่มีใครเลย และกดรหัส 1234 ให้สร้าง Admin ให้
+                let checkUsers = await db.collection("Users").limit(1).get();
+                if (checkUsers.empty && pin === '1234') {
+                    await db.collection("Users").doc("admin_user").set({ branch: "Admin", pin: "1234" });
+                    alert("🎉 ยินดีต้อนรับ! ระบบได้สร้างผู้ใช้ 'Admin' (รหัส 1234) ให้คุณเป็นคนแรกเรียบร้อยแล้ว");
+                }
+
+                let snapshot = await db.collection("Users").where("pin", "==", pin).get();
+                hideLoading();
+                
+                if (!snapshot.empty) {
+                    currentBranch = snapshot.docs[0].data().branch;
+                    localStorage.setItem('iserve_consign_branch', currentBranch);
+                    document.getElementById('pinInput').value = "";
+                    showDashboard();
+                } else {
+                    alert("❌ รหัสผ่านไม่ถูกต้อง");
+                }
+            } catch (err) {
+                hideLoading();
+                alert("❌ เกิดข้อผิดพลาดในการเชื่อมต่อฐานข้อมูล: " + err.message);
+            }
+        }
+
+        function logout() {
+            if(confirm("ต้องการออกจากระบบใช่หรือไม่?")) {
+                localStorage.removeItem('iserve_consign_branch');
+                currentBranch = "";
+                
+                if (unsubscribeStock) unsubscribeStock();
+                if (unsubscribeLogs) unsubscribeLogs();
+                
+                document.getElementById('dashboardScreen').style.display = "none";
+                document.getElementById('loginScreen').style.display = "flex";
+            }
+        }
+
+        function showDashboard() {
+            document.getElementById('loginScreen').style.display = "none";
+            document.getElementById('dashboardScreen').style.display = "block";
+            
+            if (currentBranch === "Admin") {
+                document.getElementById('displayBranchName').innerText = "ผู้ดูแลระบบ (HQ)";
+                document.getElementById('displayBranchName').style.color = "#8e24aa"; 
+                document.getElementById('actionFormCard').style.display = "none";
+                document.querySelector('.action-panel').style.gridTemplateColumns = "1fr";
+            } else {
+                document.getElementById('displayBranchName').innerText = currentBranch;
+                if(activeMode === 'CONSIGN') document.getElementById('displayBranchName').style.color = "#0071e3";
+                else document.getElementById('displayBranchName').style.color = "#28a745";
+                
+                document.getElementById('actionFormCard').style.display = "block";
+                document.querySelector('.action-panel').style.gridTemplateColumns = "1fr 1fr";
+            }
+            
+            // 🌟 เริ่มการดึงข้อมูลแบบ Real-time 🌟
+            startRealtimeListeners();
+        }
+
+        function switchDB(mode) {
+            activeMode = mode;
+            document.getElementById("searchInput").value = ""; 
+            
+            if (mode === 'CONSIGN') {
+                document.getElementById('tabConsign').className = "db-tab active-consign";
+                document.getElementById('tabStore').className = "db-tab";
+                
+                document.getElementById('mainHeader').style.background = "#e8f2fc";
+                document.getElementById('mainHeader').style.borderColor = "#c8e1fa";
+                document.getElementById('formTitle').innerText = "⚡ ทำรายการ: Consignment (อะไหล่เคลม)";
+                document.getElementById('formTitle').style.color = "#0071e3";
+                
+                document.getElementById('consignButtons').style.display = "flex";
+                document.getElementById('storeButtons').style.display = "none";
+                document.getElementById('repairIdBox').style.display = "block"; 
+                
+                selectActionType('เบิกใช้');
+            } else {
+                document.getElementById('tabConsign').className = "db-tab";
+                document.getElementById('tabStore').className = "db-tab active-store";
+                
+                document.getElementById('mainHeader').style.background = "#e5f9e7";
+                document.getElementById('mainHeader').style.borderColor = "#a5d6a7";
+                document.getElementById('formTitle').innerText = "⚡ ทำรายการ: สต๊อกร้านค้า (อุปกรณ์/ฟิล์ม)";
+                document.getElementById('formTitle').style.color = "#28a745";
+                
+                document.getElementById('consignButtons').style.display = "none";
+                document.getElementById('storeButtons').style.display = "flex";
+                document.getElementById('repairIdBox').style.display = "none"; 
+                
+                selectActionType('เบิกใช้'); 
+            }
+            startRealtimeListeners(); // เปลี่ยนโหมดปุ๊บ สลับสายข้อมูลปั๊บ
+        }
+
+        // 🌟 ฟังก์ชันดึงข้อมูลแบบ Real-time (Firebase Snapshot) 🌟
+        function startRealtimeListeners() {
+            if (unsubscribeStock) unsubscribeStock();
+            if (unsubscribeLogs) unsubscribeLogs();
+
+            let stockQuery = db.collection("Stock").where("mode", "==", activeMode);
+            if (currentBranch !== "Admin") stockQuery = stockQuery.where("branch", "==", currentBranch);
+
+            unsubscribeStock = stockQuery.onSnapshot(snapshot => {
+                let stockArray = [];
+                snapshot.forEach(doc => { stockArray.push({ id: doc.id, ...doc.data() }); });
+                currentLocalStock = stockArray;
+                renderStockTable(stockArray);
+                filterTables(); // Re-apply filter
+            });
+
+            let logsQuery = db.collection("Logs").where("mode", "==", activeMode);
+            if (currentBranch !== "Admin") logsQuery = logsQuery.where("branch", "==", currentBranch);
+            
+            // ดึงมาแบบปกติ แล้วค่อยเอามา Sort ฝั่ง Client (เพื่อลดปัญหาต้องตั้งค่า Index บน Firebase ในวันแรก)
+            unsubscribeLogs = logsQuery.onSnapshot(snapshot => {
+                let logArray = [];
+                snapshot.forEach(doc => { logArray.push({ id: doc.id, ...doc.data() }); });
+                
+                logArray.sort((a, b) => b.timestamp - a.timestamp); // เรียงจากล่าสุดไปเก่า
+                let latest150 = logArray.slice(0, 150); // โชว์แค่ 150 รายการล่าสุด
+                
+                renderLogTable(latest150);
+                filterTables();
+            });
+        }
+
+        function renderStockTable(stockArray) {
+            let isAdmin = (currentBranch === "Admin");
+            let thead = `<tr>${isAdmin ? "<th>สาขา</th>" : ""}<th>Part No</th><th>Description</th><th style="text-align: center;">รอของเข้า</th><th style="text-align: right;">คงเหลือ</th></tr>`;
+            document.getElementById('stockTableHead').innerHTML = thead;
+
+            let tbody = document.getElementById('stockTableBody');
+            tbody.innerHTML = "";
+            if (stockArray.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; padding: 20px; color: #86868b;">ยังไม่มีข้อมูลสต๊อก</td></tr>`;
+                return;
+            }
+            
+            stockArray.sort((a, b) => parseInt(a.qty) - parseInt(b.qty));
+            stockArray.forEach(item => {
+                let qty = parseInt(item.qty);
+                let pending = parseInt(item.pendingQty);
+                let badgeClass = qty <= 2 ? "qty-low" : "qty-safe"; 
+                let pendingHtml = pending > 0 ? `<span class="qty-badge qty-pending">+${pending}</span>` : "-";
+                let branchHtml = isAdmin ? `<td><span class="branch-badge">${item.branch}</span></td>` : "";
+
+                tbody.innerHTML += `
+                    <tr data-branch="${item.branch}">
+                        ${branchHtml}
+                        <td style="font-weight: bold; color: #1d1d1f;">${item.partNo}</td>
+                        <td style="color: #515154;">${item.name || "-"}</td>
+                        <td style="text-align: center;">${pendingHtml}</td>
+                        <td style="text-align: right;"><span class="qty-badge ${badgeClass}">${qty}</span></td>
+                    </tr>
+                `;
+            });
+        }
+
+        function renderLogTable(logArray) {
+            let isAdmin = (currentBranch === "Admin");
+            let thead = `<tr><th>วัน/เวลา</th>${isAdmin ? "<th>สาขา</th>" : ""}<th>ประเภท</th><th>Part No</th><th>จำนวน</th><th>Job No</th><th id="thRepairId">Repair ID</th><th>หมายเหตุ</th></tr>`;
+            document.getElementById('logTableHead').innerHTML = thead;
+            
+            if(!isAdmin && activeMode === "STORE") document.getElementById('thRepairId').style.display = "none";
+            else document.getElementById('thRepairId').style.display = "table-cell";
+
+            let tbody = document.getElementById('logTableBody');
+            tbody.innerHTML = "";
+            if (logArray.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="8" style="text-align: center; padding: 20px; color: #86868b;">ไม่พบข้อมูลประวัติ</td></tr>`;
+                return;
+            }
+            
+            logArray.forEach(log => {
+                let logTypeClass = "";
+                if (log.type === "รับเข้า") logTypeClass = "log-receive";
+                else if (log.type === "เบิกใช้") logTypeClass = "log-consume";
+                else if (log.type === "ส่งคืน") logTypeClass = "log-return";
+                else if (log.type === "ตรวจนับยอด") logTypeClass = "log-audit";
+                else if (log.type === "ขายขาด") logTypeClass = "log-sell";
+                else if (log.type === "คืนสต๊อก") logTypeClass = "log-refund";
+                else if (log.type === "โอนออก") logTypeClass = "log-transfer-out";
+                else if (log.type === "รับโอน") logTypeClass = "log-transfer-in";
+                else if (log.type === "รับมัดจำ") logTypeClass = "log-deposit";
+                else if (log.type === "ล้างมัดจำ") logTypeClass = "log-clear-deposit";
+                else logTypeClass = "log-consume";
+
+                let repairHtml = (!isAdmin && activeMode === "STORE") ? "" : `<td>${log.repairId || "-"}</td>`;
+                let branchHtml = isAdmin ? `<td><span class="branch-badge">${log.branch}</span></td>` : "";
+
+                tbody.innerHTML += `
+                    <tr data-branch="${log.branch}">
+                        <td style="color: #515154;">${log.time}</td>
+                        ${branchHtml}
+                        <td><span class="log-type ${logTypeClass}">${log.type}</span></td>
+                        <td style="font-weight: bold;">${log.partNo}</td>
+                        <td>${log.qty}</td>
+                        <td>${log.job || "-"}</td>
+                        ${repairHtml}
+                        <td style="color: #515154; max-width: 250px; overflow: hidden; text-overflow: ellipsis;">${log.note || "-"}</td>
+                    </tr>
+                `;
+            });
+        }
+
+        // 🌟 ฟังก์ชันบันทึกข้อมูล (เขียนลง Firebase) เร็วระดับเสี้ยววินาที 🌟
+        async function submitStockAction() {
+            let type = document.getElementById('actionType').value;
+            let partNo = document.getElementById('partNo').value.trim();
+            let partName = document.getElementById('partName').value.trim();
+            let qty = parseInt(document.getElementById('qty').value) || 0;
+            let jobNo = document.getElementById('jobNo').value.trim();
+            let repairId = document.getElementById('repairId').value.trim();
+            let note = document.getElementById('note').value.trim();
+            let transferBranch = document.getElementById('transferBranch').value.trim();
+            let mainStock = document.getElementById('mainStock').value.trim();
+
+            if (!partNo) { alert("⚠️ กรุณาระบุรหัสอะไหล่/สินค้า (Part Number)"); return; }
+            if (qty < 0) { alert("⚠️ จำนวนต้องไม่ติดลบ"); return; }
+            
+            if (activeMode === "CONSIGN" && type === "เบิกใช้" && (!jobNo && !repairId)) {
+                if(!confirm("คุณไม่ได้ระบุ Job หรือ Repair ID แน่ใจหรือไม่ที่จะบันทึก?")) return;
+            }
+
+            if ((type === "โอนออก" || type === "รับโอน") && !transferBranch) {
+                alert("⚠️ กรุณาระบุสาขาที่โอน/รับโอนด้วยครับ"); return;
+            }
+
+            let finalNote = note;
+            if (type === "โอนออก") finalNote = "โอนไป: " + transferBranch + (note ? " | " + note : "");
+            else if (type === "รับโอน") finalNote = "รับจาก: " + transferBranch + (note ? " | " + note : "");
+
+            let actualTypeToSubmit = type;
+            if (activeMode === "STORE" && type === "เบิกใช้") {
+                let consumeMode = document.querySelector('input[name="consumeMode"]:checked');
+                if (consumeMode) actualTypeToSubmit = consumeMode.value;
+            }
+
+            let btnSubmit = document.getElementById('btnSubmit');
+            btnSubmit.disabled = true;
+
+            try {
+                // สร้าง ID ของเอกสาร (แยกตามโหมด, สาขา และ Part No)
+                let docId = `${activeMode}_${currentBranch}_${partNo.toUpperCase()}`;
+                let stockRef = db.collection("Stock").doc(docId);
+                
+                await db.runTransaction(async (transaction) => {
+                    let stockDoc = await transaction.get(stockRef);
+                    let currentQty = 0;
+                    let currentPending = 0;
+                    let existingName = partName || "สินค้าทั่วไป";
+                    
+                    if(stockDoc.exists) {
+                        currentQty = stockDoc.data().qty || 0;
+                        currentPending = stockDoc.data().pendingQty || 0;
+                        if (!partName && stockDoc.data().name) existingName = stockDoc.data().name;
+                    }
+                    
+                    let newQty = currentQty;
+                    let newPending = currentPending;
+
+                    // 🌟 ตรรกะการคำนวณ 🌟
+                    if (actualTypeToSubmit === "เบิกใช้") { // โหมดหมุนเวียนของร้านค้า และ เบิกของ Consign
+                        newQty = currentQty - qty; 
+                        if (activeMode === "STORE") newPending = currentPending + qty;      
+                    } else if (actualTypeToSubmit === "ขายขาด" || actualTypeToSubmit === "โอนออก" || actualTypeToSubmit === "ส่งคืน") {
+                        newQty = currentQty - qty;         
+                    } else if (actualTypeToSubmit === "รับเข้า") {
+                        newQty = currentQty + qty;       
+                        newPending = currentPending - qty; 
+                        if (newPending < 0) newPending = 0; 
+                    } else if (actualTypeToSubmit === "คืนสต๊อก" || actualTypeToSubmit === "รับโอน") {
+                        newQty = currentQty + qty;         
+                    } else if (actualTypeToSubmit === "รับมัดจำ") {
+                        newPending = currentPending + qty;
+                    } else if (actualTypeToSubmit === "ล้างมัดจำ") {
+                        newQty = currentQty - qty; 
+                    } else if (actualTypeToSubmit === "ตรวจนับยอด") {
+                        var diffSys = qty - currentQty;
+                        newQty = qty; 
+                        var diffSysText = (diffSys === 0) ? "ตรงกัน" : (diffSys > 0 ? "เกิน +" + diffSys : "ขาด " + diffSys);
+                        var noteStr = "ระบบเรามี " + currentQty + ", นับจริง " + qty + " (" + diffSysText + ")";
+                        
+                        if (mainStock !== "") {
+                            var ms = parseInt(mainStock);
+                            var diffMain = qty - ms;
+                            var diffMainText = (diffMain === 0) ? "ตรงกัน" : (diffMain > 0 ? "เกิน +" + diffMain : "ขาด " + diffMain);
+                            noteStr += " | ระบบPOS/HQมี " + ms + " (" + diffMainText + ")";
+                        }
+                        finalNote = noteStr + (finalNote !== "-" && finalNote !== "" ? " | " + finalNote : "");
+                    }
+
+                    // อัปเดตข้อมูลตาราง Stock
+                    transaction.set(stockRef, {
+                        mode: activeMode,
+                        branch: currentBranch,
+                        partNo: partNo.toUpperCase(),
+                        name: existingName,
+                        qty: newQty,
+                        pendingQty: newPending
+                    }, { merge: true });
+
+                    // เพิ่มข้อมูลตาราง Logs (ประวัติ)
+                    let logRef = db.collection("Logs").doc(); // สุ่ม ID ใหม่
+                    transaction.set(logRef, {
+                        mode: activeMode,
+                        branch: currentBranch,
+                        timestamp: Date.now(), // สำหรับเรียงลำดับ
+                        time: new Date().toLocaleString('th-TH', { hour12: false }), // โชว์ในตาราง
+                        type: actualTypeToSubmit,
+                        partNo: partNo.toUpperCase(),
+                        qty: qty,
+                        job: jobNo || "-",
+                        repairId: repairId || "-",
+                        note: finalNote || "-"
+                    });
+                });
+
+                // สำเร็จ! (เคลียร์ช่องข้อมูลทันที)
+                showToast(`✅ บันทึก ${actualTypeToSubmit} สำเร็จ!`);
+                document.getElementById('partNo').value = "";
+                document.getElementById('partName').value = "";
+                
+                // ถ้ายิงอัตโนมัติ ไม่ต้องเคลียร์ Qty
+                let isAuto = document.getElementById('autoScanToggle') && document.getElementById('autoScanToggle').checked;
+                if (!isAuto) document.getElementById('qty').value = "1";
+                
+                document.getElementById('jobNo').value = "";
+                document.getElementById('repairId').value = "";
+                document.getElementById('note').value = "";
+                document.getElementById('transferBranch').value = "";
+                document.getElementById('mainStock').value = "";
+                document.getElementById('partNo').focus();
+
+            } catch (error) {
+                alert("❌ เกิดข้อผิดพลาดในการบันทึก: " + error.message);
+            } finally {
+                btnSubmit.disabled = false;
+            }
+        }
+
+        // โค้ดส่วน UI ของปุ่ม (เหมือนเดิม)
+        function selectActionType(type) {
+            document.getElementById('actionType').value = type;
+            let btnSubmit = document.getElementById('btnSubmit');
+            let qtyLabel = document.getElementById('qtyLabel');
+            
+            document.getElementById('standardForm').style.display = "block";
+            document.getElementById('compareForm').style.display = "none";
+            document.getElementById('stockTable').style.display = "table";
+            document.getElementById('compareTable').style.display = "none";
+            document.getElementById('stockBoxTitle').innerText = "📦 สต๊อกคงเหลือปัจจุบัน";
+            document.getElementById('historyCard').style.display = "flex";
+            
+            let btnIds = ['btnTypeConsume', 'btnTypeReceive', 'btnTypeReturn', 'btnTypeAudit', 'btnTypeCompare', 'btnTypeCompareStore',
+                          'btnTypeConsumeStore', 'btnTypeReceiveStore', 'btnTypeRefund', 'btnTypeTransferOut', 'btnTypeTransferIn', 'btnTypeAuditStore'];
+            btnIds.forEach(id => { if(document.getElementById(id)) document.getElementById(id).className = "type-btn"; });
+            
+            qtyLabel.innerText = "จำนวน *"; 
+            document.getElementById('transferBox').style.display = "none";
+            document.getElementById('mainStockBox').style.display = "none";
+            document.getElementById('consumeSubOptions').style.display = "none";
+            document.getElementById('transferBranch').value = "";
+            document.getElementById('mainStock').value = "";
+            
+            let autoScanBox = document.getElementById('autoScanBox');
+            let safeForAuto = ["เบิกใช้", "รับเข้า", "ส่งคืน", "คืนสต๊อก", "ตรวจนับยอด"];
+            if (safeForAuto.includes(type)) {
+                if(autoScanBox) autoScanBox.style.display = "inline-block";
+            } else {
+                if(autoScanBox) autoScanBox.style.display = "none";
+                if(document.getElementById('autoScanToggle')) document.getElementById('autoScanToggle').checked = false; 
+            }
+            
+            if (type === "เบิกใช้") {
+                if (activeMode === 'CONSIGN') {
+                    document.getElementById('btnTypeConsume').className = "type-btn active-consume";
+                    btnSubmit.style.backgroundColor = "#ff3b30";
+                    btnSubmit.innerText = "บันทึกข้อมูล (เบิกใช้)";
+                } else {
+                    document.getElementById('btnTypeConsumeStore').className = "type-btn active-consume";
+                    document.getElementById('consumeSubOptions').style.display = "block"; 
+                    updateConsumeModeBtn(); 
+                }
+            } else if (type === "รับเข้า") {
+                if(activeMode === 'CONSIGN') document.getElementById('btnTypeReceive').className = "type-btn active-receive";
+                else document.getElementById('btnTypeReceiveStore').className = "type-btn active-receive";
+                btnSubmit.style.backgroundColor = "#34c759";
+                btnSubmit.innerText = "บันทึกข้อมูล (รับของเข้า)";
+            } else if (type === "ส่งคืน") {
+                document.getElementById('btnTypeReturn').className = "type-btn active-return";
+                btnSubmit.style.backgroundColor = "#ff9500";
+                btnSubmit.innerText = "บันทึกข้อมูล (ส่งคืน)";
+            } else if (type === "คืนสต๊อก") {
+                document.getElementById('btnTypeRefund').className = "type-btn active-refund";
+                btnSubmit.style.backgroundColor = "#00a88f";
+                btnSubmit.innerText = "บันทึกข้อมูล (ลูกค้าคืนของ)";
+            } else if (type === "โอนออก") {
+                document.getElementById('btnTypeTransferOut').className = "type-btn active-transfer-out";
+                btnSubmit.style.backgroundColor = "#d81b60";
+                btnSubmit.innerText = "บันทึกข้อมูล (โอนออกให้สาขาอื่น)";
+                document.getElementById('transferBox').style.display = "flex";
+            } else if (type === "รับโอน") {
+                document.getElementById('btnTypeTransferIn').className = "type-btn active-transfer-in";
+                btnSubmit.style.backgroundColor = "#1e88e5";
+                btnSubmit.innerText = "บันทึกข้อมูล (รับโอนจากสาขาอื่น)";
+                document.getElementById('transferBox').style.display = "flex";
+                document.getElementById('transferLabel').innerText = "ระบุสาขาต้นทาง (รับจากใคร) *";
+            } else if (type === "ตรวจนับยอด") {
+                if(activeMode === 'CONSIGN') document.getElementById('btnTypeAudit').className = "type-btn active-audit";
+                else document.getElementById('btnTypeAuditStore').className = "type-btn active-audit";
+                btnSubmit.style.backgroundColor = "#8e24aa"; 
+                btnSubmit.innerText = "บันทึกข้อมูล (ปรับยอดจริง)";
+                qtyLabel.innerText = "นับจริงหน้าตู้ *"; 
+                document.getElementById('mainStockBox').style.display = "flex";
+            } else if (type === "เทียบสต๊อก") {
+                if(activeMode === 'CONSIGN') {
+                    document.getElementById('btnTypeCompare').className = "type-btn active-compare";
+                    document.getElementById('compareInstructions').innerHTML = "<strong>วิธีใช้:</strong> เปิดไฟล์ Excel จาก <b>Apple</b> > ลากคลุมคอลัมน์ <b>Part Number</b> และ <b>จำนวน</b> > กด Copy (Ctrl+C) > นำมาคลิกขวา Paste (Ctrl+V) ลงในกล่องด้านล่างนี้";
+                } else {
+                    document.getElementById('btnTypeCompareStore').className = "type-btn active-compare";
+                    document.getElementById('compareInstructions').innerHTML = "<strong>วิธีใช้:</strong> เปิดไฟล์ Excel จาก <b>ระบบ POS/HQ</b> > ลากคลุมคอลัมน์ <b>Part Number</b> และ <b>จำนวน</b> > กด Copy (Ctrl+C) > นำมาคลิกขวา Paste (Ctrl+V) ลงในกล่องด้านล่างนี้";
+                }
+                document.getElementById('standardForm').style.display = "none";
+                document.getElementById('compareForm').style.display = "block";
+                document.getElementById('historyCard').style.display = "none"; 
+                document.getElementById('excelPasteArea').focus();
+            }
+            if(type !== "เทียบสต๊อก") document.getElementById('partNo').focus();
+        }
+
+        function updateConsumeModeBtn() {
+            let mode = document.querySelector('input[name="consumeMode"]:checked').value;
+            let btn = document.getElementById('btnSubmit');
+            if(mode === "ขายขาด") { btn.style.backgroundColor = "#0071e3"; btn.innerText = "บันทึกข้อมูล (ขายขาด)"; }
+            else if(mode === "เบิกใช้") { btn.style.backgroundColor = "#ff3b30"; btn.innerText = "บันทึกข้อมูล (หมุนเวียน/เบิกใช้)"; }
+            else if(mode === "รับมัดจำ") { btn.style.backgroundColor = "#f1c40f"; btn.innerText = "บันทึกข้อมูล (รับมัดจำจองของ)"; }
+            else if(mode === "ล้างมัดจำ") { btn.style.backgroundColor = "#388e3c"; btn.innerText = "บันทึกข้อมูล (ล้างมัดจำปิดบิล)"; }
+        }
+
+        function handleBarcodeEnter(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                let isAuto = document.getElementById('autoScanToggle') && document.getElementById('autoScanToggle').checked;
+                let actionType = document.getElementById('actionType').value;
+                if (isAuto && ["เบิกใช้", "รับเข้า", "ส่งคืน", "คืนสต๊อก", "ตรวจนับยอด"].includes(actionType)) {
+                    document.getElementById('qty').value = 1; 
+                    submitStockAction();
+                } else {
+                    document.getElementById('qty').focus();
+                }
+            }
+        }
+
+        function filterTables() {
+            let input = document.getElementById("searchInput").value.toUpperCase();
+            
+            let stockRows = document.getElementById("stockTableBody").getElementsByTagName("tr");
+            for (let i = 0; i < stockRows.length; i++) {
+                let rowText = stockRows[i].innerText.toUpperCase();
+                if (rowText.indexOf(input) > -1 || stockRows[i].innerHTML.includes("กำลังเชื่อมต่อ")) stockRows[i].style.display = "";
+                else stockRows[i].style.display = "none";
+            }
+
+            let compRows = document.getElementById("compareTableBody").getElementsByTagName("tr");
+            for (let i = 0; i < compRows.length; i++) {
+                let rowText = compRows[i].innerText.toUpperCase();
+                if (rowText.indexOf(input) > -1) compRows[i].style.display = "";
+                else compRows[i].style.display = "none";
+            }
+
+            let logFilter = document.getElementById("logTypeFilter") ? document.getElementById("logTypeFilter").value : "ALL";
+            let logRows = document.getElementById("logTableBody").getElementsByTagName("tr");
+            
+            for (let i = 0; i < logRows.length; i++) {
+                let row = logRows[i];
+                let rowText = row.innerText.toUpperCase();
+                let matchType = true;
+                if (logFilter !== "ALL" && !row.innerHTML.includes("กำลังเชื่อมต่อ")) {
+                    let typeCellIndex = (currentBranch === "Admin") ? 2 : 1;
+                    let jobCellIndex = (currentBranch === "Admin") ? 5 : 4;
+                    let typeCell = row.cells[typeCellIndex] ? row.cells[typeCellIndex].innerText.trim() : "";
+                    let jobCell = row.cells[jobCellIndex] ? row.cells[jobCellIndex].innerText.trim() : "";
+                    if (logFilter === "HAS_JOB") {
+                        if (jobCell === "-" || jobCell === "") matchType = false;
+                    } else {
+                        if (typeCell !== logFilter) matchType = false;
+                    }
+                }
+                if ((rowText.indexOf(input) > -1 || row.innerHTML.includes("กำลังเชื่อมต่อ")) && matchType) row.style.display = "";
+                else row.style.display = "none";
+            }
+        }
+
+        function processExcelCompare() {
+            let rawData = document.getElementById('excelPasteArea').value.trim();
+            if(!rawData) { alert("กรุณาวางข้อมูลจาก Excel ก่อนครับ"); return; }
+            
+            let rows = rawData.split('\n');
+            let appleStockMap = {}; 
+            
+            rows.forEach(row => {
+                let cols = row.split('\t'); 
+                if(cols.length >= 1) {
+                    let part = cols[0].trim().toUpperCase();
+                    let qty = 0;
+                    if(cols.length >= 2) qty = parseInt(cols[1].replace(/,/g, '').trim()) || 0;
+                    if(part) appleStockMap[part] = qty;
+                }
+            });
+
+            let iserveStockMap = {};
+            currentLocalStock.forEach(item => { iserveStockMap[item.partNo.toUpperCase()] = parseInt(item.qty); });
+
+            let compareResults = [];
+            let allUniqueParts = new Set([...Object.keys(appleStockMap), ...Object.keys(iserveStockMap)]);
+
+            allUniqueParts.forEach(part => {
+                let iQty = iserveStockMap[part] || 0;
+                let aQty = appleStockMap[part] || 0;
+                let diff = aQty - iQty; 
+                if (iQty === 0 && aQty === 0) return;
+                compareResults.push({ partNo: part, iserveQty: iQty, appleQty: aQty, diff: diff });
+            });
+            compareResults.sort((a, b) => Math.abs(b.diff) - Math.abs(a.diff));
+
+            let thApple = (activeMode === 'CONSIGN') ? "ยอดไฟล์ Apple" : "ยอดไฟล์ POS";
+            document.getElementById('compareTableHeadRow').innerHTML = `<th>Part No</th><th style="text-align: right;">ยอดระบบ iServe</th><th style="text-align: right;">${thApple}</th><th style="text-align: center;">ผลต่าง (Diff)</th>`;
+            
+            let tbody = document.getElementById('compareTableBody');
+            tbody.innerHTML = "";
+            
+            if(compareResults.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="4" style="text-align: center; padding: 20px;">ไม่พบความแตกต่าง</td></tr>`;
+            } else {
+                compareResults.forEach(res => {
+                    let diffClass = "diff-match", diffText = "ตรงกัน";
+                    if(res.diff > 0) { diffClass = "diff-extra"; diffText = `+${res.diff} (ใน iServe ขาดไป)`; } 
+                    else if (res.diff < 0) { diffClass = "diff-missing"; diffText = `${res.diff} (ใน iServe เกินมา)`; }
+                    tbody.innerHTML += `<tr><td style="font-weight: bold;">${res.partNo}</td><td style="text-align: right;">${res.iserveQty}</td><td style="text-align: right; font-weight: bold; color: #0071e3;">${res.appleQty}</td><td class="${diffClass}" style="text-align: center;">${diffText}</td></tr>`;
+                });
+            }
+
+            document.getElementById('stockTable').style.display = "none";
+            document.getElementById('compareTable').style.display = "table";
+            let title = activeMode === 'CONSIGN' ? "📊 ผลการเปรียบเทียบสต๊อกกับไฟล์ Apple" : "📊 ผลการเปรียบเทียบสต๊อกกับไฟล์ POS/HQ";
+            document.getElementById('stockBoxTitle').innerText = title;
+            document.getElementById('searchInput').value = ""; 
+            filterTables();
+        }
+    </script>
+</body>
+</html>

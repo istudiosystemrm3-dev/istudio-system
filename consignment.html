@@ -6,7 +6,7 @@
     <title>ระบบจัดการสต๊อกรวม - iServe (Firebase)</title>
     <link rel="stylesheet" href="style.css">
     
-    <!-- 🌟 โหลด Firebase SDK (Compat Version สำหรับ HTML ธรรมดา) 🌟 -->
+    <!-- 🌟 โหลด Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
 
@@ -144,7 +144,7 @@
                 <button class="btn-logout" onclick="logout()">ออกจากระบบ</button>
             </div>
 
-            <!-- 🌟 ปุ่มสลับโหมด 🌟 -->
+            <!-- ปุ่มสลับโหมด -->
             <div class="db-selector">
                 <div id="tabConsign" class="db-tab active-consign" onclick="switchDB('CONSIGN')">📦 สต๊อก Consignment (เคลม)</div>
                 <div id="tabStore" class="db-tab" onclick="switchDB('STORE')">🛒 สต๊อกร้านค้า (Commercial)</div>
@@ -153,11 +153,9 @@
             <input type="text" id="searchInput" class="search-box" placeholder="ค้นหา Part No, ชื่ออะไหล่, Job, Repair ID, หมายเหตุ..." onkeyup="filterTables()">
 
             <div class="action-panel">
-                <!-- แผงบันทึกความเคลื่อนไหว -->
                 <div class="action-card" id="actionFormCard">
                     <h3 id="formTitle" style="margin-top: 0; margin-bottom: 15px; border-bottom: 1px solid #e5e5e7; padding-bottom: 10px; color: #0071e3;">⚡ ทำรายการ: Consignment</h3>
                     
-                    <!-- 🌟 ชุดปุ่ม Consignment 🌟 -->
                     <div class="type-selector" id="consignButtons">
                         <div class="type-btn active-consume" id="btnTypeConsume" onclick="selectActionType('เบิกใช้')">🔴 เบิกใช้</div>
                         <div class="type-btn" id="btnTypeReceive" onclick="selectActionType('รับเข้า')">🟢 รับเข้า</div>
@@ -166,7 +164,6 @@
                         <div class="type-btn" id="btnTypeCompare" onclick="selectActionType('เทียบสต๊อก')">📊 เทียบไฟล์ Apple</div>
                     </div>
 
-                    <!-- 🌟 ชุดปุ่ม สต๊อกร้านค้า 🌟 -->
                     <div class="type-selector" id="storeButtons" style="display: none;">
                         <div class="type-btn" id="btnTypeConsumeStore" onclick="selectActionType('เบิกใช้')">🔴 เบิกใช้</div>
                         <div class="type-btn" id="btnTypeReceiveStore" onclick="selectActionType('รับเข้า')">🟢 รับเข้า</div>
@@ -180,30 +177,17 @@
                     <input type="hidden" id="actionType" value="เบิกใช้">
 
                     <div id="standardForm">
-                        
-                        <!-- 🌟 ตัวเลือกโหมดยิงต่อเนื่อง (Auto-Save) 🌟 -->
                         <div id="autoScanBox">
-                            <label>
-                                <input type="checkbox" id="autoScanToggle"> ⚡ โหมดยิงบาร์โค้ดต่อเนื่อง (สแกนปุ๊บ บันทึกปั๊บ จำนวน=1)
-                            </label>
+                            <label><input type="checkbox" id="autoScanToggle"> ⚡ โหมดยิงบาร์โค้ดต่อเนื่อง (สแกนปุ๊บ บันทึกปั๊บ จำนวน=1)</label>
                         </div>
 
-                        <!-- 🌟 ตัวเลือกย่อยสำหรับ การเบิกใช้ในสต๊อกร้านค้า 🌟 -->
                         <div id="consumeSubOptions" style="display: none;">
                             <label style="display: block; font-size: 13px; margin-bottom: 8px; color: #0071e3; font-weight: bold;">เลือกรูปแบบการเบิกใช้ / ทำรายการ *</label>
                             <div class="sub-option-grid">
-                                <label class="sub-radio-label">
-                                    <input type="radio" name="consumeMode" value="ขายขาด" onchange="updateConsumeModeBtn()" checked> 🛍️ ตัดขายขาด (ไม่รอของ)
-                                </label>
-                                <label class="sub-radio-label">
-                                    <input type="radio" name="consumeMode" value="เบิกใช้" onchange="updateConsumeModeBtn()"> 🔄 หมุนเวียน (หักสต๊อก+รอเข้า)
-                                </label>
-                                <label class="sub-radio-label">
-                                    <input type="radio" name="consumeMode" value="รับมัดจำ" onchange="updateConsumeModeBtn()"> 🟡 รับมัดจำ (ของหมด+รอสั่ง)
-                                </label>
-                                <label class="sub-radio-label">
-                                    <input type="radio" name="consumeMode" value="ล้างมัดจำ" onchange="updateConsumeModeBtn()"> ✅ ล้างมัดจำ (ส่งเครื่องปิดจ๊อบ)
-                                </label>
+                                <label class="sub-radio-label"><input type="radio" name="consumeMode" value="ขายขาด" onchange="updateConsumeModeBtn()" checked> 🛍️ ตัดขายขาด (ไม่รอของ)</label>
+                                <label class="sub-radio-label"><input type="radio" name="consumeMode" value="เบิกใช้" onchange="updateConsumeModeBtn()"> 🔄 หมุนเวียน (หักสต๊อก+รอเข้า)</label>
+                                <label class="sub-radio-label"><input type="radio" name="consumeMode" value="รับมัดจำ" onchange="updateConsumeModeBtn()"> 🟡 รับมัดจำ (ของหมด+รอสั่ง)</label>
+                                <label class="sub-radio-label"><input type="radio" name="consumeMode" value="ล้างมัดจำ" onchange="updateConsumeModeBtn()"> ✅ ล้างมัดจำ (ส่งเครื่องปิดจ๊อบ)</label>
                             </div>
                         </div>
 
@@ -218,86 +202,45 @@
                             </div>
                         </div>
 
-                        <div class="form-row" id="transferBox" style="display:none;">
-                            <div class="flex-1">
-                                <label id="transferLabel">ระบุสาขาปลายทาง *</label>
-                                <input type="text" id="transferBranch" placeholder="เช่น iStudio Central World...">
-                            </div>
-                        </div>
-
-                        <div class="form-row" id="mainStockBox" style="display:none;">
-                            <div class="flex-1">
-                                <label style="color: #8e24aa;">สต๊อกคลังจริง (ระบบ POS/HQ)</label>
-                                <input type="number" id="mainStock" placeholder="ใส่ยอดจากระบบหลักเพื่อเปรียบเทียบ..." min="0">
-                            </div>
-                        </div>
-
+                        <div class="form-row" id="transferBox" style="display:none;"><div class="flex-1"><label id="transferLabel">ระบุสาขาปลายทาง *</label><input type="text" id="transferBranch" placeholder="เช่น iStudio Central World..."></div></div>
+                        <div class="form-row" id="mainStockBox" style="display:none;"><div class="flex-1"><label style="color: #8e24aa;">สต๊อกคลังจริง (ระบบ POS/HQ)</label><input type="number" id="mainStock" placeholder="ใส่ยอดจากระบบหลักเพื่อเปรียบเทียบ..." min="0"></div></div>
+                        <div class="form-row"><div class="flex-1"><label>Description (ชื่อสินค้า/อะไหล่)</label><input type="text" id="partName" placeholder="เช่น แบตเตอรี่, ฟิล์มกระจก..."></div></div>
                         <div class="form-row">
-                            <div class="flex-1">
-                                <label>Description (ชื่อสินค้า/อะไหล่)</label>
-                                <input type="text" id="partName" placeholder="เช่น แบตเตอรี่, ฟิล์มกระจก...">
-                            </div>
+                            <div class="flex-1"><label>Job / SO Number</label><input type="text" id="jobNo" placeholder="อ้างอิงใบงานซ่อม/บิลขาย..."></div>
+                            <div class="flex-1" id="repairIdBox"><label>Repair ID (GSX)</label><input type="text" id="repairId" placeholder="เช่น G123456789..."></div>
                         </div>
-
-                        <div class="form-row">
-                            <div class="flex-1">
-                                <label>Job / SO Number</label>
-                                <input type="text" id="jobNo" placeholder="อ้างอิงใบงานซ่อม/บิลขาย...">
-                            </div>
-                            <div class="flex-1" id="repairIdBox">
-                                <label>Repair ID (GSX)</label>
-                                <input type="text" id="repairId" placeholder="เช่น G123456789...">
-                            </div>
-                        </div>
-
-                        <div class="form-row">
-                            <div class="flex-1">
-                                <label>หมายเหตุ</label>
-                                <input type="text" id="note" placeholder="ข้อความเพิ่มเติม...">
-                            </div>
-                        </div>
+                        <div class="form-row"><div class="flex-1"><label>หมายเหตุ</label><input type="text" id="note" placeholder="ข้อความเพิ่มเติม..."></div></div>
 
                         <button class="btn-submit" id="btnSubmit" style="background-color: #0071e3;" onclick="submitStockAction()">บันทึกข้อมูล (ขายขาด)</button>
                     </div>
 
                     <div id="compareForm" style="display: none;">
-                        <p id="compareInstructions" style="font-size: 13px; color: #515154; margin-bottom: 10px;">
-                            <!-- ข้อความจะเปลี่ยนอัตโนมัติตามโหมด -->
-                        </p>
+                        <p id="compareInstructions" style="font-size: 13px; color: #515154; margin-bottom: 10px;"></p>
                         <textarea id="excelPasteArea" rows="6" placeholder="วางข้อมูลจาก Excel ลงที่นี่... (Part No [เว้นวรรค/Tab] จำนวน)"></textarea>
                         <button class="btn-submit" style="background-color: #00838f;" onclick="processExcelCompare()">🔍 เริ่มเปรียบเทียบยอด</button>
                     </div>
                 </div>
 
-                <!-- แผงตารางสต๊อกปัจจุบัน -->
                 <div class="action-card" id="stockViewCard" style="padding: 0; display: flex; flex-direction: column;">
                     <div style="padding: 15px 20px; background: #f5f5f7; border-bottom: 1px solid #e5e5e7; display: flex; justify-content: space-between; align-items: center;">
                         <h3 id="stockBoxTitle" style="margin: 0; font-size: 16px;">📦 สต๊อกคงเหลือปัจจุบัน</h3>
                     </div>
                     <div class="table-container" style="border: none; border-radius: 0; flex: 1;">
-                        
                         <table id="stockTable">
                             <thead id="stockTableHead"><tr><th>Part No</th><th>Description</th><th style="text-align: center;">รอของเข้า</th><th style="text-align: right;">คงเหลือ</th></tr></thead>
                             <tbody id="stockTableBody"><tr><td colspan="5" style="text-align: center; padding: 30px; color: #86868b;">กำลังเชื่อมต่อฐานข้อมูล...</td></tr></tbody>
                         </table>
-                        
                         <table id="compareTable" style="display: none;">
-                            <thead>
-                                <tr id="compareTableHeadRow">
-                                    <!-- หัวตารางจะเปลี่ยนตามโหมด -->
-                                </tr>
-                            </thead>
+                            <thead><tr id="compareTableHeadRow"></tr></thead>
                             <tbody id="compareTableBody"></tbody>
                         </table>
-
                     </div>
                 </div>
             </div>
 
-            <!-- 🌟 แผงประวัติ -->
             <div class="action-card" style="padding: 0; display: flex; flex-direction: column;" id="historyCard">
                 <div style="padding: 15px 20px; background: #f5f5f7; border-bottom: 1px solid #e5e5e7; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
-                    <h3 id="logTitle" style="margin: 0; font-size: 16px;">🕒 ประวัติทำรายการล่าสุด</h3>
+                    <h3 id="logTitle" style="margin: 0; font-size: 16px;">🕒 ประวัติทำรายการ 150 รายการล่าสุด</h3>
                     
                     <div class="date-filter-group">
                         <select id="logTypeFilter" class="date-input" onchange="filterTables()" style="font-weight: bold; color: #0071e3; cursor: pointer;">
@@ -308,6 +251,13 @@
                             <option value="รับเข้า">🟢 เฉพาะ "รับเข้า"</option>
                             <option value="รับมัดจำ">🟡 เฉพาะ "รับมัดจำ"</option>
                         </select>
+
+                        <!-- 🌟 ระบบกู้คืนการตั้งค่าการดึงรายงาน 🌟 -->
+                        <input type="date" id="filterStartDate" class="date-input">
+                        <span style="font-size: 13px; color: #515154; font-weight: bold;">ถึง</span>
+                        <input type="date" id="filterEndDate" class="date-input">
+                        <button onclick="fetchReport()" class="btn-filter">🔍 ดึงรายงาน</button>
+                        <button onclick="clearReportFilter()" class="btn-clear">ล้าง</button>
                     </div>
                 </div>
 
@@ -325,7 +275,7 @@
     </div>
 
     <script>
-        // 🔥 1. นำชุด firebaseConfig มาวางตรงนี้ 🔥
+        // ใช้ Config เดิมที่เชื่อมต่อไว้ได้เลยครับ
         const firebaseConfig = {
             apiKey: "AIzaSyANa2y5uR8iBBmjxFprTG7BUooHjQfSTn0",
             authDomain: "iserve-stock.firebaseapp.com",
@@ -336,11 +286,10 @@
             measurementId: "G-JPLR9P28NM"
         };
 
-        // Initialize Firebase
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
 
-        let activeMode = "CONSIGN"; // 'CONSIGN' หรือ 'STORE'
+        let activeMode = "CONSIGN";
         let currentBranch = "";
         let currentLocalStock = []; 
         let unsubscribeStock = null;
@@ -365,18 +314,16 @@
             setTimeout(() => { toast.className = toast.className.replace("show", ""); }, 3000);
         }
 
-        // 🌟 ฟังก์ชัน Login (อ่านจาก Firestore) 🌟
         async function login() {
             let pin = document.getElementById('pinInput').value.trim();
             if (!pin) { alert("กรุณากรอก PIN"); return; }
             
             showLoading("กำลังตรวจสอบรหัสผ่าน...");
             try {
-                // ระบบเช็คอัตโนมัติ: ถ้าตาราง Users ยังไม่มีใครเลย และกดรหัส 1234 ให้สร้าง Admin ให้
                 let checkUsers = await db.collection("Users").limit(1).get();
                 if (checkUsers.empty && pin === '1234') {
                     await db.collection("Users").doc("admin_user").set({ branch: "Admin", pin: "1234" });
-                    alert("🎉 ยินดีต้อนรับ! ระบบได้สร้างผู้ใช้ 'Admin' (รหัส 1234) ให้คุณเป็นคนแรกเรียบร้อยแล้ว");
+                    alert("🎉 สร้าง Admin สำเร็จ!");
                 }
 
                 let snapshot = await db.collection("Users").where("pin", "==", pin).get();
@@ -400,10 +347,8 @@
             if(confirm("ต้องการออกจากระบบใช่หรือไม่?")) {
                 localStorage.removeItem('iserve_consign_branch');
                 currentBranch = "";
-                
                 if (unsubscribeStock) unsubscribeStock();
                 if (unsubscribeLogs) unsubscribeLogs();
-                
                 document.getElementById('dashboardScreen').style.display = "none";
                 document.getElementById('loginScreen').style.display = "flex";
             }
@@ -426,8 +371,6 @@
                 document.getElementById('actionFormCard').style.display = "block";
                 document.querySelector('.action-panel').style.gridTemplateColumns = "1fr 1fr";
             }
-            
-            // 🌟 เริ่มการดึงข้อมูลแบบ Real-time 🌟
             startRealtimeListeners();
         }
 
@@ -438,36 +381,30 @@
             if (mode === 'CONSIGN') {
                 document.getElementById('tabConsign').className = "db-tab active-consign";
                 document.getElementById('tabStore').className = "db-tab";
-                
                 document.getElementById('mainHeader').style.background = "#e8f2fc";
                 document.getElementById('mainHeader').style.borderColor = "#c8e1fa";
                 document.getElementById('formTitle').innerText = "⚡ ทำรายการ: Consignment (อะไหล่เคลม)";
                 document.getElementById('formTitle').style.color = "#0071e3";
-                
                 document.getElementById('consignButtons').style.display = "flex";
                 document.getElementById('storeButtons').style.display = "none";
                 document.getElementById('repairIdBox').style.display = "block"; 
-                
                 selectActionType('เบิกใช้');
             } else {
                 document.getElementById('tabConsign').className = "db-tab";
                 document.getElementById('tabStore').className = "db-tab active-store";
-                
                 document.getElementById('mainHeader').style.background = "#e5f9e7";
                 document.getElementById('mainHeader').style.borderColor = "#a5d6a7";
                 document.getElementById('formTitle').innerText = "⚡ ทำรายการ: สต๊อกร้านค้า (อุปกรณ์/ฟิล์ม)";
                 document.getElementById('formTitle').style.color = "#28a745";
-                
                 document.getElementById('consignButtons').style.display = "none";
                 document.getElementById('storeButtons').style.display = "flex";
                 document.getElementById('repairIdBox').style.display = "none"; 
-                
                 selectActionType('เบิกใช้'); 
             }
-            startRealtimeListeners(); // เปลี่ยนโหมดปุ๊บ สลับสายข้อมูลปั๊บ
+            clearReportFilter(); 
         }
 
-        // 🌟 ฟังก์ชันดึงข้อมูลแบบ Real-time (Firebase Snapshot) 🌟
+        // 🌟 แก้ไขระบบดึงข้อมูลให้กรอง Limit 150 จาก Server-side 🌟
         function startRealtimeListeners() {
             if (unsubscribeStock) unsubscribeStock();
             if (unsubscribeLogs) unsubscribeLogs();
@@ -480,23 +417,78 @@
                 snapshot.forEach(doc => { stockArray.push({ id: doc.id, ...doc.data() }); });
                 currentLocalStock = stockArray;
                 renderStockTable(stockArray);
-                filterTables(); // Re-apply filter
+                filterTables(); 
             });
 
             let logsQuery = db.collection("Logs").where("mode", "==", activeMode);
             if (currentBranch !== "Admin") logsQuery = logsQuery.where("branch", "==", currentBranch);
             
-            // ดึงมาแบบปกติ แล้วค่อยเอามา Sort ฝั่ง Client (เพื่อลดปัญหาต้องตั้งค่า Index บน Firebase ในวันแรก)
+            // เรียงลำดับจากล่าสุดและดึงแค่ 150 รายการ (ลดภาระเครื่องลูกข่าย)
+            logsQuery = logsQuery.orderBy("timestamp", "desc").limit(150);
+
             unsubscribeLogs = logsQuery.onSnapshot(snapshot => {
                 let logArray = [];
                 snapshot.forEach(doc => { logArray.push({ id: doc.id, ...doc.data() }); });
-                
-                logArray.sort((a, b) => b.timestamp - a.timestamp); // เรียงจากล่าสุดไปเก่า
-                let latest150 = logArray.slice(0, 150); // โชว์แค่ 150 รายการล่าสุด
-                
-                renderLogTable(latest150);
+                renderLogTable(logArray);
                 filterTables();
+            }, error => {
+                console.error("Firestore Error:", error);
+                if(error.message.includes("index")) {
+                    alert("⚠️ ฐานข้อมูลแจ้งเตือนว่ายังไม่ได้สร้าง Index กรุณากด F12 เพื่อดูลิงก์สร้าง Index ใน Console ครับ");
+                    console.log("👉 คลิกลิงก์นี้เพื่อสร้าง Index อัตโนมัติ: ", error.message);
+                }
             });
+        }
+
+        // 🌟 กู้คืนระบบดึงรายงานตามวันที่ 🌟
+        async function fetchReport() {
+            let sDate = document.getElementById('filterStartDate').value;
+            let eDate = document.getElementById('filterEndDate').value;
+            
+            if(!sDate || !eDate) {
+                alert("⚠️ กรุณาเลือกวันที่เริ่มต้นและสิ้นสุดให้ครบถ้วนครับ");
+                return;
+            }
+
+            // แปลงวันที่เป็น Timestamp เพื่อให้ Firebase ค้นหาได้
+            let startTs = new Date(sDate + "T00:00:00").getTime();
+            let endTs = new Date(eDate + "T23:59:59").getTime();
+
+            document.getElementById('logTableBody').innerHTML = `<tr><td colspan="8" style="text-align: center; padding: 30px; color: #0071e3; font-weight: bold;">⏳ กำลังดึงข้อมูลรายงานจาก Firebase...</td></tr>`;
+
+            try {
+                if (unsubscribeLogs) unsubscribeLogs(); // ปิดสาย Realtime ชั่วคราวเพื่อดึงรายงาน
+
+                let logsQuery = db.collection("Logs").where("mode", "==", activeMode);
+                if (currentBranch !== "Admin") logsQuery = logsQuery.where("branch", "==", currentBranch);
+
+                logsQuery = logsQuery
+                    .where("timestamp", ">=", startTs)
+                    .where("timestamp", "<=", endTs)
+                    .orderBy("timestamp", "desc")
+                    .limit(500); // ดึงข้อมูลรายงานสูงสุด 500 รายการ
+
+                let snapshot = await logsQuery.get();
+                let logArray = [];
+                snapshot.forEach(doc => { logArray.push({ id: doc.id, ...doc.data() }); });
+                
+                document.getElementById('logTitle').innerText = `📊 รายงานวันที่: ${sDate} ถึง ${eDate} (พบ ${logArray.length} รายการ)`;
+                renderLogTable(logArray);
+                filterTables(); 
+            } catch (error) {
+                console.error(error);
+                alert("❌ ดึงรายงานล้มเหลว: อาจจะต้องสร้าง Index ก่อน (เช็ค Console หรือ Firebase)");
+                startRealtimeListeners(); 
+            }
+        }
+
+        function clearReportFilter() {
+            document.getElementById('filterStartDate').value = "";
+            document.getElementById('filterEndDate').value = "";
+            if(document.getElementById('logTypeFilter')) document.getElementById('logTypeFilter').value = "ALL";
+            document.getElementById('logTitle').innerText = "🕒 ประวัติทำรายการ 150 รายการล่าสุด";
+            document.getElementById('searchInput').value = ""; 
+            startRealtimeListeners();
         }
 
         function renderStockTable(stockArray) {
@@ -578,7 +570,6 @@
             });
         }
 
-        // 🌟 ฟังก์ชันบันทึกข้อมูล (เขียนลง Firebase) เร็วระดับเสี้ยววินาที 🌟
         async function submitStockAction() {
             let type = document.getElementById('actionType').value;
             let partNo = document.getElementById('partNo').value.trim();
@@ -615,7 +606,6 @@
             btnSubmit.disabled = true;
 
             try {
-                // สร้าง ID ของเอกสาร (แยกตามโหมด, สาขา และ Part No)
                 let docId = `${activeMode}_${currentBranch}_${partNo.toUpperCase()}`;
                 let stockRef = db.collection("Stock").doc(docId);
                 
@@ -634,8 +624,7 @@
                     let newQty = currentQty;
                     let newPending = currentPending;
 
-                    // 🌟 ตรรกะการคำนวณ 🌟
-                    if (actualTypeToSubmit === "เบิกใช้") { // โหมดหมุนเวียนของร้านค้า และ เบิกของ Consign
+                    if (actualTypeToSubmit === "เบิกใช้") { 
                         newQty = currentQty - qty; 
                         if (activeMode === "STORE") newPending = currentPending + qty;      
                     } else if (actualTypeToSubmit === "ขายขาด" || actualTypeToSubmit === "โอนออก" || actualTypeToSubmit === "ส่งคืน") {
@@ -665,7 +654,6 @@
                         finalNote = noteStr + (finalNote !== "-" && finalNote !== "" ? " | " + finalNote : "");
                     }
 
-                    // อัปเดตข้อมูลตาราง Stock
                     transaction.set(stockRef, {
                         mode: activeMode,
                         branch: currentBranch,
@@ -675,13 +663,12 @@
                         pendingQty: newPending
                     }, { merge: true });
 
-                    // เพิ่มข้อมูลตาราง Logs (ประวัติ)
-                    let logRef = db.collection("Logs").doc(); // สุ่ม ID ใหม่
+                    let logRef = db.collection("Logs").doc(); 
                     transaction.set(logRef, {
                         mode: activeMode,
                         branch: currentBranch,
-                        timestamp: Date.now(), // สำหรับเรียงลำดับ
-                        time: new Date().toLocaleString('th-TH', { hour12: false }), // โชว์ในตาราง
+                        timestamp: Date.now(),
+                        time: new Date().toLocaleString('th-TH', { hour12: false }), 
                         type: actualTypeToSubmit,
                         partNo: partNo.toUpperCase(),
                         qty: qty,
@@ -691,12 +678,10 @@
                     });
                 });
 
-                // สำเร็จ! (เคลียร์ช่องข้อมูลทันที)
                 showToast(`✅ บันทึก ${actualTypeToSubmit} สำเร็จ!`);
                 document.getElementById('partNo').value = "";
                 document.getElementById('partName').value = "";
                 
-                // ถ้ายิงอัตโนมัติ ไม่ต้องเคลียร์ Qty
                 let isAuto = document.getElementById('autoScanToggle') && document.getElementById('autoScanToggle').checked;
                 if (!isAuto) document.getElementById('qty').value = "1";
                 
@@ -714,7 +699,6 @@
             }
         }
 
-        // โค้ดส่วน UI ของปุ่ม (เหมือนเดิม)
         function selectActionType(type) {
             document.getElementById('actionType').value = type;
             let btnSubmit = document.getElementById('btnSubmit');

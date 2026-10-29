@@ -19,7 +19,7 @@
         .btn-login { background-color: #0071e3; color: white; border: none; padding: 12px; border-radius: 8px; font-size: 16px; font-weight: bold; width: 100%; cursor: pointer; transition: 0.2s; }
         
         #dashboardScreen { display: none; }
-        .header-box { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; background: #e8f2fc; padding: 15px 20px; border-radius: 8px; border: 1px solid #c8e1fa; transition: 0.3s; }
+        .header-box { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; background: #e8f2fc; padding: 15px 20px; border-radius: 8px; border: 1px solid #c8e1fa; transition: 0.3s; flex-wrap: wrap; gap: 10px; }
         .branch-title { font-size: 18px; font-weight: bold; color: #0071e3; margin: 0; }
         .btn-logout { background-color: #ff3b30; color: white; border: none; padding: 8px 15px; border-radius: 6px; font-size: 13px; font-weight: bold; cursor: pointer; }
         
@@ -114,6 +114,19 @@
         #loadingOverlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.8); display: none; align-items: center; justify-content: center; z-index: 9999; flex-direction: column; }
         .spinner { border: 4px solid #f3f3f3; border-top: 4px solid #0071e3; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin-bottom: 10px; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        /* 🌟 สไตล์สำหรับปุ่มและ Modal คิวมัดจำ 🌟 */
+        .btn-deposit-queue { background-color: #fffde5; color: #d4a017; border: 2px solid #f1c40f; padding: 8px 15px; border-radius: 20px; font-size: 13px; font-weight: bold; cursor: pointer; transition: 0.2s; display: flex; align-items: center; gap: 5px; }
+        .btn-deposit-queue:hover { background-color: #f1c40f; color: #fff; }
+        .btn-deposit-queue.has-items { background-color: #f1c40f; color: #fff; animation: pulse-warning 2s infinite; }
+        @keyframes pulse-warning { 0% { box-shadow: 0 0 0 0 rgba(241, 196, 15, 0.7); } 70% { box-shadow: 0 0 0 10px rgba(241, 196, 15, 0); } 100% { box-shadow: 0 0 0 0 rgba(241, 196, 15, 0); } }
+
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: none; align-items: center; justify-content: center; z-index: 2000; }
+        .modal-box { background: white; width: 90%; max-width: 700px; border-radius: 12px; padding: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #e5e5e7; padding-bottom: 15px; margin-bottom: 15px; }
+        .modal-title { font-size: 18px; font-weight: bold; color: #1d1d1f; margin: 0; }
+        .btn-close-modal { background: none; border: none; font-size: 20px; cursor: pointer; color: #86868b; }
+        .btn-clear-deposit-action { background: #388e3c; color: white; border: none; padding: 6px 12px; border-radius: 6px; font-size: 12px; font-weight: bold; cursor: pointer; }
     </style>
 </head>
 <body>
@@ -122,6 +135,24 @@
 
     <div id="loadingOverlay"><div class="spinner"></div><div style="font-weight: bold; color: #0071e3;" id="loadingText">กำลังประมวลผล...</div></div>
     <div id="toast">✅ บันทึกสำเร็จ!</div>
+
+    <!-- 🌟 Modal คิวมัดจำค้าง 🌟 -->
+    <div class="modal-overlay" id="depositModal">
+        <div class="modal-box">
+            <div class="modal-header">
+                <h3 class="modal-title">📋 รายการลูกค้ารออะไหล่ (มัดจำค้าง)</h3>
+                <button class="btn-close-modal" onclick="closeDepositModal()">✖</button>
+            </div>
+            <div class="table-container" style="max-height: 400px;">
+                <table style="width: 100%;">
+                    <thead><tr><th>วันที่รับมัดจำ</th><th>Part No</th><th>Job No / Repair ID</th><th>จำนวน</th><th style="text-align: right;">จัดการ</th></tr></thead>
+                    <tbody id="depositQueueBody">
+                        <!-- แถวคิวจะถูกสร้างที่นี่ -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
 
     <div class="container">
         <!-- หน้าจอ Login -->
@@ -141,10 +172,16 @@
                     <h2 class="branch-title">📍 สาขา: <span id="displayBranchName" style="color:inherit;">กำลังโหลด...</span></h2>
                     <div id="realtimeIndicator"><span class="pulse"></span> ⚡ เชื่อมต่อฐานข้อมูล Real-time สำเร็จ</div>
                 </div>
-                <button class="btn-logout" onclick="logout()">ออกจากระบบ</button>
+                
+                <div style="display: flex; gap: 10px; align-items: center;">
+                    <!-- 🌟 ปุ่มเปิดคิวมัดจำ 🌟 -->
+                    <button id="btnDepositQueue" class="btn-deposit-queue" onclick="openDepositModal()" style="display: none;">
+                        🟡 คิวมัดจำค้าง (0)
+                    </button>
+                    <button class="btn-logout" onclick="logout()">ออกจากระบบ</button>
+                </div>
             </div>
 
-            <!-- ปุ่มสลับโหมด -->
             <div class="db-selector">
                 <div id="tabConsign" class="db-tab active-consign" onclick="switchDB('CONSIGN')">📦 สต๊อก Consignment (เคลม)</div>
                 <div id="tabStore" class="db-tab" onclick="switchDB('STORE')">🛒 สต๊อกร้านค้า (Commercial)</div>
@@ -160,6 +197,10 @@
                         <div class="type-btn active-consume" id="btnTypeConsume" onclick="selectActionType('เบิกใช้')">🔴 เบิกใช้</div>
                         <div class="type-btn" id="btnTypeReceive" onclick="selectActionType('รับเข้า')">🟢 รับเข้า</div>
                         <div class="type-btn" id="btnTypeReturn" onclick="selectActionType('ส่งคืน')">🟠 ส่งคืน</div>
+                        <!-- 🌟 ย้ายปุ่มโอนมาฝั่ง Consign ด้วย 🌟 -->
+                        <div class="type-btn" id="btnTypeTransferOutConsign" onclick="selectActionType('โอนออก')">📤 โอนออก</div>
+                        <div class="type-btn" id="btnTypeTransferInConsign" onclick="selectActionType('รับโอน')">📥 รับโอน</div>
+                        
                         <div class="type-btn" id="btnTypeAudit" onclick="selectActionType('ตรวจนับยอด')">📝 ตรวจนับ</div>
                         <div class="type-btn" id="btnTypeCompare" onclick="selectActionType('เทียบสต๊อก')">📊 เทียบไฟล์ Apple</div>
                     </div>
@@ -187,7 +228,7 @@
                                 <label class="sub-radio-label"><input type="radio" name="consumeMode" value="ขายขาด" onchange="updateConsumeModeBtn()" checked> 🛍️ ตัดขายขาด (ไม่รอของ)</label>
                                 <label class="sub-radio-label"><input type="radio" name="consumeMode" value="เบิกใช้" onchange="updateConsumeModeBtn()"> 🔄 หมุนเวียน (หักสต๊อก+รอเข้า)</label>
                                 <label class="sub-radio-label"><input type="radio" name="consumeMode" value="รับมัดจำ" onchange="updateConsumeModeBtn()"> 🟡 รับมัดจำ (ของหมด+รอสั่ง)</label>
-                                <label class="sub-radio-label"><input type="radio" name="consumeMode" value="ล้างมัดจำ" onchange="updateConsumeModeBtn()"> ✅ ล้างมัดจำ (ส่งเครื่องปิดจ๊อบ)</label>
+                                <label class="sub-radio-label" style="display:none;"><input type="radio" name="consumeMode" value="ล้างมัดจำ" onchange="updateConsumeModeBtn()"> ✅ ล้างมัดจำ (ซ่อนไว้ให้กดในคิวแทน)</label>
                             </div>
                         </div>
 
@@ -250,9 +291,8 @@
                             <option value="ขายขาด">🛍️ เฉพาะ "ขายขาด"</option>
                             <option value="รับเข้า">🟢 เฉพาะ "รับเข้า"</option>
                             <option value="รับมัดจำ">🟡 เฉพาะ "รับมัดจำ"</option>
+                            <option value="ล้างมัดจำ">✅ เฉพาะ "ล้างมัดจำ"</option>
                         </select>
-
-                        <!-- 🌟 ระบบกู้คืนการตั้งค่าการดึงรายงาน 🌟 -->
                         <input type="date" id="filterStartDate" class="date-input">
                         <span style="font-size: 13px; color: #515154; font-weight: bold;">ถึง</span>
                         <input type="date" id="filterEndDate" class="date-input">
@@ -270,12 +310,10 @@
                     </table>
                 </div>
             </div>
-
         </div>
     </div>
 
     <script>
-        // ใช้ Config เดิมที่เชื่อมต่อไว้ได้เลยครับ
         const firebaseConfig = {
             apiKey: "AIzaSyANa2y5uR8iBBmjxFprTG7BUooHjQfSTn0",
             authDomain: "iserve-stock.firebaseapp.com",
@@ -285,7 +323,6 @@
             appId: "1:191058506009:web:06d3a6ed639be8e8359588",
             measurementId: "G-JPLR9P28NM"
         };
-
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
 
@@ -320,15 +357,8 @@
             
             showLoading("กำลังตรวจสอบรหัสผ่าน...");
             try {
-                let checkUsers = await db.collection("Users").limit(1).get();
-                if (checkUsers.empty && pin === '1234') {
-                    await db.collection("Users").doc("admin_user").set({ branch: "Admin", pin: "1234" });
-                    alert("🎉 สร้าง Admin สำเร็จ!");
-                }
-
                 let snapshot = await db.collection("Users").where("pin", "==", pin).get();
                 hideLoading();
-                
                 if (!snapshot.empty) {
                     currentBranch = snapshot.docs[0].data().branch;
                     localStorage.setItem('iserve_consign_branch', currentBranch);
@@ -370,6 +400,7 @@
                 
                 document.getElementById('actionFormCard').style.display = "block";
                 document.querySelector('.action-panel').style.gridTemplateColumns = "1fr 1fr";
+                document.getElementById('btnDepositQueue').style.display = "flex";
             }
             startRealtimeListeners();
         }
@@ -404,7 +435,6 @@
             clearReportFilter(); 
         }
 
-        // 🌟 แก้ไขระบบดึงข้อมูลให้กรอง Limit 150 จาก Server-side 🌟
         function startRealtimeListeners() {
             if (unsubscribeStock) unsubscribeStock();
             if (unsubscribeLogs) unsubscribeLogs();
@@ -417,13 +447,12 @@
                 snapshot.forEach(doc => { stockArray.push({ id: doc.id, ...doc.data() }); });
                 currentLocalStock = stockArray;
                 renderStockTable(stockArray);
+                updateDepositQueue(stockArray); // 🌟 อัปเดตคิวมัดจำ 🌟
                 filterTables(); 
             });
 
             let logsQuery = db.collection("Logs").where("mode", "==", activeMode);
             if (currentBranch !== "Admin") logsQuery = logsQuery.where("branch", "==", currentBranch);
-            
-            // เรียงลำดับจากล่าสุดและดึงแค่ 150 รายการ (ลดภาระเครื่องลูกข่าย)
             logsQuery = logsQuery.orderBy("timestamp", "desc").limit(150);
 
             unsubscribeLogs = logsQuery.onSnapshot(snapshot => {
@@ -431,42 +460,112 @@
                 snapshot.forEach(doc => { logArray.push({ id: doc.id, ...doc.data() }); });
                 renderLogTable(logArray);
                 filterTables();
-            }, error => {
-                console.error("Firestore Error:", error);
-                if(error.message.includes("index")) {
-                    alert("⚠️ ฐานข้อมูลแจ้งเตือนว่ายังไม่ได้สร้าง Index กรุณากด F12 เพื่อดูลิงก์สร้าง Index ใน Console ครับ");
-                    console.log("👉 คลิกลิงก์นี้เพื่อสร้าง Index อัตโนมัติ: ", error.message);
-                }
             });
         }
 
-        // 🌟 กู้คืนระบบดึงรายงานตามวันที่ 🌟
+        // 🌟🌟🌟 ส่วนจัดการคิวมัดจำ (Deposit Queue) 🌟🌟🌟
+        function updateDepositQueue(stockArray) {
+            if(currentBranch === "Admin") return;
+            let totalPending = 0;
+            let tbody = document.getElementById('depositQueueBody');
+            tbody.innerHTML = "";
+
+            stockArray.forEach(item => {
+                if (item.depositList && item.depositList.length > 0) {
+                    item.depositList.forEach(dep => {
+                        totalPending++;
+                        let jobDisplay = dep.jobNo || dep.repairId || "ไม่มีรหัสอ้างอิง";
+                        tbody.innerHTML += `
+                            <tr>
+                                <td style="color: #515154;">${dep.date}</td>
+                                <td style="font-weight: bold;">${item.partNo}</td>
+                                <td style="color: #0071e3; font-weight: bold;">${jobDisplay}</td>
+                                <td>${dep.qty}</td>
+                                <td style="text-align: right;">
+                                    <button class="btn-clear-deposit-action" onclick="submitClearSpecificDeposit('${item.id}', '${dep.id}', '${item.partNo}', ${dep.qty}, '${dep.jobNo || ""}')">✅ ล้างมัดจำ (ส่งเครื่อง)</button>
+                                </td>
+                            </tr>
+                        `;
+                    });
+                }
+            });
+
+            if(totalPending === 0) {
+                tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; padding: 20px; color: #86868b;">ไม่มีคิวมัดจำค้างส่ง</td></tr>`;
+            }
+
+            let btn = document.getElementById('btnDepositQueue');
+            btn.innerText = `🟡 คิวมัดจำค้าง (${totalPending})`;
+            if(totalPending > 0) btn.className = "btn-deposit-queue has-items";
+            else btn.className = "btn-deposit-queue";
+        }
+
+        function openDepositModal() { document.getElementById('depositModal').style.display = "flex"; }
+        function closeDepositModal() { document.getElementById('depositModal').style.display = "none"; }
+
+        // ฟังก์ชันล้างมัดจำรายตัว (จากในป๊อปอัป)
+        async function submitClearSpecificDeposit(docId, depositId, partNo, qty, jobNo) {
+            if(!confirm(`ยืนยันการล้างมัดจำและส่งเครื่องสำหรับ \nPart: ${partNo} \nJob: ${jobNo} \nจำนวน: ${qty} ชิ้น ใช่หรือไม่?`)) return;
+
+            showLoading("กำลังล้างมัดจำและตัดสต๊อก...");
+            try {
+                let stockRef = db.collection("Stock").doc(docId);
+                await db.runTransaction(async (transaction) => {
+                    let stockDoc = await transaction.get(stockRef);
+                    if(!stockDoc.exists) throw "ไม่พบข้อมูลสต๊อก";
+                    
+                    let data = stockDoc.data();
+                    let currentQty = data.qty || 0;
+                    let depositList = data.depositList || [];
+                    
+                    // อัปเดต Array เอารายการนี้ออก
+                    let newList = depositList.filter(d => d.id !== depositId);
+                    
+                    // ตัดสต๊อกคงเหลือ
+                    transaction.set(stockRef, {
+                        qty: currentQty - qty,
+                        depositList: newList
+                    }, { merge: true });
+
+                    // บันทึกประวัติ
+                    let logRef = db.collection("Logs").doc(); 
+                    transaction.set(logRef, {
+                        mode: activeMode,
+                        branch: currentBranch,
+                        timestamp: Date.now(),
+                        time: new Date().toLocaleString('th-TH', { hour12: false }), 
+                        type: "ล้างมัดจำ",
+                        partNo: partNo,
+                        qty: qty,
+                        job: jobNo || "-",
+                        repairId: "-",
+                        note: "ล้างมัดจำผ่านคิวอัตโนมัติ"
+                    });
+                });
+                showToast("✅ ส่งเครื่องและล้างมัดจำเรียบร้อย!");
+            } catch (err) {
+                alert("❌ ผิดพลาด: " + err.message);
+            } finally {
+                hideLoading();
+            }
+        }
+        // 🌟🌟🌟 สิ้นสุดส่วนคิวมัดจำ 🌟🌟🌟
+
         async function fetchReport() {
             let sDate = document.getElementById('filterStartDate').value;
             let eDate = document.getElementById('filterEndDate').value;
-            
-            if(!sDate || !eDate) {
-                alert("⚠️ กรุณาเลือกวันที่เริ่มต้นและสิ้นสุดให้ครบถ้วนครับ");
-                return;
-            }
+            if(!sDate || !eDate) { alert("⚠️ กรุณาเลือกวันที่ให้ครบถ้วน"); return; }
 
-            // แปลงวันที่เป็น Timestamp เพื่อให้ Firebase ค้นหาได้
             let startTs = new Date(sDate + "T00:00:00").getTime();
             let endTs = new Date(eDate + "T23:59:59").getTime();
 
-            document.getElementById('logTableBody').innerHTML = `<tr><td colspan="8" style="text-align: center; padding: 30px; color: #0071e3; font-weight: bold;">⏳ กำลังดึงข้อมูลรายงานจาก Firebase...</td></tr>`;
+            document.getElementById('logTableBody').innerHTML = `<tr><td colspan="8" style="text-align: center; padding: 30px; color: #0071e3;">⏳ กำลังดึงข้อมูล...</td></tr>`;
 
             try {
-                if (unsubscribeLogs) unsubscribeLogs(); // ปิดสาย Realtime ชั่วคราวเพื่อดึงรายงาน
-
+                if (unsubscribeLogs) unsubscribeLogs(); 
                 let logsQuery = db.collection("Logs").where("mode", "==", activeMode);
                 if (currentBranch !== "Admin") logsQuery = logsQuery.where("branch", "==", currentBranch);
-
-                logsQuery = logsQuery
-                    .where("timestamp", ">=", startTs)
-                    .where("timestamp", "<=", endTs)
-                    .orderBy("timestamp", "desc")
-                    .limit(500); // ดึงข้อมูลรายงานสูงสุด 500 รายการ
+                logsQuery = logsQuery.where("timestamp", ">=", startTs).where("timestamp", "<=", endTs).orderBy("timestamp", "desc").limit(500);
 
                 let snapshot = await logsQuery.get();
                 let logArray = [];
@@ -477,7 +576,7 @@
                 filterTables(); 
             } catch (error) {
                 console.error(error);
-                alert("❌ ดึงรายงานล้มเหลว: อาจจะต้องสร้าง Index ก่อน (เช็ค Console หรือ Firebase)");
+                alert("❌ ล้มเหลว: อาจจะต้องสร้าง Index ก่อน");
                 startRealtimeListeners(); 
             }
         }
@@ -581,13 +680,11 @@
             let transferBranch = document.getElementById('transferBranch').value.trim();
             let mainStock = document.getElementById('mainStock').value.trim();
 
-            if (!partNo) { alert("⚠️ กรุณาระบุรหัสอะไหล่/สินค้า (Part Number)"); return; }
+            if (!partNo) { alert("⚠️ กรุณาระบุรหัสอะไหล่ (Part Number)"); return; }
             if (qty < 0) { alert("⚠️ จำนวนต้องไม่ติดลบ"); return; }
-            
             if (activeMode === "CONSIGN" && type === "เบิกใช้" && (!jobNo && !repairId)) {
-                if(!confirm("คุณไม่ได้ระบุ Job หรือ Repair ID แน่ใจหรือไม่ที่จะบันทึก?")) return;
+                if(!confirm("ไม่ได้ระบุ Job หรือ Repair ID แน่ใจหรือไม่ที่จะบันทึก?")) return;
             }
-
             if ((type === "โอนออก" || type === "รับโอน") && !transferBranch) {
                 alert("⚠️ กรุณาระบุสาขาที่โอน/รับโอนด้วยครับ"); return;
             }
@@ -614,10 +711,12 @@
                     let currentQty = 0;
                     let currentPending = 0;
                     let existingName = partName || "สินค้าทั่วไป";
+                    let depositList = [];
                     
                     if(stockDoc.exists) {
                         currentQty = stockDoc.data().qty || 0;
                         currentPending = stockDoc.data().pendingQty || 0;
+                        depositList = stockDoc.data().depositList || [];
                         if (!partName && stockDoc.data().name) existingName = stockDoc.data().name;
                     }
                     
@@ -637,19 +736,24 @@
                         newQty = currentQty + qty;         
                     } else if (actualTypeToSubmit === "รับมัดจำ") {
                         newPending = currentPending + qty;
-                    } else if (actualTypeToSubmit === "ล้างมัดจำ") {
-                        newQty = currentQty - qty; 
+                        // 🌟 บันทึกรายการลงในคิวมัดจำ 🌟
+                        depositList.push({
+                            id: Date.now().toString(),
+                            jobNo: jobNo,
+                            repairId: repairId,
+                            qty: qty,
+                            date: new Date().toLocaleString('th-TH', { hour12: false })
+                        });
                     } else if (actualTypeToSubmit === "ตรวจนับยอด") {
                         var diffSys = qty - currentQty;
                         newQty = qty; 
                         var diffSysText = (diffSys === 0) ? "ตรงกัน" : (diffSys > 0 ? "เกิน +" + diffSys : "ขาด " + diffSys);
                         var noteStr = "ระบบเรามี " + currentQty + ", นับจริง " + qty + " (" + diffSysText + ")";
-                        
                         if (mainStock !== "") {
                             var ms = parseInt(mainStock);
                             var diffMain = qty - ms;
                             var diffMainText = (diffMain === 0) ? "ตรงกัน" : (diffMain > 0 ? "เกิน +" + diffMain : "ขาด " + diffMain);
-                            noteStr += " | ระบบPOS/HQมี " + ms + " (" + diffMainText + ")";
+                            noteStr += " | ระบบPOSมี " + ms + " (" + diffMainText + ")";
                         }
                         finalNote = noteStr + (finalNote !== "-" && finalNote !== "" ? " | " + finalNote : "");
                     }
@@ -660,7 +764,8 @@
                         partNo: partNo.toUpperCase(),
                         name: existingName,
                         qty: newQty,
-                        pendingQty: newPending
+                        pendingQty: newPending,
+                        depositList: depositList
                     }, { merge: true });
 
                     let logRef = db.collection("Logs").doc(); 
@@ -712,7 +817,8 @@
             document.getElementById('historyCard').style.display = "flex";
             
             let btnIds = ['btnTypeConsume', 'btnTypeReceive', 'btnTypeReturn', 'btnTypeAudit', 'btnTypeCompare', 'btnTypeCompareStore',
-                          'btnTypeConsumeStore', 'btnTypeReceiveStore', 'btnTypeRefund', 'btnTypeTransferOut', 'btnTypeTransferIn', 'btnTypeAuditStore'];
+                          'btnTypeConsumeStore', 'btnTypeReceiveStore', 'btnTypeRefund', 'btnTypeTransferOut', 'btnTypeTransferIn', 'btnTypeAuditStore',
+                          'btnTypeTransferOutConsign', 'btnTypeTransferInConsign'];
             btnIds.forEach(id => { if(document.getElementById(id)) document.getElementById(id).className = "type-btn"; });
             
             qtyLabel.innerText = "จำนวน *"; 
@@ -755,12 +861,15 @@
                 btnSubmit.style.backgroundColor = "#00a88f";
                 btnSubmit.innerText = "บันทึกข้อมูล (ลูกค้าคืนของ)";
             } else if (type === "โอนออก") {
-                document.getElementById('btnTypeTransferOut').className = "type-btn active-transfer-out";
+                if(activeMode === 'CONSIGN') document.getElementById('btnTypeTransferOutConsign').className = "type-btn active-transfer-out";
+                else document.getElementById('btnTypeTransferOut').className = "type-btn active-transfer-out";
                 btnSubmit.style.backgroundColor = "#d81b60";
                 btnSubmit.innerText = "บันทึกข้อมูล (โอนออกให้สาขาอื่น)";
                 document.getElementById('transferBox').style.display = "flex";
+                document.getElementById('transferLabel').innerText = "ระบุสาขาปลายทาง *";
             } else if (type === "รับโอน") {
-                document.getElementById('btnTypeTransferIn').className = "type-btn active-transfer-in";
+                if(activeMode === 'CONSIGN') document.getElementById('btnTypeTransferInConsign').className = "type-btn active-transfer-in";
+                else document.getElementById('btnTypeTransferIn').className = "type-btn active-transfer-in";
                 btnSubmit.style.backgroundColor = "#1e88e5";
                 btnSubmit.innerText = "บันทึกข้อมูล (รับโอนจากสาขาอื่น)";
                 document.getElementById('transferBox').style.display = "flex";
@@ -775,10 +884,10 @@
             } else if (type === "เทียบสต๊อก") {
                 if(activeMode === 'CONSIGN') {
                     document.getElementById('btnTypeCompare').className = "type-btn active-compare";
-                    document.getElementById('compareInstructions').innerHTML = "<strong>วิธีใช้:</strong> เปิดไฟล์ Excel จาก <b>Apple</b> > ลากคลุมคอลัมน์ <b>Part Number</b> และ <b>จำนวน</b> > กด Copy (Ctrl+C) > นำมาคลิกขวา Paste (Ctrl+V) ลงในกล่องด้านล่างนี้";
+                    document.getElementById('compareInstructions').innerHTML = "<strong>วิธีใช้:</strong> วางข้อมูลจาก <b>Apple</b> (Part No / จำนวน)";
                 } else {
                     document.getElementById('btnTypeCompareStore').className = "type-btn active-compare";
-                    document.getElementById('compareInstructions').innerHTML = "<strong>วิธีใช้:</strong> เปิดไฟล์ Excel จาก <b>ระบบ POS/HQ</b> > ลากคลุมคอลัมน์ <b>Part Number</b> และ <b>จำนวน</b> > กด Copy (Ctrl+C) > นำมาคลิกขวา Paste (Ctrl+V) ลงในกล่องด้านล่างนี้";
+                    document.getElementById('compareInstructions').innerHTML = "<strong>วิธีใช้:</strong> วางข้อมูลจาก <b>ระบบ POS</b> (Part No / จำนวน)";
                 }
                 document.getElementById('standardForm').style.display = "none";
                 document.getElementById('compareForm').style.display = "block";
@@ -794,7 +903,7 @@
             if(mode === "ขายขาด") { btn.style.backgroundColor = "#0071e3"; btn.innerText = "บันทึกข้อมูล (ขายขาด)"; }
             else if(mode === "เบิกใช้") { btn.style.backgroundColor = "#ff3b30"; btn.innerText = "บันทึกข้อมูล (หมุนเวียน/เบิกใช้)"; }
             else if(mode === "รับมัดจำ") { btn.style.backgroundColor = "#f1c40f"; btn.innerText = "บันทึกข้อมูล (รับมัดจำจองของ)"; }
-            else if(mode === "ล้างมัดจำ") { btn.style.backgroundColor = "#388e3c"; btn.innerText = "บันทึกข้อมูล (ล้างมัดจำปิดบิล)"; }
+            // ล้างมัดจำ ซ่อนปุ่มไว้ให้ไปกดใน Pop-up แทนเพื่อความชัวร์
         }
 
         function handleBarcodeEnter(e) {
@@ -819,13 +928,6 @@
                 let rowText = stockRows[i].innerText.toUpperCase();
                 if (rowText.indexOf(input) > -1 || stockRows[i].innerHTML.includes("กำลังเชื่อมต่อ")) stockRows[i].style.display = "";
                 else stockRows[i].style.display = "none";
-            }
-
-            let compRows = document.getElementById("compareTableBody").getElementsByTagName("tr");
-            for (let i = 0; i < compRows.length; i++) {
-                let rowText = compRows[i].innerText.toUpperCase();
-                if (rowText.indexOf(input) > -1) compRows[i].style.display = "";
-                else compRows[i].style.display = "none";
             }
 
             let logFilter = document.getElementById("logTypeFilter") ? document.getElementById("logTypeFilter").value : "ALL";
@@ -854,7 +956,6 @@
         function processExcelCompare() {
             let rawData = document.getElementById('excelPasteArea').value.trim();
             if(!rawData) { alert("กรุณาวางข้อมูลจาก Excel ก่อนครับ"); return; }
-            
             let rows = rawData.split('\n');
             let appleStockMap = {}; 
             

@@ -93,6 +93,7 @@
         .log-transfer-in { background: #e3f2fd; color: #1e88e5; border: 1px solid #90caf9; }
         .log-deposit { background: #fffde5; color: #d4a017; border: 1px solid #f1c40f;}
         .log-clear-deposit { background: #e8f5e9; color: #388e3c; border: 1px solid #a5d6a7;}
+        .log-admin-edit { background: #f3e5f5; color: #8e24aa; border: 1px dashed #8e24aa;}
 
         .diff-match { background-color: #e8f5e9; color: #2e7d32; font-weight: bold; }
         .diff-missing { background-color: #ffebee; color: #c62828; font-weight: bold; }
@@ -115,7 +116,7 @@
         .spinner { border: 4px solid #f3f3f3; border-top: 4px solid #0071e3; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin-bottom: 10px; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
-        /* 🌟 สไตล์สำหรับปุ่มและ Modal คิวมัดจำ 🌟 */
+        /* ปุ่มและ Modal คิวมัดจำ */
         .btn-deposit-queue { background-color: #fffde5; color: #d4a017; border: 2px solid #f1c40f; padding: 8px 15px; border-radius: 20px; font-size: 13px; font-weight: bold; cursor: pointer; transition: 0.2s; display: flex; align-items: center; gap: 5px; }
         .btn-deposit-queue:hover { background-color: #f1c40f; color: #fff; }
         .btn-deposit-queue.has-items { background-color: #f1c40f; color: #fff; animation: pulse-warning 2s infinite; }
@@ -127,6 +128,12 @@
         .modal-title { font-size: 18px; font-weight: bold; color: #1d1d1f; margin: 0; }
         .btn-close-modal { background: none; border: none; font-size: 20px; cursor: pointer; color: #86868b; }
         .btn-clear-deposit-action { background: #388e3c; color: white; border: none; padding: 6px 12px; border-radius: 6px; font-size: 12px; font-weight: bold; cursor: pointer; }
+
+        /* 🌟 เครื่องมือ Admin 🌟 */
+        .btn-admin-edit { background: #ff9500; color: white; border: none; padding: 5px 8px; border-radius: 4px; font-size: 12px; font-weight: bold; cursor: pointer; transition: 0.2s; }
+        .btn-admin-edit:hover { background: #e68600; }
+        .btn-admin-del { background: #ff3b30; color: white; border: none; padding: 5px 8px; border-radius: 4px; font-size: 12px; font-weight: bold; cursor: pointer; transition: 0.2s; }
+        .btn-admin-del:hover { background: #d32f2f; }
     </style>
 </head>
 <body>
@@ -136,7 +143,6 @@
     <div id="loadingOverlay"><div class="spinner"></div><div style="font-weight: bold; color: #0071e3;" id="loadingText">กำลังประมวลผล...</div></div>
     <div id="toast">✅ บันทึกสำเร็จ!</div>
 
-    <!-- 🌟 Modal คิวมัดจำค้าง 🌟 -->
     <div class="modal-overlay" id="depositModal">
         <div class="modal-box">
             <div class="modal-header">
@@ -147,7 +153,6 @@
                 <table style="width: 100%;">
                     <thead><tr><th>วันที่รับมัดจำ</th><th>Part No</th><th>Job No / Repair ID</th><th>จำนวน</th><th style="text-align: right;">จัดการ</th></tr></thead>
                     <tbody id="depositQueueBody">
-                        <!-- แถวคิวจะถูกสร้างที่นี่ -->
                     </tbody>
                 </table>
             </div>
@@ -174,7 +179,6 @@
                 </div>
                 
                 <div style="display: flex; gap: 10px; align-items: center;">
-                    <!-- 🌟 ปุ่มเปิดคิวมัดจำ 🌟 -->
                     <button id="btnDepositQueue" class="btn-deposit-queue" onclick="openDepositModal()" style="display: none;">
                         🟡 คิวมัดจำค้าง (0)
                     </button>
@@ -197,10 +201,8 @@
                         <div class="type-btn active-consume" id="btnTypeConsume" onclick="selectActionType('เบิกใช้')">🔴 เบิกใช้</div>
                         <div class="type-btn" id="btnTypeReceive" onclick="selectActionType('รับเข้า')">🟢 รับเข้า</div>
                         <div class="type-btn" id="btnTypeReturn" onclick="selectActionType('ส่งคืน')">🟠 ส่งคืน</div>
-                        <!-- 🌟 ย้ายปุ่มโอนมาฝั่ง Consign ด้วย 🌟 -->
                         <div class="type-btn" id="btnTypeTransferOutConsign" onclick="selectActionType('โอนออก')">📤 โอนออก</div>
                         <div class="type-btn" id="btnTypeTransferInConsign" onclick="selectActionType('รับโอน')">📥 รับโอน</div>
-                        
                         <div class="type-btn" id="btnTypeAudit" onclick="selectActionType('ตรวจนับยอด')">📝 ตรวจนับ</div>
                         <div class="type-btn" id="btnTypeCompare" onclick="selectActionType('เทียบสต๊อก')">📊 เทียบไฟล์ Apple</div>
                     </div>
@@ -268,8 +270,10 @@
                     </div>
                     <div class="table-container" style="border: none; border-radius: 0; flex: 1;">
                         <table id="stockTable">
-                            <thead id="stockTableHead"><tr><th>Part No</th><th>Description</th><th style="text-align: center;">รอของเข้า</th><th style="text-align: right;">คงเหลือ</th></tr></thead>
-                            <tbody id="stockTableBody"><tr><td colspan="5" style="text-align: center; padding: 30px; color: #86868b;">กำลังเชื่อมต่อฐานข้อมูล...</td></tr></tbody>
+                            <!-- 🌟 อัปเดตส่วนหัวตารางให้มีคอลัมน์ "จัดการ" สำหรับ Admin -->
+                            <thead id="stockTableHead">
+                            </thead>
+                            <tbody id="stockTableBody"><tr><td colspan="6" style="text-align: center; padding: 30px; color: #86868b;">กำลังเชื่อมต่อฐานข้อมูล...</td></tr></tbody>
                         </table>
                         <table id="compareTable" style="display: none;">
                             <thead><tr id="compareTableHeadRow"></tr></thead>
@@ -292,6 +296,7 @@
                             <option value="รับเข้า">🟢 เฉพาะ "รับเข้า"</option>
                             <option value="รับมัดจำ">🟡 เฉพาะ "รับมัดจำ"</option>
                             <option value="ล้างมัดจำ">✅ เฉพาะ "ล้างมัดจำ"</option>
+                            <option value="ปรับยอดโดย Admin">🛠️ เฉพาะ "ปรับยอดโดย Admin"</option>
                         </select>
                         <input type="date" id="filterStartDate" class="date-input">
                         <span style="font-size: 13px; color: #515154; font-weight: bold;">ถึง</span>
@@ -303,10 +308,10 @@
 
                 <div class="table-container" style="border: none; border-radius: 0; max-height: 400px;">
                     <table id="logTable">
+                        <!-- 🌟 อัปเดตส่วนหัวตารางให้มีคอลัมน์ "ลบ" สำหรับ Admin -->
                         <thead id="logTableHead">
-                            <tr><th>วัน/เวลา</th><th>ประเภท</th><th>Part No</th><th>จำนวน</th><th>Job No</th><th id="thRepairId">Repair ID</th><th>หมายเหตุ</th></tr>
                         </thead>
-                        <tbody id="logTableBody"><tr><td colspan="8" style="text-align: center; padding: 30px; color: #86868b;">กำลังเชื่อมต่อประวัติ...</td></tr></tbody>
+                        <tbody id="logTableBody"><tr><td colspan="9" style="text-align: center; padding: 30px; color: #86868b;">กำลังเชื่อมต่อประวัติ...</td></tr></tbody>
                     </table>
                 </div>
             </div>
@@ -447,7 +452,7 @@
                 snapshot.forEach(doc => { stockArray.push({ id: doc.id, ...doc.data() }); });
                 currentLocalStock = stockArray;
                 renderStockTable(stockArray);
-                updateDepositQueue(stockArray); // 🌟 อัปเดตคิวมัดจำ 🌟
+                updateDepositQueue(stockArray); 
                 filterTables(); 
             });
 
@@ -463,7 +468,6 @@
             });
         }
 
-        // 🌟🌟🌟 ส่วนจัดการคิวมัดจำ (Deposit Queue) 🌟🌟🌟
         function updateDepositQueue(stockArray) {
             if(currentBranch === "Admin") return;
             let totalPending = 0;
@@ -503,7 +507,6 @@
         function openDepositModal() { document.getElementById('depositModal').style.display = "flex"; }
         function closeDepositModal() { document.getElementById('depositModal').style.display = "none"; }
 
-        // ฟังก์ชันล้างมัดจำรายตัว (จากในป๊อปอัป)
         async function submitClearSpecificDeposit(docId, depositId, partNo, qty, jobNo) {
             if(!confirm(`ยืนยันการล้างมัดจำและส่งเครื่องสำหรับ \nPart: ${partNo} \nJob: ${jobNo} \nจำนวน: ${qty} ชิ้น ใช่หรือไม่?`)) return;
 
@@ -517,17 +520,13 @@
                     let data = stockDoc.data();
                     let currentQty = data.qty || 0;
                     let depositList = data.depositList || [];
-                    
-                    // อัปเดต Array เอารายการนี้ออก
                     let newList = depositList.filter(d => d.id !== depositId);
                     
-                    // ตัดสต๊อกคงเหลือ
                     transaction.set(stockRef, {
                         qty: currentQty - qty,
                         depositList: newList
                     }, { merge: true });
 
-                    // บันทึกประวัติ
                     let logRef = db.collection("Logs").doc(); 
                     transaction.set(logRef, {
                         mode: activeMode,
@@ -549,7 +548,6 @@
                 hideLoading();
             }
         }
-        // 🌟🌟🌟 สิ้นสุดส่วนคิวมัดจำ 🌟🌟🌟
 
         async function fetchReport() {
             let sDate = document.getElementById('filterStartDate').value;
@@ -559,7 +557,7 @@
             let startTs = new Date(sDate + "T00:00:00").getTime();
             let endTs = new Date(eDate + "T23:59:59").getTime();
 
-            document.getElementById('logTableBody').innerHTML = `<tr><td colspan="8" style="text-align: center; padding: 30px; color: #0071e3;">⏳ กำลังดึงข้อมูล...</td></tr>`;
+            document.getElementById('logTableBody').innerHTML = `<tr><td colspan="9" style="text-align: center; padding: 30px; color: #0071e3;">⏳ กำลังดึงข้อมูล...</td></tr>`;
 
             try {
                 if (unsubscribeLogs) unsubscribeLogs(); 
@@ -592,13 +590,15 @@
 
         function renderStockTable(stockArray) {
             let isAdmin = (currentBranch === "Admin");
-            let thead = `<tr>${isAdmin ? "<th>สาขา</th>" : ""}<th>Part No</th><th>Description</th><th style="text-align: center;">รอของเข้า</th><th style="text-align: right;">คงเหลือ</th></tr>`;
+            
+            // 🌟 เพิ่มคอลัมน์จัดการสำหรับ Admin
+            let thead = `<tr>${isAdmin ? "<th>สาขา</th>" : ""}<th>Part No</th><th>Description</th><th style="text-align: center;">รอของเข้า</th><th style="text-align: right;">คงเหลือ</th>${isAdmin ? "<th style='text-align: right;'>จัดการ (Admin)</th>" : ""}</tr>`;
             document.getElementById('stockTableHead').innerHTML = thead;
 
             let tbody = document.getElementById('stockTableBody');
             tbody.innerHTML = "";
             if (stockArray.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; padding: 20px; color: #86868b;">ยังไม่มีข้อมูลสต๊อก</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; padding: 20px; color: #86868b;">ยังไม่มีข้อมูลสต๊อก</td></tr>`;
                 return;
             }
             
@@ -609,6 +609,9 @@
                 let badgeClass = qty <= 2 ? "qty-low" : "qty-safe"; 
                 let pendingHtml = pending > 0 ? `<span class="qty-badge qty-pending">+${pending}</span>` : "-";
                 let branchHtml = isAdmin ? `<td><span class="branch-badge">${item.branch}</span></td>` : "";
+                
+                // 🌟 เพิ่มปุ่มแก้ไขสต๊อกสำหรับ Admin
+                let adminActionHtml = isAdmin ? `<td style="text-align: right;"><button class="btn-admin-edit" onclick="adminEditStock('${item.id}', '${item.partNo}', ${qty}, ${pending})">✏️ แก้ไข</button></td>` : "";
 
                 tbody.innerHTML += `
                     <tr data-branch="${item.branch}">
@@ -617,6 +620,7 @@
                         <td style="color: #515154;">${item.name || "-"}</td>
                         <td style="text-align: center;">${pendingHtml}</td>
                         <td style="text-align: right;"><span class="qty-badge ${badgeClass}">${qty}</span></td>
+                        ${adminActionHtml}
                     </tr>
                 `;
             });
@@ -624,7 +628,9 @@
 
         function renderLogTable(logArray) {
             let isAdmin = (currentBranch === "Admin");
-            let thead = `<tr><th>วัน/เวลา</th>${isAdmin ? "<th>สาขา</th>" : ""}<th>ประเภท</th><th>Part No</th><th>จำนวน</th><th>Job No</th><th id="thRepairId">Repair ID</th><th>หมายเหตุ</th></tr>`;
+            
+            // 🌟 เพิ่มคอลัมน์จัดการสำหรับ Admin
+            let thead = `<tr><th>วัน/เวลา</th>${isAdmin ? "<th>สาขา</th>" : ""}<th>ประเภท</th><th>Part No</th><th>จำนวน</th><th>Job No</th><th id="thRepairId">Repair ID</th><th>หมายเหตุ</th>${isAdmin ? "<th style='text-align:right;'>จัดการ</th>" : ""}</tr>`;
             document.getElementById('logTableHead').innerHTML = thead;
             
             if(!isAdmin && activeMode === "STORE") document.getElementById('thRepairId').style.display = "none";
@@ -633,7 +639,7 @@
             let tbody = document.getElementById('logTableBody');
             tbody.innerHTML = "";
             if (logArray.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="8" style="text-align: center; padding: 20px; color: #86868b;">ไม่พบข้อมูลประวัติ</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="9" style="text-align: center; padding: 20px; color: #86868b;">ไม่พบข้อมูลประวัติ</td></tr>`;
                 return;
             }
             
@@ -649,10 +655,14 @@
                 else if (log.type === "รับโอน") logTypeClass = "log-transfer-in";
                 else if (log.type === "รับมัดจำ") logTypeClass = "log-deposit";
                 else if (log.type === "ล้างมัดจำ") logTypeClass = "log-clear-deposit";
+                else if (log.type === "ปรับยอดโดย Admin") logTypeClass = "log-admin-edit";
                 else logTypeClass = "log-consume";
 
                 let repairHtml = (!isAdmin && activeMode === "STORE") ? "" : `<td>${log.repairId || "-"}</td>`;
                 let branchHtml = isAdmin ? `<td><span class="branch-badge">${log.branch}</span></td>` : "";
+                
+                // 🌟 เพิ่มปุ่มลบประวัติสำหรับ Admin
+                let adminActionHtml = isAdmin ? `<td style="text-align: right;"><button class="btn-admin-del" onclick="adminDeleteLog('${log.id}')">🗑️ ลบ</button></td>` : "";
 
                 tbody.innerHTML += `
                     <tr data-branch="${log.branch}">
@@ -664,9 +674,66 @@
                         <td>${log.job || "-"}</td>
                         ${repairHtml}
                         <td style="color: #515154; max-width: 250px; overflow: hidden; text-overflow: ellipsis;">${log.note || "-"}</td>
+                        ${adminActionHtml}
                     </tr>
                 `;
             });
+        }
+
+        // 🌟🌟🌟 ฟังก์ชันพิเศษสำหรับ Admin 🌟🌟🌟
+        async function adminEditStock(docId, partNo, oldQty, oldPending) {
+            let newQty = prompt(`[Admin แก้ไขสต๊อกอิสระ]\nPart Number: ${partNo}\n\nกรุณาใส่ตัวเลข "คงเหลือ" ที่ถูกต้อง:`, oldQty);
+            if (newQty === null || newQty.trim() === "") return;
+            
+            let newPending = prompt(`กรุณาใส่ตัวเลข "รอของเข้า" ที่ถูกต้อง:`, oldPending);
+            if (newPending === null || newPending.trim() === "") return;
+
+            newQty = parseInt(newQty);
+            newPending = parseInt(newPending);
+            if (isNaN(newQty) || isNaN(newPending)) {
+                alert("❌ การแก้ไขล้มเหลว: กรุณากรอกเป็นตัวเลขเท่านั้นครับ"); return;
+            }
+
+            try {
+                showLoading("กำลังปรับยอด...");
+                await db.collection("Stock").doc(docId).update({
+                    qty: newQty,
+                    pendingQty: newPending
+                });
+                
+                await db.collection("Logs").add({
+                    mode: activeMode,
+                    branch: "Admin", 
+                    timestamp: Date.now(),
+                    time: new Date().toLocaleString('th-TH', { hour12: false }), 
+                    type: "ปรับยอดโดย Admin",
+                    partNo: partNo,
+                    qty: newQty,
+                    job: "-",
+                    repairId: "-",
+                    note: `ปรับยอดจาก (เหลือ:${oldQty}->${newQty}, รอของ:${oldPending}->${newPending})`
+                });
+                
+                showToast("✅ Admin ปรับยอดสต๊อกสำเร็จ!");
+            } catch(e) {
+                alert("❌ เกิดข้อผิดพลาด: " + e.message);
+            } finally {
+                hideLoading();
+            }
+        }
+
+        async function adminDeleteLog(logId) {
+            if(!confirm("⚠️ ยืนยันการ 'ลบประวัติ' นี้ทิ้งใช่หรือไม่?\n\n(หมายเหตุ: การลบประวัติจะไม่ทำการแก้ไขยอดสต๊อกคืนให้โดยอัตโนมัติ หากยอดสต๊อกหน้าตู้เพี้ยน กรุณาไปกดปุ่ม '✏️แก้ไข' ในตารางสต๊อกเพื่อปรับยอดด้วยตัวเองครับ)")) return;
+            
+            try {
+                showLoading("กำลังลบข้อมูล...");
+                await db.collection("Logs").doc(logId).delete();
+                showToast("🗑️ ลบประวัติเรียบร้อย!");
+            } catch(e) {
+                alert("❌ เกิดข้อผิดพลาด: " + e.message);
+            } finally {
+                hideLoading();
+            }
         }
 
         async function submitStockAction() {
@@ -736,7 +803,6 @@
                         newQty = currentQty + qty;         
                     } else if (actualTypeToSubmit === "รับมัดจำ") {
                         newPending = currentPending + qty;
-                        // 🌟 บันทึกรายการลงในคิวมัดจำ 🌟
                         depositList.push({
                             id: Date.now().toString(),
                             jobNo: jobNo,
@@ -903,7 +969,6 @@
             if(mode === "ขายขาด") { btn.style.backgroundColor = "#0071e3"; btn.innerText = "บันทึกข้อมูล (ขายขาด)"; }
             else if(mode === "เบิกใช้") { btn.style.backgroundColor = "#ff3b30"; btn.innerText = "บันทึกข้อมูล (หมุนเวียน/เบิกใช้)"; }
             else if(mode === "รับมัดจำ") { btn.style.backgroundColor = "#f1c40f"; btn.innerText = "บันทึกข้อมูล (รับมัดจำจองของ)"; }
-            // ล้างมัดจำ ซ่อนปุ่มไว้ให้ไปกดใน Pop-up แทนเพื่อความชัวร์
         }
 
         function handleBarcodeEnter(e) {

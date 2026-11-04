@@ -6,7 +6,6 @@
     <title>ระบบจัดการสต๊อกรวม - iServe (Firebase)</title>
     <link rel="stylesheet" href="style.css">
     
-    <!-- 🌟 โหลด Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
 
@@ -123,7 +122,7 @@
         @keyframes pulse-warning { 0% { box-shadow: 0 0 0 0 rgba(241, 196, 15, 0.7); } 70% { box-shadow: 0 0 0 10px rgba(241, 196, 15, 0); } 100% { box-shadow: 0 0 0 0 rgba(241, 196, 15, 0); } }
 
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: none; align-items: center; justify-content: center; z-index: 2000; }
-        .modal-box { background: white; width: 90%; max-width: 700px; border-radius: 12px; padding: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); max-height: 90vh; overflow-y: auto; }
+        .modal-box { background: white; width: 95%; max-width: 800px; border-radius: 12px; padding: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); max-height: 90vh; overflow-y: auto; }
         .modal-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #e5e5e7; padding-bottom: 15px; margin-bottom: 15px; }
         .modal-title { font-size: 18px; font-weight: bold; color: #1d1d1f; margin: 0; }
         .btn-close-modal { background: none; border: none; font-size: 20px; cursor: pointer; color: #86868b; }
@@ -161,7 +160,7 @@
         </div>
     </div>
 
-    <!-- 🌟 Modal จัดการ Master Parts สำหรับ Admin (อัปเดตระบบนำเข้า) 🌟 -->
+    <!-- 🌟 Modal จัดการ Master Parts สำหรับ Admin (เพิ่มช่องรหัสเทียบเคียง) 🌟 -->
     <div class="modal-overlay" id="masterPartModal">
         <div class="modal-box">
             <div class="modal-header">
@@ -169,24 +168,36 @@
                 <button class="btn-close-modal" onclick="closeMasterPartModal()">✖</button>
             </div>
             
-            <!-- เพิ่มทีละรายการ -->
             <div style="display: flex; gap: 10px; margin-bottom: 15px; flex-wrap: wrap;">
-                <input type="text" id="masterPartNo" placeholder="Part No *" style="flex: 1; padding: 10px; border: 1px solid #d2d2d7; border-radius: 6px; outline: none; min-width: 150px;">
-                <input type="text" id="masterPartName" placeholder="ชื่อสินค้า/อะไหล่ *" style="flex: 2; padding: 10px; border: 1px solid #d2d2d7; border-radius: 6px; outline: none; min-width: 200px;">
-                <button onclick="saveMasterPart()" style="background: #34c759; color: white; border: none; padding: 10px 15px; border-radius: 6px; font-weight: bold; cursor: pointer;">💾 บันทึก 1 รายการ</button>
+                <div style="flex: 1; min-width: 150px;">
+                    <label style="font-size:11px; font-weight:bold; color:#86868b;">Part No หน้าตู้ *</label>
+                    <input type="text" id="masterPartNo" placeholder="เช่น BATT-01" style="width: 100%; padding: 10px; border: 1px solid #d2d2d7; border-radius: 6px; outline: none; box-sizing: border-box;">
+                </div>
+                <div style="flex: 2; min-width: 200px;">
+                    <label style="font-size:11px; font-weight:bold; color:#86868b;">ชื่ออะไหล่ *</label>
+                    <input type="text" id="masterPartName" placeholder="เช่น แบตเตอรี่" style="width: 100%; padding: 10px; border: 1px solid #d2d2d7; border-radius: 6px; outline: none; box-sizing: border-box;">
+                </div>
+                <!-- 🌟 เพิ่มช่องกรอกรหัสเทียบเคียง HQ 🌟 -->
+                <div style="flex: 1.5; min-width: 150px;">
+                    <label style="font-size:11px; font-weight:bold; color:#d81b60;">รหัส HQ เทียบเคียง (คั่นด้วย ,)</label>
+                    <input type="text" id="masterPartAlias" placeholder="เช่น BATT-01EX, BATT-OLD" style="width: 100%; padding: 10px; border: 1px solid #f48fb1; border-radius: 6px; outline: none; box-sizing: border-box; background: #fce4ec;">
+                </div>
+                <div style="display: flex; align-items: flex-end;">
+                    <button onclick="saveMasterPart()" style="background: #34c759; color: white; border: none; padding: 10px 15px; border-radius: 6px; font-weight: bold; cursor: pointer; height: 38px;">💾 บันทึก</button>
+                </div>
             </div>
 
-            <!-- 🌟 กล่องวางข้อมูลจาก Excel (Bulk Import) 🌟 -->
+            <!-- กล่องวางข้อมูลจาก Excel -->
             <div style="background: #f0f7ff; padding: 15px; border-radius: 8px; border: 1px dashed #0071e3; margin-bottom: 15px;">
-                <label style="display: block; font-size: 13px; font-weight: bold; color: #0071e3; margin-bottom: 5px;">📥 นำเข้าทีละหลายรายการจาก Excel (Copy & Paste)</label>
-                <textarea id="bulkMasterPaste" rows="4" placeholder="ก๊อปปี้คอลัมน์จาก Excel มาวางลงที่นี่... (ซ้าย: Part No, ขวา: ชื่ออะไหล่)" style="width: 100%; padding: 10px; border: 1px solid #c8e1fa; border-radius: 6px; font-size: 13px; box-sizing: border-box; outline: none; margin-bottom: 8px;"></textarea>
+                <label style="display: block; font-size: 13px; font-weight: bold; color: #0071e3; margin-bottom: 5px;">📥 นำเข้าทีละหลายรายการจาก Excel</label>
+                <p style="font-size: 11px; color: #515154; margin: 0 0 5px 0;">รูปแบบ: <b>คอลัมน์ซ้าย</b>=Part Noหลัก | <b>คอลัมน์กลาง</b>=ชื่ออะไหล่ | <b>คอลัมน์ขวา(ไม่บังคับ)</b>=รหัส HQ/Apple (คั่นด้วย ,)</p>
+                <textarea id="bulkMasterPaste" rows="3" placeholder="ก๊อปปี้คอลัมน์จาก Excel มาวางลงที่นี่..." style="width: 100%; padding: 10px; border: 1px solid #c8e1fa; border-radius: 6px; font-size: 13px; box-sizing: border-box; outline: none; margin-bottom: 8px;"></textarea>
                 <button onclick="bulkImportMasterParts()" style="background: #0071e3; color: white; border: none; padding: 10px 15px; border-radius: 6px; font-size: 13px; font-weight: bold; cursor: pointer; width: 100%;">🚀 นำเข้าข้อมูลทั้งหมดลงฐานระบบ</button>
             </div>
 
-            <!-- ตารางแสดงข้อมูลปัจจุบัน -->
             <div class="table-container" style="max-height: 250px;">
                 <table style="width: 100%;">
-                    <thead style="background: #f3e5f5;"><tr><th>Part No</th><th>ชื่ออะไหล่ (Description)</th><th style="text-align: right;">จัดการ</th></tr></thead>
+                    <thead style="background: #f3e5f5;"><tr><th>Part No</th><th>ชื่ออะไหล่</th><th>รหัสเทียบเคียง (HQ)</th><th style="text-align: right;">จัดการ</th></tr></thead>
                     <tbody id="masterPartTableBody"></tbody>
                 </table>
             </div>
@@ -297,7 +308,7 @@
                     <div id="compareForm" style="display: none;">
                         <p id="compareInstructions" style="font-size: 13px; color: #515154; margin-bottom: 10px;"></p>
                         <textarea id="excelPasteArea" rows="6" placeholder="วางข้อมูลจาก Excel ลงที่นี่... (Part No [เว้นวรรค/Tab] จำนวน)"></textarea>
-                        <button class="btn-submit" style="background-color: #00838f;" onclick="processExcelCompare()">🔍 เริ่มเปรียบเทียบยอด</button>
+                        <button class="btn-submit" style="background-color: #00838f;" onclick="processExcelCompare()">🔍 เริ่มเปรียบเทียบยอด (ระบบจะแปลงรหัส HQ ให้อัตโนมัติ)</button>
                     </div>
                 </div>
 
@@ -467,7 +478,7 @@
             }
         }
 
-        // 🌟🌟🌟 ระบบ Bulk Import จาก Excel 🌟🌟🌟
+        // 🌟🌟🌟 ระบบ จัดการ Master Parts 🌟🌟🌟
         function openMasterPartModal() {
             document.getElementById('masterPartModal').style.display = "flex";
             loadMasterParts();
@@ -477,48 +488,56 @@
 
         async function loadMasterParts() {
             let tbody = document.getElementById('masterPartTableBody');
-            tbody.innerHTML = `<tr><td colspan="3" style="text-align: center; padding: 20px;">⏳ กำลังโหลดฐานข้อมูล...</td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="4" style="text-align: center; padding: 20px;">⏳ กำลังโหลดฐานข้อมูล...</td></tr>`;
             try {
                 let snapshot = await db.collection("MasterParts").orderBy("partNo").get();
                 tbody.innerHTML = "";
                 if (snapshot.empty) {
-                    tbody.innerHTML = `<tr><td colspan="3" style="text-align: center; padding: 20px; color: #86868b;">ยังไม่มีข้อมูลในระบบ</td></tr>`;
+                    tbody.innerHTML = `<tr><td colspan="4" style="text-align: center; padding: 20px; color: #86868b;">ยังไม่มีข้อมูลในระบบ</td></tr>`;
                     return;
                 }
                 snapshot.forEach(doc => {
                     let data = doc.data();
+                    let aliasDisplay = data.aliases ? `<span style="color: #d81b60; font-size: 11px;">${data.aliases}</span>` : "-";
+                    // ป้องกันเครื่องหมายคำพูดเดี่ยวทำปุ่มพัง
+                    let safeName = data.name.replace(/'/g, "\\'");
+                    let safeAlias = (data.aliases || "").replace(/'/g, "\\'");
+                    
                     tbody.innerHTML += `
                         <tr>
                             <td style="font-weight: bold; color: #0071e3;">${data.partNo}</td>
                             <td>${data.name}</td>
+                            <td>${aliasDisplay}</td>
                             <td style="text-align: right;">
-                                <button class="btn-admin-edit" onclick="editMasterPart('${data.partNo}', '${data.name}')">✏️</button>
+                                <button class="btn-admin-edit" onclick="editMasterPart('${data.partNo}', '${safeName}', '${safeAlias}')">✏️</button>
                                 <button class="btn-admin-del" onclick="deleteMasterPart('${data.partNo}')">🗑️</button>
                             </td>
                         </tr>
                     `;
                 });
             } catch (err) {
-                tbody.innerHTML = `<tr><td colspan="3" style="text-align: center; color: red;">❌ โหลดข้อมูลล้มเหลว: ${err.message}</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="4" style="text-align: center; color: red;">❌ โหลดข้อมูลล้มเหลว: ${err.message}</td></tr>`;
             }
         }
 
         async function saveMasterPart() {
             let pNo = document.getElementById('masterPartNo').value.trim().toUpperCase();
             let pName = document.getElementById('masterPartName').value.trim();
-            if (!pNo || !pName) { alert("⚠️ กรุณากรอก Part No และ ชื่ออะไหล่ให้ครบถ้วนครับ"); return; }
+            let pAlias = document.getElementById('masterPartAlias').value.trim().toUpperCase();
+            
+            if (!pNo || !pName) { alert("⚠️ กรุณากรอก Part No หลัก และ ชื่ออะไหล่ให้ครบถ้วนครับ"); return; }
             showLoading("กำลังบันทึกข้อมูล Master...");
             try {
-                await db.collection("MasterParts").doc(pNo).set({ partNo: pNo, name: pName });
+                await db.collection("MasterParts").doc(pNo).set({ partNo: pNo, name: pName, aliases: pAlias });
                 document.getElementById('masterPartNo').value = "";
                 document.getElementById('masterPartName').value = "";
+                document.getElementById('masterPartAlias').value = "";
                 document.getElementById('masterPartNo').focus();
-                showToast("✅ บันทึกชื่ออะไหล่สำเร็จ!");
+                showToast("✅ บันทึกข้อมูลสำเร็จ!");
                 loadMasterParts(); 
             } catch (err) { alert("❌ ผิดพลาด: " + err.message); } finally { hideLoading(); }
         }
 
-        // 🌟 โค้ดสำหรับดึงข้อมูลรวดเดียวจาก Excel 🌟
         async function bulkImportMasterParts() {
             let rawData = document.getElementById('bulkMasterPaste').value.trim();
             if (!rawData) { alert("⚠️ กรุณาวางข้อมูลจาก Excel ก่อนครับ"); return; }
@@ -533,20 +552,19 @@
                 let totalAdded = 0;
 
                 for (let i = 0; i < rows.length; i++) {
-                    let cols = rows[i].split('\t'); // ดึงข้อมูลที่แบ่งด้วย Tab (Excel Copy)
+                    let cols = rows[i].split('\t'); 
                     if (cols.length >= 2) {
                         let pNo = cols[0].trim().toUpperCase();
                         let pName = cols[1].trim();
+                        let pAlias = (cols[2] || "").trim().toUpperCase(); // คอลัมน์ 3 คือ Alias (ถ้ามี)
                         
                         if (pNo && pName) {
                             let docRef = db.collection("MasterParts").doc(pNo);
-                            batch.set(docRef, { partNo: pNo, name: pName });
-                            count++;
-                            totalAdded++;
+                            batch.set(docRef, { partNo: pNo, name: pName, aliases: pAlias });
+                            count++; totalAdded++;
                         }
                     }
 
-                    // บันทึกทีละ 490 รายการ (Firebase รับสูงสุด 500 ต่อครั้ง)
                     if (count === 490 || i === rows.length - 1) {
                         if (count > 0) {
                             await batch.commit();
@@ -558,7 +576,7 @@
                 
                 showToast(`✅ นำเข้าข้อมูลสำเร็จ ${totalAdded} รายการ!`);
                 document.getElementById('bulkMasterPaste').value = "";
-                loadMasterParts(); // รีเฟรชตาราง
+                loadMasterParts(); 
             } catch (err) {
                 alert("❌ เกิดข้อผิดพลาดในการนำเข้า: " + err.message);
             } finally {
@@ -566,9 +584,10 @@
             }
         }
 
-        function editMasterPart(pNo, pName) {
+        function editMasterPart(pNo, pName, pAlias) {
             document.getElementById('masterPartNo').value = pNo;
             document.getElementById('masterPartName').value = pName;
+            document.getElementById('masterPartAlias').value = pAlias === 'undefined' ? '' : pAlias;
         }
 
         async function deleteMasterPart(pNo) {
@@ -842,7 +861,7 @@
         async function adminDeleteLog(logId) {
             if(!confirm("⚠️ ยืนยันการ 'ลบประวัติ' นี้ทิ้งใช่หรือไม่?")) return;
             try {
-                showLoading("กำลังลบ...");
+                showLoading("กำลังลบข้อมูล...");
                 await db.collection("Logs").doc(logId).delete();
                 showToast("🗑️ ลบประวัติเรียบร้อย!");
             } catch(e) { alert("❌ ผิดพลาด: " + e.message); } finally { hideLoading(); }
@@ -1020,42 +1039,79 @@
             }
         }
 
-        function processExcelCompare() {
+        // 🌟🌟🌟 อัปเดต: ระบบแปลงร่างรหัส HQ เวลาเปรียบเทียบ Excel 🌟🌟🌟
+        async function processExcelCompare() {
             let rawData = document.getElementById('excelPasteArea').value.trim();
             if(!rawData) { alert("กรุณาวางข้อมูลจาก Excel ก่อนครับ"); return; }
-            let rows = rawData.split('\n'); let appleStockMap = {}; 
-            rows.forEach(row => {
-                let cols = row.split('\t'); 
-                if(cols.length >= 1) {
-                    let part = cols[0].trim().toUpperCase(); let qty = 0;
-                    if(cols.length >= 2) qty = parseInt(cols[1].replace(/,/g, '').trim()) || 0;
-                    if(part) appleStockMap[part] = qty;
-                }
-            });
-            let iserveStockMap = {}; currentLocalStock.forEach(item => { iserveStockMap[item.partNo.toUpperCase()] = parseInt(item.qty); });
-            let compareResults = []; let allUniqueParts = new Set([...Object.keys(appleStockMap), ...Object.keys(iserveStockMap)]);
-            allUniqueParts.forEach(part => {
-                let iQty = iserveStockMap[part] || 0; let aQty = appleStockMap[part] || 0; let diff = aQty - iQty; 
-                if (iQty === 0 && aQty === 0) return;
-                compareResults.push({ partNo: part, iserveQty: iQty, appleQty: aQty, diff: diff });
-            });
-            compareResults.sort((a, b) => Math.abs(b.diff) - Math.abs(a.diff));
-
-            let thApple = (activeMode === 'CONSIGN') ? "ยอดไฟล์ Apple" : "ยอดไฟล์ POS";
-            document.getElementById('compareTableHeadRow').innerHTML = `<th>Part No</th><th style="text-align: right;">ยอดระบบ iServe</th><th style="text-align: right;">${thApple}</th><th style="text-align: center;">ผลต่าง (Diff)</th>`;
-            let tbody = document.getElementById('compareTableBody'); tbody.innerHTML = "";
-            if(compareResults.length === 0) { tbody.innerHTML = `<tr><td colspan="4" style="text-align: center; padding: 20px;">ไม่พบความแตกต่าง</td></tr>`; } 
-            else {
-                compareResults.forEach(res => {
-                    let diffClass = "diff-match", diffText = "ตรงกัน";
-                    if(res.diff > 0) { diffClass = "diff-extra"; diffText = `+${res.diff} (ใน iServe ขาดไป)`; } 
-                    else if (res.diff < 0) { diffClass = "diff-missing"; diffText = `${res.diff} (ใน iServe เกินมา)`; }
-                    tbody.innerHTML += `<tr><td style="font-weight: bold;">${res.partNo}</td><td style="text-align: right;">${res.iserveQty}</td><td style="text-align: right; font-weight: bold; color: #0071e3;">${res.appleQty}</td><td class="${diffClass}" style="text-align: center;">${diffText}</td></tr>`;
+            
+            showLoading("กำลังวิเคราะห์ข้อมูลเทียบเคียง...");
+            try {
+                // 1. โหลดพจนานุกรมรหัสเทียบเคียงมาเตรียมไว้ก่อน
+                let masterSnap = await db.collection("MasterParts").get();
+                let aliasMap = {}; 
+                masterSnap.forEach(doc => {
+                    let data = doc.data();
+                    let mainPart = data.partNo.toUpperCase();
+                    aliasMap[mainPart] = mainPart; // ตัวมันเอง
+                    if (data.aliases) {
+                        let aliasList = data.aliases.split(',');
+                        aliasList.forEach(a => {
+                            let cleanAlias = a.trim().toUpperCase();
+                            if(cleanAlias) aliasMap[cleanAlias] = mainPart; // ชี้เป้าไปหารหัสหลัก
+                        });
+                    }
                 });
+
+                // 2. เริ่มแกะข้อมูล Excel
+                let rows = rawData.split('\n'); 
+                let appleStockMap = {}; 
+                rows.forEach(row => {
+                    let cols = row.split('\t'); 
+                    if(cols.length >= 1) {
+                        let rawPart = cols[0].trim().toUpperCase();
+                        let finalPart = aliasMap[rawPart] || rawPart; // 🌟 แปลงร่างรหัสตรงนี้เลย!
+                        
+                        let qty = 0;
+                        if(cols.length >= 2) qty = parseInt(cols[1].replace(/,/g, '').trim()) || 0;
+                        if(finalPart) appleStockMap[finalPart] = qty;
+                    }
+                });
+
+                let iserveStockMap = {}; 
+                currentLocalStock.forEach(item => { iserveStockMap[item.partNo.toUpperCase()] = parseInt(item.qty); });
+                
+                let compareResults = []; 
+                let allUniqueParts = new Set([...Object.keys(appleStockMap), ...Object.keys(iserveStockMap)]);
+                
+                allUniqueParts.forEach(part => {
+                    let iQty = iserveStockMap[part] || 0; let aQty = appleStockMap[part] || 0; let diff = aQty - iQty; 
+                    if (iQty === 0 && aQty === 0) return;
+                    compareResults.push({ partNo: part, iserveQty: iQty, appleQty: aQty, diff: diff });
+                });
+                compareResults.sort((a, b) => Math.abs(b.diff) - Math.abs(a.diff));
+
+                let thApple = (activeMode === 'CONSIGN') ? "ยอดไฟล์ Apple" : "ยอดไฟล์ POS";
+                document.getElementById('compareTableHeadRow').innerHTML = `<th>Part No</th><th style="text-align: right;">ยอดระบบ iServe</th><th style="text-align: right;">${thApple}</th><th style="text-align: center;">ผลต่าง (Diff)</th>`;
+                let tbody = document.getElementById('compareTableBody'); tbody.innerHTML = "";
+                
+                if(compareResults.length === 0) { tbody.innerHTML = `<tr><td colspan="4" style="text-align: center; padding: 20px;">ไม่พบความแตกต่าง</td></tr>`; } 
+                else {
+                    compareResults.forEach(res => {
+                        let diffClass = "diff-match", diffText = "ตรงกัน";
+                        if(res.diff > 0) { diffClass = "diff-extra"; diffText = `+${res.diff} (ใน iServe ขาดไป)`; } 
+                        else if (res.diff < 0) { diffClass = "diff-missing"; diffText = `${res.diff} (ใน iServe เกินมา)`; }
+                        tbody.innerHTML += `<tr><td style="font-weight: bold;">${res.partNo}</td><td style="text-align: right;">${res.iserveQty}</td><td style="text-align: right; font-weight: bold; color: #0071e3;">${res.appleQty}</td><td class="${diffClass}" style="text-align: center;">${diffText}</td></tr>`;
+                    });
+                }
+                document.getElementById('stockTable').style.display = "none"; document.getElementById('compareTable').style.display = "table";
+                let title = activeMode === 'CONSIGN' ? "📊 ผลการเปรียบเทียบสต๊อกกับไฟล์ Apple" : "📊 ผลการเปรียบเทียบสต๊อกกับไฟล์ POS/HQ";
+                document.getElementById('stockBoxTitle').innerText = title; document.getElementById('searchInput').value = ""; filterTables();
+                
+            } catch (err) {
+                alert("❌ เกิดข้อผิดพลาดระหว่างเปรียบเทียบ: " + err.message);
+            } finally {
+                hideLoading();
             }
-            document.getElementById('stockTable').style.display = "none"; document.getElementById('compareTable').style.display = "table";
-            let title = activeMode === 'CONSIGN' ? "📊 ผลการเปรียบเทียบสต๊อกกับไฟล์ Apple" : "📊 ผลการเปรียบเทียบสต๊อกกับไฟล์ POS/HQ";
-            document.getElementById('stockBoxTitle').innerText = title; document.getElementById('searchInput').value = ""; filterTables();
         }
     </script>
 </body>

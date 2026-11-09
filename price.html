@@ -7,6 +7,11 @@
     
     <link rel="stylesheet" href="style.css">
     
+    <!-- 🌟 โหลด Firebase SDK สำหรับเชื่อมต่อฐานข้อมูลและพื้นที่เก็บไฟล์ 🌟 -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-storage-compat.js"></script>
+
     <style>
         .container { max-width: 1280px; display: grid; grid-template-columns: 1fr 3.5fr; gap: 20px; }
         @media (max-width: 768px) { .container { grid-template-columns: 1fr; } }
@@ -18,32 +23,60 @@
         .controls-box select { width: 100%; padding: 8px; border: 1px solid #d2d2d7; border-radius: 6px; font-size: 13px; outline: none; }
         
         .table-container { overflow-x: auto; max-height: 650px; overflow-y: auto; border: 1px solid #e5e5e7; border-radius: 6px; }
-        thead th { position: sticky; top: 0; z-index: 1; box-shadow: 0 1px 2px rgba(0,0,0,0.1); }
+        thead th { position: sticky; top: 0; z-index: 1; box-shadow: 0 1px 2px rgba(0,0,0,0.1); background-color: #f5f5f7; }
         
         .price-text { font-weight: bold; color: #ff3b30; }
         .total-text { font-weight: bold; color: #0071e3; font-size: 15px; }
         .status-badge { display: inline-block; padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: bold; background-color: #ff9500; color: white; }
         .status-connected { background-color: #34c759; }
+
+        /* สไตล์สำหรับปุ่ม Action */
+        .action-buttons { display: flex; gap: 8px; flex-wrap: wrap; }
+        .btn-refresh { background: #1d1d1f; color: white; border: none; padding: 8px 12px; border-radius: 6px; font-size: 12px; font-weight: bold; cursor: pointer; transition: 0.2s; display: inline-flex; align-items: center; }
+        .btn-refresh:hover { background: #333336; }
+        .btn-pdf { background: #ff3b30; color: white; border: none; padding: 8px 12px; border-radius: 6px; font-size: 12px; font-weight: bold; cursor: pointer; transition: 0.2s; text-decoration: none; display: inline-flex; align-items: center; justify-content: center; }
+        .btn-pdf:hover { background: #d32f2f; }
+        .btn-upload { background: #8e24aa; color: white; border: none; padding: 8px 12px; border-radius: 6px; font-size: 12px; font-weight: bold; cursor: pointer; transition: 0.2s; display: inline-flex; align-items: center; }
+        .btn-upload:hover { background: #6a1b9a; }
+
+        /* UI โหลดดิ่งและแจ้งเตือน */
+        #loadingOverlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.85); display: none; align-items: center; justify-content: center; z-index: 9999; flex-direction: column; }
+        .spinner { border: 4px solid #f3f3f3; border-top: 4px solid #0071e3; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin-bottom: 10px; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        
+        #toast { visibility: hidden; min-width: 250px; background-color: #34c759; color: #fff; text-align: center; border-radius: 8px; padding: 12px; position: fixed; z-index: 1000; right: 30px; bottom: 30px; font-size: 14px; box-shadow: 0 4px 12px rgba(0,0,0,0.2); transition: 0.3s; }
+        #toast.show { visibility: visible; bottom: 40px; }
     </style>
 </head>
 <body>
     <div id="navbar-container"></div>
     <script src="navbar.js"></script>
+
+    <!-- Overlay Loading & Toast -->
+    <div id="loadingOverlay"><div class="spinner"></div><div style="font-weight: bold; color: #0071e3;" id="loadingText">กำลังประมวลผล...</div></div>
+    <div id="toast">✅ สำเร็จ!</div>
+
     <div class="container">
-        
         <div class="card">
             <h2>☁️ สถานะตารางราคา</h2>
             <div style="margin-bottom: 15px;">
                 สถานะระบบ: <span id="syncStatus" class="status-badge">กำลังเตรียมข้อมูล...</span>
             </div>
             
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; background: #f5f5f7; padding: 12px 15px; border-radius: 8px; border: 1px solid #d2d2d7;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; background: #f5f5f7; padding: 12px 15px; border-radius: 8px; border: 1px solid #d2d2d7; flex-wrap: wrap; gap: 10px;">
                 <div style="font-size: 13px; color: #515154;">
                     <strong>🕒 ข้อมูลอัปเดตเมื่อ:</strong> <span id="lastUpdateText" style="color: #0071e3; font-weight: bold;">-</span><br>
-                    <!-- 🌟 แก้ไขข้อความอธิบายให้สอดคล้องกับระยะเวลาจำ 30 วัน -->
                     <span style="font-size: 11px; color: #86868b;">(ดึงใหม่อัตโนมัติทุก 30 วัน หรือกดรีเฟรชเองเมื่อมีอัปเดต)</span>
                 </div>
-                <button onclick="forceRefresh()" style="background: #1d1d1f; color: white; border: none; padding: 8px 12px; border-radius: 6px; font-size: 12px; font-weight: bold; cursor: pointer; transition: 0.2s;">🔄 รีเฟรชข้อมูลใหม่</button>
+                
+                <div class="action-buttons">
+                    <!-- 🌟 ส่วนจัดการไฟล์ PDF 🌟 -->
+                    <input type="file" id="pdfUploadInput" accept="application/pdf" style="display: none;" onchange="handlePdfUpload(event)">
+                    <button id="btnAdminUpload" class="btn-upload" onclick="document.getElementById('pdfUploadInput').click()" style="display: none;">📤 อัพโหลด PDF ใหม่</button>
+                    <a href="#" target="_blank" class="btn-pdf" id="pdfLinkBtn" style="display: none;">📄 ดาวน์โหลด PDF</a>
+                    
+                    <button onclick="forceRefresh()" class="btn-refresh">🔄 รีเฟรชข้อมูลราคา</button>
+                </div>
             </div>
 
             <div class="controls-box" style="display: block;">
@@ -83,7 +116,89 @@
     </div>
     
     <script>
-        // 🌟 แก้ไขอายุ Cache ให้เป็น 30 วัน (30 วัน * 24 ชม * 60 นาที * 60 วินาที * 1000 มิลลิวินาที)
+        // 🌟 ตั้งค่า Firebase 🌟
+        const firebaseConfig = {
+            apiKey: "AIzaSyANa2y5uR8iBBmjxFprTG7BUooHjQfSTn0",
+            authDomain: "iserve-stock.firebaseapp.com",
+            projectId: "iserve-stock",
+            storageBucket: "iserve-stock.firebasestorage.app",
+            messagingSenderId: "191058506009",
+            appId: "1:191058506009:web:06d3a6ed639be8e8359588",
+            measurementId: "G-JPLR9P28NM"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+        const storage = firebase.storage();
+
+        // ฟังก์ชัน UI ทั่วไป
+        function showLoading(text) { document.getElementById('loadingText').innerText = text; document.getElementById('loadingOverlay').style.display = 'flex'; }
+        function hideLoading() { document.getElementById('loadingOverlay').style.display = 'none'; }
+        function showToast(message, isError = false) {
+            let toast = document.getElementById("toast");
+            toast.innerText = message;
+            toast.style.backgroundColor = isError ? "#ff3b30" : "#34c759";
+            toast.className = "show";
+            setTimeout(() => { toast.className = toast.className.replace("show", ""); }, 3000);
+        }
+
+        // 🌟 ระบบจัดการ PDF ผ่าน Firebase 🌟
+        function initPdfSystem() {
+            // 1. ตรวจสอบว่าเป็น Admin หรือไม่ (ดึงจาก LocalStorage ที่ล็อกอินไว้ในหน้าสต๊อก)
+            let currentBranch = localStorage.getItem('iserve_consign_branch');
+            if (currentBranch === 'Admin') {
+                document.getElementById('btnAdminUpload').style.display = 'inline-flex';
+            }
+
+            // 2. ดึงลิงก์ PDF ล่าสุดแบบ Real-time
+            db.collection("Settings").doc("PriceList").onSnapshot((doc) => {
+                let btn = document.getElementById('pdfLinkBtn');
+                if (doc.exists && doc.data().pdfUrl) {
+                    btn.href = doc.data().pdfUrl;
+                    btn.style.display = 'inline-flex';
+                } else {
+                    btn.style.display = 'none'; // ซ่อนปุ่มถ้ายังไม่มีใครอัปโหลดไฟล์เลย
+                }
+            });
+        }
+
+        // 3. ฟังก์ชันอัปโหลดไฟล์เมื่อ Admin เลือกไฟล์เสร็จ
+        async function handlePdfUpload(event) {
+            let file = event.target.files[0];
+            if (!file) return;
+            if (file.type !== "application/pdf") {
+                alert("❌ กรุณาเลือกไฟล์สกุล .pdf เท่านั้นครับ");
+                return;
+            }
+            
+            showLoading("กำลังอัปโหลด PDF ไปยังเซิร์ฟเวอร์...");
+            try {
+                // อัปโหลดไฟล์ขึ้น Firebase Storage
+                let storageRef = storage.ref();
+                let fileRef = storageRef.child('PriceLists/current_price.pdf');
+                await fileRef.put(file);
+                
+                // ขอลิงก์ดาวน์โหลด
+                let downloadUrl = await fileRef.getDownloadURL();
+                
+                // บันทึกลิงก์ลงฐานข้อมูล
+                await db.collection("Settings").doc("PriceList").set({
+                    pdfUrl: downloadUrl,
+                    updatedAt: Date.now(),
+                    updatedBy: localStorage.getItem('iserve_consign_branch') || 'Admin'
+                }, { merge: true });
+                
+                showToast("✅ อัปโหลดและอัปเดตไฟล์ PDF สำเร็จ!");
+            } catch (error) {
+                alert("❌ เกิดข้อผิดพลาดในการอัปโหลด: " + error.message);
+            } finally {
+                hideLoading();
+                event.target.value = ""; // เคลียร์ช่องเลือกไฟล์
+            }
+        }
+
+        // --------------------------------------------------------
+        // โค้ดส่วนดึงข้อมูลตารางราคาจากระบบเดิม (ยังทำงานปกติ)
+        // --------------------------------------------------------
         const CACHE_KEY_PRICE = 'iserve_price_data';
         const CACHE_TIME_KEY_PRICE = 'iserve_price_time';
         const CACHE_DURATION_PRICE = 30 * 24 * 60 * 60 * 1000; 
@@ -91,6 +206,7 @@
         let priceDatabase = [];
 
         window.onload = function() {
+            initPdfSystem(); // เรียกใช้งานระบบ PDF ตอนเปิดหน้าเว็บ
             loadOnlinePrices(false); 
         };
 
@@ -134,7 +250,6 @@
             statusEl.style.backgroundColor = "#ff9500";
             document.getElementById('dataTableBody').innerHTML = `<tr><td colspan="6" style="text-align: center; padding: 30px; color: #0071e3; font-weight: bold;">กำลังดึงข้อมูลล่าสุดจากระบบ...</td></tr>`;
 
-            // 🌟 เพิ่มความเสถียรในการดึงข้อมูลด้วย redirect: 'follow'
             let url = typeof window.WEB_APP_URL !== 'undefined' ? window.WEB_APP_URL : WEB_APP_URL;
 
             fetch(url + "?action=getPrices", { redirect: 'follow' })

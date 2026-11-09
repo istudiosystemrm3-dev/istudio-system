@@ -7,10 +7,9 @@
     
     <link rel="stylesheet" href="style.css">
     
-    <!-- 🌟 โหลด Firebase SDK สำหรับเชื่อมต่อฐานข้อมูลและพื้นที่เก็บไฟล์ 🌟 -->
+    <!-- 🌟 โหลด Firebase SDK เฉพาะฐานข้อมูล (ฟรี 100%) 🌟 -->
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-storage-compat.js"></script>
 
     <style>
         .container { max-width: 1280px; display: grid; grid-template-columns: 1fr 3.5fr; gap: 20px; }
@@ -70,9 +69,9 @@
                 </div>
                 
                 <div class="action-buttons">
-                    <!-- 🌟 ส่วนจัดการไฟล์ PDF 🌟 -->
-                    <input type="file" id="pdfUploadInput" accept="application/pdf" style="display: none;" onchange="handlePdfUpload(event)">
-                    <button id="btnAdminUpload" class="btn-upload" onclick="document.getElementById('pdfUploadInput').click()" style="display: none;">📤 อัพโหลด PDF ใหม่</button>
+                    <!-- 🌟 ปุ่มสำหรับ Admin เพื่อวางลิงก์ Google Drive 🌟 -->
+                    <button id="btnAdminLink" class="btn-upload" onclick="updatePdfLink()" style="display: none;">🔗 ตั้งค่าลิงก์ PDF</button>
+                    <!-- 🌟 ปุ่มดาวน์โหลด PDF ที่จะเปลี่ยนลิงก์อัตโนมัติ 🌟 -->
                     <a href="#" target="_blank" class="btn-pdf" id="pdfLinkBtn" style="display: none;">📄 ดาวน์โหลด PDF</a>
                     
                     <button onclick="forceRefresh()" class="btn-refresh">🔄 รีเฟรชข้อมูลราคา</button>
@@ -116,7 +115,7 @@
     </div>
     
     <script>
-        // 🌟 ตั้งค่า Firebase 🌟
+        // ตั้งค่า Firebase
         const firebaseConfig = {
             apiKey: "AIzaSyANa2y5uR8iBBmjxFprTG7BUooHjQfSTn0",
             authDomain: "iserve-stock.firebaseapp.com",
@@ -128,7 +127,6 @@
         };
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
-        const storage = firebase.storage();
 
         // ฟังก์ชัน UI ทั่วไป
         function showLoading(text) { document.getElementById('loadingText').innerText = text; document.getElementById('loadingOverlay').style.display = 'flex'; }
@@ -141,63 +139,60 @@
             setTimeout(() => { toast.className = toast.className.replace("show", ""); }, 3000);
         }
 
-        // 🌟 ระบบจัดการ PDF ผ่าน Firebase 🌟
+        // 🌟 ระบบจัดการลิงก์ PDF (Google Drive) 🌟
         function initPdfSystem() {
-            // 1. ตรวจสอบว่าเป็น Admin หรือไม่ (ดึงจาก LocalStorage ที่ล็อกอินไว้ในหน้าสต๊อก)
+            // 1. ตรวจสอบว่าเป็น Admin หรือไม่
             let currentBranch = localStorage.getItem('iserve_consign_branch');
             if (currentBranch === 'Admin') {
-                document.getElementById('btnAdminUpload').style.display = 'inline-flex';
+                document.getElementById('btnAdminLink').style.display = 'inline-flex';
             }
 
-            // 2. ดึงลิงก์ PDF ล่าสุดแบบ Real-time
+            // 2. ฟังการอัปเดตลิงก์จากฐานข้อมูลแบบ Real-time
             db.collection("Settings").doc("PriceList").onSnapshot((doc) => {
                 let btn = document.getElementById('pdfLinkBtn');
                 if (doc.exists && doc.data().pdfUrl) {
                     btn.href = doc.data().pdfUrl;
                     btn.style.display = 'inline-flex';
                 } else {
-                    btn.style.display = 'none'; // ซ่อนปุ่มถ้ายังไม่มีใครอัปโหลดไฟล์เลย
+                    btn.style.display = 'none';
                 }
             });
         }
 
-        // 3. ฟังก์ชันอัปโหลดไฟล์เมื่อ Admin เลือกไฟล์เสร็จ
-        async function handlePdfUpload(event) {
-            let file = event.target.files[0];
-            if (!file) return;
-            if (file.type !== "application/pdf") {
-                alert("❌ กรุณาเลือกไฟล์สกุล .pdf เท่านั้นครับ");
-                return;
-            }
+        // 3. ฟังก์ชันสำหรับให้ Admin กรอกลิงก์
+        async function updatePdfLink() {
+            let currentUrl = document.getElementById('pdfLinkBtn').href;
+            if(currentUrl.includes(window.location.host) || currentUrl.includes("#")) currentUrl = ""; // ป้องกันดึง URL เปล่าๆ มาแสดง
+
+            let newUrl = prompt("🔗 กรุณาวางลิงก์ Google Drive (แชร์แบบสาธารณะ) สำหรับไฟล์ PDF ตารางราคา\n\n(หากต้องการลบปุ่มดาวน์โหลด ให้ลบข้อความออกให้หมดแล้วกด OK):", currentUrl);
             
-            showLoading("กำลังอัปโหลด PDF ไปยังเซิร์ฟเวอร์...");
+            if (newUrl === null) return; // กดยกเลิก
+            
+            showLoading("กำลังบันทึกลิงก์...");
             try {
-                // อัปโหลดไฟล์ขึ้น Firebase Storage
-                let storageRef = storage.ref();
-                let fileRef = storageRef.child('PriceLists/current_price.pdf');
-                await fileRef.put(file);
-                
-                // ขอลิงก์ดาวน์โหลด
-                let downloadUrl = await fileRef.getDownloadURL();
-                
-                // บันทึกลิงก์ลงฐานข้อมูล
-                await db.collection("Settings").doc("PriceList").set({
-                    pdfUrl: downloadUrl,
-                    updatedAt: Date.now(),
-                    updatedBy: localStorage.getItem('iserve_consign_branch') || 'Admin'
-                }, { merge: true });
-                
-                showToast("✅ อัปโหลดและอัปเดตไฟล์ PDF สำเร็จ!");
+                if (newUrl.trim() === "") {
+                    // กรณีเคลียร์ค่าทิ้ง
+                    await db.collection("Settings").doc("PriceList").set({ pdfUrl: "" }, { merge: true });
+                    showToast("🗑️ ลบลิงก์เดิมเรียบร้อยแล้ว");
+                } else {
+                    // กรณีบันทึกลิงก์ใหม่
+                    await db.collection("Settings").doc("PriceList").set({
+                        pdfUrl: newUrl.trim(),
+                        updatedAt: Date.now(),
+                        updatedBy: localStorage.getItem('iserve_consign_branch') || 'Admin'
+                    }, { merge: true });
+                    showToast("✅ บันทึกลิงก์ดาวน์โหลดสำเร็จ!");
+                }
             } catch (error) {
-                alert("❌ เกิดข้อผิดพลาดในการอัปโหลด: " + error.message);
+                alert("❌ เกิดข้อผิดพลาด: " + error.message);
             } finally {
                 hideLoading();
-                event.target.value = ""; // เคลียร์ช่องเลือกไฟล์
             }
         }
 
+
         // --------------------------------------------------------
-        // โค้ดส่วนดึงข้อมูลตารางราคาจากระบบเดิม (ยังทำงานปกติ)
+        // โค้ดดึงข้อมูลตารางราคา
         // --------------------------------------------------------
         const CACHE_KEY_PRICE = 'iserve_price_data';
         const CACHE_TIME_KEY_PRICE = 'iserve_price_time';
@@ -206,7 +201,7 @@
         let priceDatabase = [];
 
         window.onload = function() {
-            initPdfSystem(); // เรียกใช้งานระบบ PDF ตอนเปิดหน้าเว็บ
+            initPdfSystem(); 
             loadOnlinePrices(false); 
         };
 

@@ -160,7 +160,7 @@
         </div>
     </div>
 
-    <!-- 🌟 Modal จัดการ Master Parts สำหรับ Admin (เพิ่มช่องรหัสเทียบเคียง) 🌟 -->
+    <!-- 🌟 Modal จัดการ Master Parts สำหรับ Admin (อัปเดตช่องค้นหา) 🌟 -->
     <div class="modal-overlay" id="masterPartModal">
         <div class="modal-box">
             <div class="modal-header">
@@ -177,7 +177,6 @@
                     <label style="font-size:11px; font-weight:bold; color:#86868b;">ชื่ออะไหล่ *</label>
                     <input type="text" id="masterPartName" placeholder="เช่น แบตเตอรี่" style="width: 100%; padding: 10px; border: 1px solid #d2d2d7; border-radius: 6px; outline: none; box-sizing: border-box;">
                 </div>
-                <!-- 🌟 เพิ่มช่องกรอกรหัสเทียบเคียง HQ 🌟 -->
                 <div style="flex: 1.5; min-width: 150px;">
                     <label style="font-size:11px; font-weight:bold; color:#d81b60;">รหัส HQ เทียบเคียง (คั่นด้วย ,)</label>
                     <input type="text" id="masterPartAlias" placeholder="เช่น BATT-01EX, BATT-OLD" style="width: 100%; padding: 10px; border: 1px solid #f48fb1; border-radius: 6px; outline: none; box-sizing: border-box; background: #fce4ec;">
@@ -194,6 +193,9 @@
                 <textarea id="bulkMasterPaste" rows="3" placeholder="ก๊อปปี้คอลัมน์จาก Excel มาวางลงที่นี่..." style="width: 100%; padding: 10px; border: 1px solid #c8e1fa; border-radius: 6px; font-size: 13px; box-sizing: border-box; outline: none; margin-bottom: 8px;"></textarea>
                 <button onclick="bulkImportMasterParts()" style="background: #0071e3; color: white; border: none; padding: 10px 15px; border-radius: 6px; font-size: 13px; font-weight: bold; cursor: pointer; width: 100%;">🚀 นำเข้าข้อมูลทั้งหมดลงฐานระบบ</button>
             </div>
+
+            <!-- 🌟 เพิ่มช่องค้นหาสำหรับ Master Parts 🌟 -->
+            <input type="text" id="searchMasterPartInput" class="search-box" placeholder="🔍 ค้นหา Part No, ชื่ออะไหล่, รหัสเทียบเคียง..." onkeyup="filterMasterParts()" style="margin-bottom: 10px; padding: 10px 15px 10px 40px !important;">
 
             <div class="table-container" style="max-height: 250px;">
                 <table style="width: 100%;">
@@ -308,7 +310,7 @@
                     <div id="compareForm" style="display: none;">
                         <p id="compareInstructions" style="font-size: 13px; color: #515154; margin-bottom: 10px;"></p>
                         <textarea id="excelPasteArea" rows="6" placeholder="วางข้อมูลจาก Excel ลงที่นี่... (Part No [เว้นวรรค/Tab] จำนวน)"></textarea>
-                        <button class="btn-submit" style="background-color: #00838f;" onclick="processExcelCompare()">🔍 เริ่มเปรียบเทียบยอด (ระบบจะแปลงรหัส HQ ให้อัตโนมัติ)</button>
+                        <button class="btn-submit" style="background-color: #00838f;" onclick="processExcelCompare()">🔍 เริ่มเปรียบเทียบยอด</button>
                     </div>
                 </div>
 
@@ -481,10 +483,26 @@
         // 🌟🌟🌟 ระบบ จัดการ Master Parts 🌟🌟🌟
         function openMasterPartModal() {
             document.getElementById('masterPartModal').style.display = "flex";
+            document.getElementById('searchMasterPartInput').value = ""; // ล้างช่องค้นหาตอนเปิดใหม่
             loadMasterParts();
         }
         
         function closeMasterPartModal() { document.getElementById('masterPartModal').style.display = "none"; }
+
+        // 🌟 ฟังก์ชันค้นหาและกรองในตาราง Master Part 🌟
+        function filterMasterParts() {
+            let input = document.getElementById("searchMasterPartInput").value.toUpperCase();
+            let rows = document.getElementById("masterPartTableBody").getElementsByTagName("tr");
+            
+            for (let i = 0; i < rows.length; i++) {
+                let rowText = rows[i].innerText.toUpperCase();
+                if (rowText.indexOf(input) > -1 || rows[i].innerHTML.includes("กำลังโหลด") || rows[i].innerHTML.includes("ยังไม่มีข้อมูล")) {
+                    rows[i].style.display = "";
+                } else {
+                    rows[i].style.display = "none";
+                }
+            }
+        }
 
         async function loadMasterParts() {
             let tbody = document.getElementById('masterPartTableBody');
@@ -499,7 +517,6 @@
                 snapshot.forEach(doc => {
                     let data = doc.data();
                     let aliasDisplay = data.aliases ? `<span style="color: #d81b60; font-size: 11px;">${data.aliases}</span>` : "-";
-                    // ป้องกันเครื่องหมายคำพูดเดี่ยวทำปุ่มพัง
                     let safeName = data.name.replace(/'/g, "\\'");
                     let safeAlias = (data.aliases || "").replace(/'/g, "\\'");
                     
@@ -515,6 +532,7 @@
                         </tr>
                     `;
                 });
+                filterMasterParts(); // อัปเดตตัวกรองทันทีหลังจากโหลดข้อมูลเสร็จ
             } catch (err) {
                 tbody.innerHTML = `<tr><td colspan="4" style="text-align: center; color: red;">❌ โหลดข้อมูลล้มเหลว: ${err.message}</td></tr>`;
             }
@@ -556,7 +574,7 @@
                     if (cols.length >= 2) {
                         let pNo = cols[0].trim().toUpperCase();
                         let pName = cols[1].trim();
-                        let pAlias = (cols[2] || "").trim().toUpperCase(); // คอลัมน์ 3 คือ Alias (ถ้ามี)
+                        let pAlias = (cols[2] || "").trim().toUpperCase(); 
                         
                         if (pNo && pName) {
                             let docRef = db.collection("MasterParts").doc(pNo);
@@ -1039,37 +1057,34 @@
             }
         }
 
-        // 🌟🌟🌟 อัปเดต: ระบบแปลงร่างรหัส HQ เวลาเปรียบเทียบ Excel 🌟🌟🌟
         async function processExcelCompare() {
             let rawData = document.getElementById('excelPasteArea').value.trim();
             if(!rawData) { alert("กรุณาวางข้อมูลจาก Excel ก่อนครับ"); return; }
             
             showLoading("กำลังวิเคราะห์ข้อมูลเทียบเคียง...");
             try {
-                // 1. โหลดพจนานุกรมรหัสเทียบเคียงมาเตรียมไว้ก่อน
                 let masterSnap = await db.collection("MasterParts").get();
                 let aliasMap = {}; 
                 masterSnap.forEach(doc => {
                     let data = doc.data();
                     let mainPart = data.partNo.toUpperCase();
-                    aliasMap[mainPart] = mainPart; // ตัวมันเอง
+                    aliasMap[mainPart] = mainPart; 
                     if (data.aliases) {
                         let aliasList = data.aliases.split(',');
                         aliasList.forEach(a => {
                             let cleanAlias = a.trim().toUpperCase();
-                            if(cleanAlias) aliasMap[cleanAlias] = mainPart; // ชี้เป้าไปหารหัสหลัก
+                            if(cleanAlias) aliasMap[cleanAlias] = mainPart; 
                         });
                     }
                 });
 
-                // 2. เริ่มแกะข้อมูล Excel
                 let rows = rawData.split('\n'); 
                 let appleStockMap = {}; 
                 rows.forEach(row => {
                     let cols = row.split('\t'); 
                     if(cols.length >= 1) {
                         let rawPart = cols[0].trim().toUpperCase();
-                        let finalPart = aliasMap[rawPart] || rawPart; // 🌟 แปลงร่างรหัสตรงนี้เลย!
+                        let finalPart = aliasMap[rawPart] || rawPart; 
                         
                         let qty = 0;
                         if(cols.length >= 2) qty = parseInt(cols[1].replace(/,/g, '').trim()) || 0;
@@ -1107,11 +1122,7 @@
                 let title = activeMode === 'CONSIGN' ? "📊 ผลการเปรียบเทียบสต๊อกกับไฟล์ Apple" : "📊 ผลการเปรียบเทียบสต๊อกกับไฟล์ POS/HQ";
                 document.getElementById('stockBoxTitle').innerText = title; document.getElementById('searchInput').value = ""; filterTables();
                 
-            } catch (err) {
-                alert("❌ เกิดข้อผิดพลาดระหว่างเปรียบเทียบ: " + err.message);
-            } finally {
-                hideLoading();
-            }
+            } catch (err) { alert("❌ เกิดข้อผิดพลาดระหว่างเปรียบเทียบ: " + err.message); } finally { hideLoading(); }
         }
     </script>
 </body>

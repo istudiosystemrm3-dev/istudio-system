@@ -200,7 +200,6 @@
                 </div>
             </div>
 
-            <!-- 🌟 ช่องค้นหาในหน้า Master Parts (เพิ่มตามภาพที่ 1) 🌟 -->
             <div style="margin-bottom: 10px;">
                 <input type="text" id="masterSearchInput" class="search-box" style="margin-bottom: 0; padding: 10px 15px 10px 40px !important; font-size: 14px;" placeholder="🔍 ค้นหา Part No, ชื่ออะไหล่ หรือ รหัสเทียบเคียงในฐานข้อมูล..." onkeyup="filterMasterParts()">
             </div>
@@ -211,6 +210,30 @@
                     <tbody id="masterPartTableBody"></tbody>
                 </table>
             </div>
+        </div>
+    </div>
+
+    <!-- 🌟 Modal แก้ไขประวัติ Log ที่พิมพ์ผิด 🌟 -->
+    <div class="modal-overlay" id="editLogModal">
+        <div class="modal-box" style="max-width: 400px;">
+            <div class="modal-header">
+                <h3 class="modal-title" style="color: #0071e3;">✏️ แก้ไขข้อมูลประวัติ</h3>
+                <button class="btn-close-modal" onclick="closeEditLogModal()">✖</button>
+            </div>
+            <input type="hidden" id="editLogId">
+            <div style="margin-bottom: 12px;">
+                <label style="font-size: 12px; font-weight: bold; color: #515154; display: block; margin-bottom: 5px;">Job / SO Number</label>
+                <input type="text" id="editLogJobNo" placeholder="อ้างอิงใบงานซ่อม..." style="width: 100%; padding: 10px; border: 1px solid #d2d2d7; border-radius: 6px; outline: none; box-sizing: border-box;">
+            </div>
+            <div style="margin-bottom: 12px;">
+                <label style="font-size: 12px; font-weight: bold; color: #515154; display: block; margin-bottom: 5px;">Repair ID (GSX)</label>
+                <input type="text" id="editLogRepairId" placeholder="เช่น G123456789..." style="width: 100%; padding: 10px; border: 1px solid #d2d2d7; border-radius: 6px; outline: none; box-sizing: border-box;">
+            </div>
+            <div style="margin-bottom: 20px;">
+                <label style="font-size: 12px; font-weight: bold; color: #515154; display: block; margin-bottom: 5px;">หมายเหตุ</label>
+                <input type="text" id="editLogNote" placeholder="ข้อความเพิ่มเติม..." style="width: 100%; padding: 10px; border: 1px solid #d2d2d7; border-radius: 6px; outline: none; box-sizing: border-box;">
+            </div>
+            <button onclick="saveEditLog()" style="background: #0071e3; color: white; border: none; padding: 12px 15px; border-radius: 6px; font-size: 14px; font-weight: bold; cursor: pointer; width: 100%; transition: 0.2s;">💾 บันทึกการแก้ไข</button>
         </div>
     </div>
 
@@ -231,7 +254,6 @@
                 <div style="display: flex; flex-direction: column;">
                     <h2 class="branch-title">
                         📍 สาขา: <span id="displayBranchName" style="color:inherit;">กำลังโหลด...</span>
-                        <!-- Dropdown กรองสาขาสำหรับ Admin (ดึงรายชื่อสาขาอัตโนมัติ) -->
                         <select id="adminBranchFilterSelect" class="admin-filter-select" style="display: none;" onchange="refreshTablesForAdmin()">
                             <option value="ALL">รวมทุกสาขา</option>
                         </select>
@@ -482,7 +504,6 @@
             startRealtimeListeners();
         }
 
-        // ดึงชื่อสาขาจริงทั้งหมดมาใส่ใน Dropdown ของ Admin อัตโนมัติ
         async function loadBranchOptionsForAdmin() {
             let select = document.getElementById('adminBranchFilterSelect');
             if (!select) return;
@@ -540,7 +561,43 @@
             }
         }
 
-        // 🌟🌟🌟 ระบบจัดการ Master Parts + Search + Sync 🌟🌟🌟
+        // 🌟 ฟังก์ชันจัดการหน้าต่างแก้ไขประวัติ 🌟
+        function openEditLogModal(id, job, repair, note) {
+            document.getElementById('editLogId').value = id;
+            document.getElementById('editLogJobNo').value = job === "-" ? "" : job;
+            document.getElementById('editLogRepairId').value = repair === "-" ? "" : repair;
+            document.getElementById('editLogNote').value = note === "-" ? "" : note;
+            document.getElementById('editLogModal').style.display = 'flex';
+        }
+
+        function closeEditLogModal() {
+            document.getElementById('editLogModal').style.display = 'none';
+        }
+
+        async function saveEditLog() {
+            let id = document.getElementById('editLogId').value;
+            let job = document.getElementById('editLogJobNo').value.trim() || "-";
+            let repair = document.getElementById('editLogRepairId').value.trim() || "-";
+            let note = document.getElementById('editLogNote').value.trim() || "-";
+            
+            showLoading("กำลังบันทึกการแก้ไข...");
+            try {
+                await db.collection("Logs").doc(id).update({
+                    job: job,
+                    repairId: repair,
+                    note: note
+                });
+                showToast("✅ แก้ไขประวัติเรียบร้อย!");
+                closeEditLogModal();
+            } catch(e) {
+                alert("❌ ผิดพลาด: " + e.message);
+            } finally {
+                hideLoading();
+            }
+        }
+
+        // --------------------------------------------------------
+
         function openMasterPartModal() {
             document.getElementById('masterPartModal').style.display = "flex";
             if(document.getElementById('masterSearchInput')) document.getElementById('masterSearchInput').value = "";
@@ -549,7 +606,6 @@
         
         function closeMasterPartModal() { document.getElementById('masterPartModal').style.display = "none"; }
 
-        // ฟังก์ชันค้นหาในหน้าต่าง Master Parts (ภาพที่ 1)
         function filterMasterParts() {
             let input = document.getElementById('masterSearchInput').value.toUpperCase();
             let rows = document.getElementById('masterPartTableBody').getElementsByTagName('tr');
@@ -591,7 +647,7 @@
                         </tr>
                     `;
                 });
-                filterMasterParts(); // กรองข้อมูลตามคำค้นหาที่อาจค้างอยู่
+                filterMasterParts(); 
             } catch (err) {
                 tbody.innerHTML = `<tr><td colspan="4" style="text-align: center; color: red;">❌ โหลดข้อมูลล้มเหลว: ${err.message}</td></tr>`;
             }
@@ -607,7 +663,6 @@
             try {
                 await db.collection("MasterParts").doc(pNo).set({ partNo: pNo, name: pName, aliases: pAlias });
                 
-                // อัปเดตชื่อในตาราง Stock ที่มี Part No เดียวกันให้อัตโนมัติ (แก้ปัญหาคำว่า สินค้าทั่วไป)
                 let stockSnap = await db.collection("Stock").where("partNo", "==", pNo).get();
                 if (!stockSnap.empty) {
                     let batch = db.batch();
@@ -624,9 +679,8 @@
             } catch (err) { alert("❌ ผิดพลาด: " + err.message); } finally { hideLoading(); }
         }
 
-        // ฟังก์ชันซิงค์ชื่ออะไหล่จาก MasterParts ไปทับ "สินค้าทั่วไป" ในสต๊อกทั้งหมดในคลิกเดียว
         async function syncAllStockNamesWithMaster() {
-            if (!confirm("🔄 ต้องการอัปเดตชื่ออะไหล่ในสต๊อกทุกสาขา (เช่น คำว่า 'สินค้าทั่วไป') ให้ตรงกับฐานข้อมูล Master Parts ปัจจุบันใช่หรือไม่?")) return;
+            if (!confirm("🔄 ต้องการอัปเดตชื่ออะไหล่ในสต๊อกทุกสาขา ให้ตรงกับฐานข้อมูล Master Parts ปัจจุบันใช่หรือไม่?")) return;
             showLoading("กำลังซิงค์ชื่ออะไหล่เข้ากับสต๊อกทุกสาขา...");
             try {
                 let masterSnap = await db.collection("MasterParts").get();
@@ -899,7 +953,6 @@
             startRealtimeListeners();
         }
 
-        // 🌟 ตารางสต๊อกคงเหลือ (เพิ่มการคลิกแก้ชื่อ และปุ่มลบรายการที่ยิงผิด เช่น 2641) 🌟
         function renderStockTable(stockArray) {
             let isAdmin = (currentBranch === "Admin");
             let adminFilter = document.getElementById('adminBranchFilterSelect') ? document.getElementById('adminBranchFilterSelect').value : "ALL";
@@ -985,7 +1038,6 @@
             `;
         }
 
-        // 🌟 ฟังก์ชันคลิกเปลี่ยนชื่ออะไหล่ (แก้ "สินค้าทั่วไป") ได้ทันทีจากหน้าตารางสต๊อก 🌟
         async function quickEditPartName(docId, partNo, currentName) {
             let newName = prompt(`✏️ แก้ไขชื่ออะไหล่สำหรับ Part No: ${partNo}\n(ระบบจะบันทึกชื่อนี้ลงในฐานข้อมูล Master Parts ให้ด้วยอัตโนมัติ)`, currentName === "สินค้าทั่วไป" ? "" : currentName);
             if (newName === null) return;
@@ -994,10 +1046,8 @@
 
             showLoading("กำลังอัปเดตชื่ออะไหล่...");
             try {
-                // 1. อัปเดตในสต๊อกปัจจุบัน
                 await db.collection("Stock").doc(docId).update({ name: newName });
                 
-                // 2. อัปเดตหรือสร้างใน MasterParts เพื่อให้ครั้งต่อไปไม่ขึ้นสินค้าทั่วไปอีก
                 await db.collection("MasterParts").doc(partNo.toUpperCase()).set({
                     partNo: partNo.toUpperCase(),
                     name: newName
@@ -1011,16 +1061,13 @@
             }
         }
 
-        // 🌟 ฟังก์ชันลบรายการที่ยิงผิด (เช่น 2641) ออกจากตารางสต๊อกคงเหลือโดยตรง 🌟
         async function deleteStockItem(docId, partNo, branch) {
             if (!confirm(`⚠️ ยืนยันการลบ Part No: "${partNo}" (สาขา ${branch})\nออกจากรายการสต๊อกคงเหลือถาวรใช่หรือไม่?\n\n(เหมาะสำหรับลบรายการที่สแกนผิดพลาด เช่น ยิงรหัสผิด)`)) return;
             
             showLoading(`กำลังลบ ${partNo} ออกจากระบบ...`);
             try {
-                // ลบออกจากตาราง Stock
                 await db.collection("Stock").doc(docId).delete();
                 
-                // ค้นหาและลบประวัติ (Logs) ของรหัสที่ยิงผิดนี้ในสาขานั้นออกด้วย เพื่อไม่ให้ค้างในประวัติ
                 let logSnap = await db.collection("Logs")
                     .where("mode", "==", activeMode)
                     .where("branch", "==", branch)
@@ -1041,6 +1088,7 @@
             }
         }
 
+        // 🌟 แก้ไข: ตารางแสดงประวัติ (เพิ่มปุ่ม "แก้ไข" ข้างปุ่มลบ) 🌟
         function renderLogTable(logArray) {
             let isAdmin = (currentBranch === "Admin");
             let adminFilter = document.getElementById('adminBranchFilterSelect') ? document.getElementById('adminBranchFilterSelect').value : "ALL";
@@ -1082,7 +1130,15 @@
                 let repairHtml = (!isAdmin && activeMode === "STORE") ? "" : `<td>${log.repairId || "-"}</td>`;
                 let branchHtml = isAdmin ? `<td><span class="branch-badge">${log.branch}</span></td>` : "";
                 
-                let actionHtml = `<td style="text-align: right;"><button class="btn-admin-del" onclick="voidTransaction('${log.id}', '${log.partNo}', ${log.qty}, '${log.type}', '${log.branch}')">ลบ/ยกเลิก</button></td>`;
+                // แปลงข้อมูลเพื่อไม่ให้โค้ดพังเวลาเรียกใช้งานใน onclick
+                let safeJob = (log.job || "-").replace(/'/g, "\\'");
+                let safeRepair = (log.repairId || "-").replace(/'/g, "\\'");
+                let safeNote = (log.note || "-").replace(/'/g, "\\'");
+
+                let actionHtml = `<td style="text-align: right; min-width: 120px;">
+                    <button class="btn-admin-edit" onclick="openEditLogModal('${log.id}', '${safeJob}', '${safeRepair}', '${safeNote}')" style="margin-right: 5px;">✏️ แก้ไข</button>
+                    <button class="btn-admin-del" onclick="voidTransaction('${log.id}', '${log.partNo}', ${log.qty}, '${log.type}', '${log.branch}')">🗑️ ลบ</button>
+                </td>`;
 
                 tbody.innerHTML += `
                     <tr data-branch="${log.branch}">
@@ -1123,7 +1179,6 @@
             } catch(e) { alert("❌ ผิดพลาด: " + e.message); } finally { hideLoading(); }
         }
 
-        // ฟังก์ชันลบ/ยกเลิก รายการในประวัติ (ถ้าคำนวณแล้วเป็น 0 ทั้งคู่ ให้ลบแถวสต๊อกทิ้งอัตโนมัติ)
         async function voidTransaction(logId, partNo, qty, type, branch) {
             if(!confirm(`⚠️ ยืนยันการ "ยกเลิก" รายการนี้หรือไม่?\nระบบจะลบประวัติและคำนวณสต๊อก (${partNo} = ${qty} ชิ้น) คืนให้อัตโนมัติ`)) return;
             try {
@@ -1155,7 +1210,6 @@
                         }
                         if (newPending < 0) newPending = 0;
 
-                        // หากยกเลิกรายการแล้ว ยอดคงเหลือเป็น 0 และยอดรอเข้าเป็น 0 ให้ลบออกจากตาราง Stock เลยเพื่อไม่ให้รก
                         if (newQty === 0 && newPending === 0) {
                             transaction.delete(stockRef);
                         } else {
@@ -1201,7 +1255,6 @@
 
             try {
                 let cleanPartNo = partNo.toUpperCase();
-                // ค้นหาชื่อจาก MasterParts (ทั้งรหัสตรงและรหัส Alias)
                 if (!partName) {
                     let masterDoc = await db.collection("MasterParts").doc(cleanPartNo).get();
                     if (masterDoc.exists) {

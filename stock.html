@@ -55,7 +55,6 @@
         .action-card input:focus, .action-card textarea:focus { border-color: #0071e3; }
         
         #transferBox { background: #fce4ec; padding: 10px; border-radius: 8px; border: 1px dashed #d81b60; margin-bottom: 12px; }
-        #mainStockBox { background: #f3e5f5; padding: 10px; border-radius: 8px; border: 1px dashed #8e24aa; margin-bottom: 12px; }
         
         #consumeSubOptions { background: #f0f7ff; padding: 12px; border-radius: 8px; border: 1px solid #c8e1fa; margin-bottom: 15px; }
         .sub-option-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
@@ -115,13 +114,12 @@
         .spinner { border: 4px solid #f3f3f3; border-top: 4px solid #0071e3; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin-bottom: 10px; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
-        /* 🌟 ปุ่มและ Modal คิวมัดจำ และ ของโอน 🌟 */
+        /* ปุ่มต่างๆ */
         .btn-deposit-queue { background-color: #fffde5; color: #d4a017; border: 2px solid #f1c40f; padding: 8px 15px; border-radius: 20px; font-size: 13px; font-weight: bold; cursor: pointer; transition: 0.2s; display: flex; align-items: center; gap: 5px; }
         .btn-deposit-queue:hover { background-color: #f1c40f; color: #fff; }
         .btn-deposit-queue.has-items { background-color: #f1c40f; color: #fff; animation: pulse-warning 2s infinite; }
         @keyframes pulse-warning { 0% { box-shadow: 0 0 0 0 rgba(241, 196, 15, 0.7); } 70% { box-shadow: 0 0 0 10px rgba(241, 196, 15, 0); } 100% { box-shadow: 0 0 0 0 rgba(241, 196, 15, 0); } }
 
-        /* 🌟 สไตล์ปุ่มติดตามของโอนสีชมพู 🌟 */
         .btn-transfer-queue { background-color: #fce4ec; color: #d81b60; border: 2px solid #f48fb1; padding: 8px 15px; border-radius: 20px; font-size: 13px; font-weight: bold; cursor: pointer; transition: 0.2s; display: flex; align-items: center; gap: 5px; }
         .btn-transfer-queue:hover { background-color: #f48fb1; color: #fff; }
         .btn-transfer-queue.has-items { background-color: #d81b60; color: #fff; animation: pulse-transfer 2s infinite; border-color: #d81b60; }
@@ -135,7 +133,6 @@
         .btn-clear-deposit-action { background: #388e3c; color: white; border: none; padding: 6px 12px; border-radius: 6px; font-size: 12px; font-weight: bold; cursor: pointer; }
         .btn-receive-transfer-action { background: #1e88e5; color: white; border: none; padding: 6px 12px; border-radius: 6px; font-size: 12px; font-weight: bold; cursor: pointer; }
 
-        /* เครื่องมือ Admin & ปุ่มจัดการ */
         .btn-admin-edit { background: #ff9500; color: white; border: none; padding: 5px 8px; border-radius: 4px; font-size: 12px; font-weight: bold; cursor: pointer; transition: 0.2s; }
         .btn-admin-edit:hover { background: #e68600; }
         .btn-admin-del { background: #ff3b30; color: white; border: none; padding: 5px 8px; border-radius: 4px; font-size: 12px; font-weight: bold; cursor: pointer; transition: 0.2s; }
@@ -171,7 +168,7 @@
         </div>
     </div>
 
-    <!-- 🌟 Modal ติดตามของโอนค้างรับ 🌟 -->
+    <!-- Modal ติดตามของโอนค้างรับ -->
     <div class="modal-overlay" id="transferModal">
         <div class="modal-box">
             <div class="modal-header">
@@ -184,6 +181,47 @@
                     <tbody id="transferQueueBody"></tbody>
                 </table>
             </div>
+        </div>
+    </div>
+
+    <!-- 🌟 Modal โหมดตรวจนับสต๊อก (Audit Mode ใหม่) 🌟 -->
+    <div class="modal-overlay" id="auditModal">
+        <div class="modal-box" style="max-width: 900px;">
+            <div class="modal-header">
+                <h3 class="modal-title" style="color: #8e24aa;">📝 ระบบตรวจนับสต๊อก (Audit Mode)</h3>
+                <button class="btn-close-modal" onclick="closeAuditModal()">✖</button>
+            </div>
+            
+            <div style="background: #f3e5f5; padding: 15px; border-radius: 8px; border: 1px dashed #8e24aa; margin-bottom: 15px; display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+                <div style="flex: 1; min-width: 250px;">
+                    <label style="font-size: 13px; font-weight: bold; color: #8e24aa; margin-bottom: 5px; display: block;">ยิงบาร์โค้ดเพื่อเริ่มนับ (Auto +1)</label>
+                    <input type="text" id="auditScanInput" placeholder="สแกน Part No..." onkeypress="handleAuditScan(event)" style="width: 100%; padding: 12px; border: 1px solid #ce93d8; border-radius: 6px; font-size: 16px; outline: none; box-sizing: border-box;">
+                </div>
+                <div style="display: flex; align-items: flex-end;">
+                    <button onclick="resetAuditSession()" style="background: #ff3b30; color: white; border: none; padding: 12px 15px; border-radius: 6px; font-weight: bold; cursor: pointer; height: 46px; margin-top: 22px;">🔄 เริ่มนับใหม่ (Reset)</button>
+                </div>
+            </div>
+
+            <p style="font-size: 12px; color: #86868b; margin-top: -5px; margin-bottom: 10px;">
+                💡 <b>คำแนะนำ:</b> ยิงบาร์โค้ดเรื่อยๆ ระบบจะบวกยอดนับให้อัตโนมัติ หากพิมพ์ผิดสามารถคลิกแก้ตัวเลขในช่องหรือกด "ลบการนับ" ได้ (รายการที่ไม่ได้ถูกสแกนจะไม่มีการเปลี่ยนแปลงยอดในระบบ)
+            </p>
+
+            <div class="table-container" style="max-height: 400px; margin-bottom: 15px;">
+                <table style="width: 100%;">
+                    <thead style="background: #f5f5f7;">
+                        <tr>
+                            <th width="20%">Part No</th>
+                            <th width="35%">ชื่ออะไหล่</th>
+                            <th width="15%" style="text-align: center;">ยอดในระบบ</th>
+                            <th width="15%" style="text-align: center;">ยอดที่นับได้</th>
+                            <th width="15%" style="text-align: center;">ผลต่าง</th>
+                        </tr>
+                    </thead>
+                    <tbody id="auditTableBody"></tbody>
+                </table>
+            </div>
+            
+            <button onclick="submitAuditSession()" style="background: #8e24aa; color: white; border: none; padding: 15px; border-radius: 8px; font-size: 16px; font-weight: bold; width: 100%; cursor: pointer; transition: 0.2s;">💾 บันทึกผลการตรวจนับ (อัปเดตเฉพาะรายการที่มีการนับ)</button>
         </div>
     </div>
 
@@ -289,7 +327,6 @@
                     <button id="btnMasterPart" class="btn-admin-master" onclick="openMasterPartModal()" style="display: none;">
                         ⚙️ ฐานข้อมูลอะไหล่
                     </button>
-                    <!-- 🌟 ปุ่มเปิดคิวมัดจำ และ ปุ่มโอนของค้างรับ 🌟 -->
                     <button id="btnTransferQueue" class="btn-transfer-queue" onclick="openTransferModal()" style="display: none;">
                         🚚 ติดตามของโอน (0)
                     </button>
@@ -317,7 +354,8 @@
                         <div class="type-btn" id="btnTypeReturn" onclick="selectActionType('ส่งคืน')">🟠 ส่งคืน</div>
                         <div class="type-btn" id="btnTypeTransferOutConsign" onclick="selectActionType('โอนออก')">📤 โอนออก</div>
                         <div class="type-btn" id="btnTypeTransferInConsign" onclick="selectActionType('รับโอน')">📥 รับโอน</div>
-                        <div class="type-btn" id="btnTypeAudit" onclick="selectActionType('ตรวจนับยอด')">📝 ตรวจนับ</div>
+                        <!-- 🌟 ปุ่มตรวจนับยอด เปลี่ยนไปเปิดหน้าต่าง Audit Modal แทน 🌟 -->
+                        <div class="type-btn" id="btnTypeAudit" onclick="openAuditModal()" style="background: #f3e5f5; color: #8e24aa; border-color: #8e24aa;">📝 ตรวจนับ</div>
                         <div class="type-btn" id="btnTypeCompare" onclick="selectActionType('เทียบสต๊อก')">📊 เทียบไฟล์ Apple</div>
                     </div>
 
@@ -327,7 +365,8 @@
                         <div class="type-btn" id="btnTypeRefund" onclick="selectActionType('คืนสต๊อก')">↩️ คืนสต๊อก</div>
                         <div class="type-btn" id="btnTypeTransferOut" onclick="selectActionType('โอนออก')">📤 โอนออก</div>
                         <div class="type-btn" id="btnTypeTransferIn" onclick="selectActionType('รับโอน')">📥 รับโอน</div>
-                        <div class="type-btn" id="btnTypeAuditStore" onclick="selectActionType('ตรวจนับยอด')">📝 ตรวจนับ</div>
+                        <!-- 🌟 ปุ่มตรวจนับยอด เปลี่ยนไปเปิดหน้าต่าง Audit Modal แทน 🌟 -->
+                        <div class="type-btn" id="btnTypeAuditStore" onclick="openAuditModal()" style="background: #f3e5f5; color: #8e24aa; border-color: #8e24aa;">📝 ตรวจนับ</div>
                         <div class="type-btn" id="btnTypeCompareStore" onclick="selectActionType('เทียบสต๊อก')">📊 เทียบไฟล์ Excel</div>
                     </div>
                     
@@ -360,7 +399,6 @@
                         </div>
 
                         <div class="form-row" id="transferBox" style="display:none;"><div class="flex-1"><label id="transferLabel">ระบุสาขาปลายทาง *</label><input type="text" id="transferBranch" placeholder="เช่น iStudio Central World..."></div></div>
-                        <div class="form-row" id="mainStockBox" style="display:none;"><div class="flex-1"><label style="color: #8e24aa;">สต๊อกคลังจริง (ระบบ POS/HQ)</label><input type="number" id="mainStock" placeholder="ใส่ยอดจากระบบหลักเพื่อเปรียบเทียบ..." min="0"></div></div>
                         <div class="form-row"><div class="flex-1"><label>Description (ชื่อสินค้า/อะไหล่)</label><input type="text" id="partName" placeholder="ระบบดึงให้อัตโนมัติ หรือพิมพ์ระบุเอง..."></div></div>
                         <div class="form-row">
                             <div class="flex-1"><label>Job / SO Number</label><input type="text" id="jobNo" placeholder="อ้างอิงใบงานซ่อม/บิลขาย..."></div>
@@ -403,7 +441,6 @@
                     <h3 id="logTitle" style="margin: 0; font-size: 16px;">🕒 ประวัติทำรายการ 150 รายการล่าสุด</h3>
                     
                     <div class="date-filter-group">
-                        <!-- 🌟 เพิ่มตัวกรอง โอนออก / รับโอน 🌟 -->
                         <select id="logTypeFilter" class="date-input" onchange="filterTables()" style="font-weight: bold; color: #0071e3; cursor: pointer;">
                             <option value="ALL">รายการทั้งหมด</option>
                             <option value="HAS_JOB">📌 เฉพาะที่มี Job No</option>
@@ -415,6 +452,7 @@
                             <option value="โอนออก">📤 เฉพาะ "โอนออก"</option>
                             <option value="รับโอน">📥 เฉพาะ "รับโอน"</option>
                             <option value="ปรับยอดโดย Admin">🛠️ เฉพาะ "ปรับยอดโดย Admin"</option>
+                            <option value="ตรวจนับยอด">📝 เฉพาะ "ตรวจนับยอด"</option>
                         </select>
                         <input type="date" id="filterStartDate" class="date-input">
                         <span style="font-size: 13px; color: #515154; font-weight: bold;">ถึง</span>
@@ -455,6 +493,9 @@
         let unsubscribeStock = null;
         let unsubscribeLogs = null;
         let lastAutoFilledPartNo = ""; 
+        
+        // ตัวแปรสำหรับระบบ Audit
+        let auditSession = {}; 
 
         window.onload = function() {
             let savedBranch = localStorage.getItem('iserve_consign_branch');
@@ -530,7 +571,7 @@
                 document.getElementById('actionFormCard').style.display = "block";
                 document.querySelector('.action-panel').style.gridTemplateColumns = "1fr 1fr";
                 document.getElementById('btnDepositQueue').style.display = "flex";
-                document.getElementById('btnTransferQueue').style.display = "flex"; // แสดงปุ่มของโอน
+                document.getElementById('btnTransferQueue').style.display = "flex"; 
                 document.getElementById('btnMasterPart').style.display = "none";
             }
             startRealtimeListeners();
@@ -873,6 +914,260 @@
             } catch (err) { alert("❌ ผิดพลาด: " + err.message); } finally { hideLoading(); }
         }
 
+        // 🌟🌟🌟 ฟังก์ชันสำหรับระบบตรวจนับสต๊อก (Audit Mode) 🌟🌟🌟
+        function openAuditModal() {
+            if(currentBranch === "Admin") {
+                let filter = document.getElementById('adminBranchFilterSelect').value;
+                if(filter === "ALL") {
+                    alert("⚠️ กรุณาเลือกสาขาที่ต้องการตรวจนับจากเมนูมุมซ้ายบนก่อนครับ");
+                    return;
+                }
+            }
+            document.getElementById('auditModal').style.display = 'flex';
+            document.getElementById('auditScanInput').value = "";
+            renderAuditTable();
+            setTimeout(() => document.getElementById('auditScanInput').focus(), 100);
+        }
+
+        function closeAuditModal() {
+            if(Object.keys(auditSession).length > 0) {
+                if(!confirm("คุณมีรายการที่กำลังนับค้างอยู่ ยืนยันที่จะปิดหน้าต่างและทิ้งข้อมูลการนับใช่หรือไม่?")) return;
+            }
+            auditSession = {};
+            document.getElementById('auditModal').style.display = 'none';
+        }
+
+        function resetAuditSession() {
+            if(!confirm("⚠️ ต้องการล้างยอดที่สแกนนับไว้ทั้งหมด เพื่อเริ่มนับ 0 ใหม่ใช่หรือไม่?")) return;
+            auditSession = {};
+            document.getElementById('auditScanInput').value = "";
+            renderAuditTable();
+            document.getElementById('auditScanInput').focus();
+        }
+
+        async function handleAuditScan(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                let partNo = document.getElementById('auditScanInput').value.trim().toUpperCase();
+                if(!partNo) return;
+                
+                // แปลงรหัสเทียบเคียง (Alias) ให้เป็นรหัสหลัก
+                let finalPart = partNo;
+                try {
+                    let masterSnap = await db.collection("MasterParts").get();
+                    masterSnap.forEach(doc => {
+                        let data = doc.data();
+                        if (data.aliases) {
+                            let aliases = data.aliases.split(',');
+                            aliases.forEach(a => {
+                                if(a.trim().toUpperCase() === partNo) finalPart = data.partNo.toUpperCase();
+                            });
+                        }
+                    });
+                } catch(err) {}
+
+                if(auditSession[finalPart] === undefined) {
+                    auditSession[finalPart] = 1;
+                } else {
+                    auditSession[finalPart]++;
+                }
+                
+                document.getElementById('auditScanInput').value = "";
+                renderAuditTable();
+                
+                // ไฮไลต์ให้รู้ว่ายิงติดแล้ว
+                let tr = document.getElementById(`audit-row-${finalPart}`);
+                if(tr) {
+                    tr.style.backgroundColor = '#e8f5e9';
+                    setTimeout(()=> {
+                        if(document.getElementById(`audit-row-${finalPart}`)) {
+                            document.getElementById(`audit-row-${finalPart}`).style.backgroundColor = auditSession[finalPart] !== (parseInt(document.getElementById(`sys-qty-${finalPart}`).innerText)||0) ? '#fff8e1' : '#f1f8e9';
+                        }
+                    }, 500);
+                }
+            }
+        }
+
+        function renderAuditTable() {
+            let tbody = document.getElementById('auditTableBody');
+            tbody.innerHTML = "";
+            
+            let targetBranch = currentBranch === "Admin" ? document.getElementById('adminBranchFilterSelect').value : currentBranch;
+
+            let stockMap = {};
+            currentLocalStock.forEach(item => {
+                if(item.branch === targetBranch) {
+                    stockMap[item.partNo] = item;
+                }
+            });
+
+            // เอาคีย์ทั้งหมดมารวมกัน (ของในสต๊อก + ของที่ยิงใหม่แต่ยังไม่มีในสต๊อก)
+            let allKeys = new Set([...Object.keys(stockMap), ...Object.keys(auditSession)]);
+            let html = "";
+            let hasItems = false;
+
+            allKeys.forEach(partNo => {
+                let sysQty = stockMap[partNo] ? (parseInt(stockMap[partNo].qty) || 0) : 0;
+                let name = stockMap[partNo] ? stockMap[partNo].name : "สินค้าทั่วไป (ของใหม่/นอกระบบ)";
+                
+                let counted = auditSession[partNo];
+                let isCounted = counted !== undefined;
+                
+                let diffText = "-";
+                let diffClass = "";
+                let countDisplayHtml = `<span style="color:#d2d2d7;">-</span>`;
+                let trStyle = "";
+
+                if(isCounted) {
+                    let diff = counted - sysQty;
+                    if(diff === 0) {
+                        diffText = "ตรงกัน";
+                        diffClass = "diff-match";
+                        trStyle = "background: #f1f8e9;";
+                    } else if (diff > 0) {
+                        diffText = `เกิน +${diff}`;
+                        diffClass = "diff-extra";
+                        trStyle = "background: #fff8e1;";
+                    } else {
+                        diffText = `ขาด ${diff}`;
+                        diffClass = "diff-missing";
+                        trStyle = "background: #fff8e1;";
+                    }
+                    countDisplayHtml = `<input type="number" value="${counted}" min="0" onchange="updateAuditManual('${partNo}', this.value)" style="width: 60px; padding: 5px; text-align: center; border: 1px solid #8e24aa; border-radius: 4px; font-weight: bold; color: #8e24aa; outline: none;">`;
+                }
+
+                html += `
+                    <tr id="audit-row-${partNo}" style="${trStyle}">
+                        <td style="font-weight: bold; color: #1d1d1f;">${partNo}</td>
+                        <td style="color: #515154;">${name}</td>
+                        <td id="sys-qty-${partNo}" style="text-align: center; font-size: 14px; font-weight: bold; color: #86868b;">${sysQty}</td>
+                        <td style="text-align: center;">${countDisplayHtml}</td>
+                        <td style="text-align: center;"><span class="${diffClass}" style="padding: 2px 8px; border-radius: 4px; font-size: 12px;">${diffText}</span></td>
+                        <td style="text-align: right;">
+                            ${isCounted 
+                                ? `<button onclick="removeAuditItem('${partNo}')" style="background: #ff3b30; color: white; border: none; padding: 4px 8px; border-radius: 4px; font-size: 11px; cursor: pointer;">🗑️ ลบการนับ</button>` 
+                                : `<button onclick="startAuditItem('${partNo}')" style="background: #f5f5f7; color: #515154; border: 1px solid #d2d2d7; padding: 4px 8px; border-radius: 4px; font-size: 11px; cursor: pointer;">เริ่มนับ</button>`}
+                        </td>
+                    </tr>
+                `;
+                hasItems = true;
+            });
+
+            if(!hasItems) {
+                tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; padding: 20px; color: #86868b;">ยังไม่มีรายการสต๊อกในสาขานี้</td></tr>`;
+            } else {
+                tbody.innerHTML = html;
+            }
+        }
+
+        function updateAuditManual(partNo, val) {
+            let num = parseInt(val);
+            if(isNaN(num) || num < 0) num = 0;
+            auditSession[partNo] = num;
+            renderAuditTable();
+        }
+        
+        function removeAuditItem(partNo) {
+            delete auditSession[partNo];
+            renderAuditTable();
+        }
+        
+        function startAuditItem(partNo) {
+            auditSession[partNo] = 0; 
+            renderAuditTable();
+        }
+
+        async function submitAuditSession() {
+            let keys = Object.keys(auditSession);
+            if(keys.length === 0) {
+                alert("⚠️ ยังไม่มีรายการถูกนับ กรุณาสแกนอะไหล่ก่อนครับ\n\n(รายการที่ขึ้นเครื่องหมาย '-' จะไม่ถูกเปลี่ยนแปลงยอดในระบบ)"); 
+                return;
+            }
+
+            let targetBranch = currentBranch === "Admin" ? document.getElementById('adminBranchFilterSelect').value : currentBranch;
+            let updates = [];
+            
+            let stockMap = {};
+            currentLocalStock.forEach(item => {
+                if(item.branch === targetBranch) stockMap[item.partNo] = item;
+            });
+
+            keys.forEach(partNo => {
+                let sysQty = stockMap[partNo] ? (parseInt(stockMap[partNo].qty) || 0) : 0;
+                let counted = auditSession[partNo];
+                if(counted !== sysQty) {
+                    updates.push({
+                        partNo: partNo,
+                        oldQty: sysQty,
+                        newQty: counted,
+                        diff: counted - sysQty,
+                        docId: stockMap[partNo] ? stockMap[partNo].id : `${activeMode}_${targetBranch}_${partNo}`,
+                        name: stockMap[partNo] ? stockMap[partNo].name : "สินค้าทั่วไป"
+                    });
+                }
+            });
+
+            if(updates.length === 0) {
+                alert("✅ ยอดทุกรายการที่คุณนับ 'ตรงกับในระบบ' ทั้งหมด ไม่จำเป็นต้องปรับยอดครับ");
+                auditSession = {};
+                closeAuditModal();
+                return;
+            }
+
+            if(!confirm(`⚠️ พบรายการที่ยอดไม่ตรงกันจำนวน ${updates.length} รายการ\nยืนยันที่จะ 'ปรับยอดในระบบ' ให้ตรงกับที่นับจริงใช่หรือไม่?`)) return;
+
+            showLoading("กำลังบันทึกผลการตรวจนับ...");
+            try {
+                let batch = db.batch();
+                let count = 0;
+                let totalUpdated = 0;
+
+                for (let i = 0; i < updates.length; i++) {
+                    let u = updates[i];
+                    
+                    let stockRef = db.collection("Stock").doc(u.docId);
+                    batch.set(stockRef, {
+                        mode: activeMode,
+                        branch: targetBranch,
+                        partNo: u.partNo,
+                        name: u.name,
+                        qty: u.newQty
+                    }, { merge: true });
+
+                    let logRef = db.collection("Logs").doc();
+                    let diffText = u.diff > 0 ? `เกิน +${u.diff}` : `ขาด ${u.diff}`;
+                    batch.set(logRef, {
+                        mode: activeMode,
+                        branch: targetBranch,
+                        timestamp: Date.now() + i,
+                        time: new Date().toLocaleString('th-TH', { hour12: false }),
+                        type: "ตรวจนับยอด",
+                        partNo: u.partNo,
+                        qty: u.newQty,
+                        job: "-",
+                        repairId: "-",
+                        note: `ระบบมี ${u.oldQty}, นับจริง ${u.newQty} (${diffText})`
+                    });
+
+                    count += 2; 
+                    totalUpdated++;
+
+                    if (count >= 490 || i === updates.length - 1) {
+                        await batch.commit();
+                        batch = db.batch();
+                        count = 0;
+                    }
+                }
+                
+                showToast(`✅ ปรับยอดสำเร็จ ${totalUpdated} รายการ!`);
+                auditSession = {};
+                closeAuditModal();
+            } catch (err) {
+                alert("❌ เกิดข้อผิดพลาดในการบันทึก: " + err.message);
+            } finally {
+                hideLoading();
+            }
+        }
         // -------------------------------------------------------------------------
 
         function switchDB(mode) {
@@ -923,8 +1218,13 @@
                 currentLocalStock = stockArray;
                 renderStockTable(stockArray);
                 updateDepositQueue(stockArray); 
-                updateTransferQueue(stockArray); // 🌟 อัปเดตคิวของโอน 🌟
+                updateTransferQueue(stockArray); 
                 filterTables(); 
+                
+                // ถ้าระหว่างเปิดหน้า Audit มีคนทำรายการสต๊อก ให้รีเฟรชตาราง Audit ด้วย
+                if(document.getElementById('auditModal').style.display === 'flex') {
+                    renderAuditTable();
+                }
             });
 
             let logsQuery = db.collection("Logs").where("mode", "==", activeMode);
@@ -1009,7 +1309,6 @@
             } catch (err) { alert("❌ ผิดพลาด: " + err.message); } finally { hideLoading(); }
         }
 
-        // 🌟🌟🌟 ระบบติดตามของโอนค้างรับ 🌟🌟🌟
         function updateTransferQueue(stockArray) {
             if(currentBranch === "Admin") return;
             let totalPending = 0;
@@ -1083,8 +1382,6 @@
                 showToast("✅ รับคืนอะไหล่เข้าสต๊อกเรียบร้อย!");
             } catch (err) { alert("❌ ผิดพลาด: " + err.message); } finally { hideLoading(); }
         }
-        // 🌟🌟🌟 สิ้นสุดระบบติดตามของโอนค้างรับ 🌟🌟🌟
-
 
         async function fetchReport() {
             let sDate = document.getElementById('filterStartDate').value;
@@ -1368,7 +1665,6 @@
                         } else if (type === "ขายขาด" || type === "โอนออก" || type === "ส่งคืน") {
                             newQty = currentQty + qty;
                             if (type === "โอนออก") {
-                                // พยายามเคลียร์คิวโอนออกล่าสุดออกไปด้วย (ถ้ามี)
                                 let tIndex = transferList.findLastIndex(t => t.qty === qty);
                                 if(tIndex > -1) transferList.splice(tIndex, 1);
                             }
@@ -1457,7 +1753,6 @@
                     } else if (actualTypeToSubmit === "ขายขาด" || actualTypeToSubmit === "ส่งคืน") { newQty = currentQty - qty;         
                     } else if (actualTypeToSubmit === "โอนออก") { 
                         newQty = currentQty - qty; 
-                        // 🌟 เพิ่มรายการโอนออกลงในคิว 🌟
                         transferList.push({ id: Date.now().toString(), toBranch: transferBranch, qty: qty, date: new Date().toLocaleString('th-TH', { hour12: false }), note: note });
                     } else if (actualTypeToSubmit === "รับเข้า") { newQty = currentQty + qty; newPending = currentPending - qty; if (newPending < 0) newPending = 0; 
                     } else if (actualTypeToSubmit === "คืนสต๊อก" || actualTypeToSubmit === "รับโอน") { newQty = currentQty + qty;         

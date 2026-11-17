@@ -145,7 +145,7 @@
         .editable-name { cursor: pointer; border-bottom: 1px dashed #c7c7cc; transition: 0.2s; padding-bottom: 2px; }
         .editable-name:hover { color: #0071e3 !important; border-bottom-color: #0071e3; }
         
-        /* 🌟 สไตล์สำหรับ Audit Mode ใหม่ 🌟 */
+        /* สไตล์ Audit Mode */
         .audit-layout { display: flex; gap: 20px; align-items: flex-start; }
         @media (max-width: 768px) { .audit-layout { flex-direction: column; } }
         
@@ -198,7 +198,7 @@
         </div>
     </div>
 
-    <!-- 🌟 Modal โหมดตรวจนับสต๊อก (Audit Mode) ออกแบบใหม่ 🌟 -->
+    <!-- Modal โหมดตรวจนับสต๊อก (Audit Mode) -->
     <div class="modal-overlay" id="auditModal">
         <div class="modal-box" style="max-width: 1100px;">
             <div class="modal-header">
@@ -207,7 +207,6 @@
             </div>
             
             <div class="audit-layout">
-                <!-- ฝั่งซ้าย: ส่วนสแกนและประวัติการสแกนสด -->
                 <div class="audit-left-panel">
                     <label style="font-size: 13px; font-weight: bold; color: #8e24aa;">ยิงบาร์โค้ดเพื่อเริ่มนับ (Auto +1)</label>
                     <input type="text" id="auditScanInput" placeholder="สแกน Part No ที่นี่..." onkeypress="handleAuditScan(event)" style="width: 100%; padding: 12px; border: 2px solid #8e24aa; border-radius: 6px; font-size: 16px; outline: none; box-sizing: border-box; text-align: center;">
@@ -218,12 +217,10 @@
                     </div>
                     
                     <div class="audit-log-box" id="auditScanHistoryLog">
-                        <!-- รายการยิงล่าสุดจะโผล่ที่นี่ -->
                         <div style="text-align: center; color: #86868b; margin-top: 20px;">ยังไม่มีการสแกน</div>
                     </div>
                 </div>
 
-                <!-- ฝั่งขวา: ตารางและช่องค้นหา -->
                 <div class="audit-right-panel">
                     <div style="margin-bottom: 10px;">
                         <input type="text" id="auditSearchInput" class="search-box" style="margin-bottom: 0; padding: 10px 15px 10px 40px !important; font-size: 14px;" placeholder="🔍 ค้นหา Part No หรือ ชื่ออะไหล่ในตารางด้านล่าง..." onkeyup="filterAuditTable()">
@@ -251,7 +248,7 @@
         </div>
     </div>
 
-    <!-- 🌟 Modal จัดการ Master Parts สำหรับ Admin (เพิ่มปุ่มล้างสต๊อก) 🌟 -->
+    <!-- Modal จัดการ Master Parts สำหรับ Admin -->
     <div class="modal-overlay" id="masterPartModal">
         <div class="modal-box">
             <div class="modal-header">
@@ -520,7 +517,7 @@
         let lastAutoFilledPartNo = ""; 
         
         let auditSession = {}; 
-        let auditScanLog = []; // อาเรย์สำหรับเก็บประวัติการยิงสดในหน้า Audit
+        let auditScanLog = []; 
 
         window.onload = function() {
             let savedBranch = localStorage.getItem('iserve_consign_branch');
@@ -1608,6 +1605,60 @@
             } catch (error) { alert("❌ ผิดพลาด: " + error.message); } finally { btnSubmit.disabled = false; hideLoading(); }
         }
 
+        // 🌟🌟🌟 แก้บั๊ก: การค้นหาในหน้าแรกให้แยกข้อความเว้นวรรคได้ 🌟🌟🌟
+        function filterTables() {
+            // 1. ดึงข้อความและตัดช่องว่าง
+            let rawInput = document.getElementById("searchInput").value.toLowerCase().trim();
+            // 2. แยกคำด้วยช่องว่าง เพื่อให้ค้นหาหลายคำพร้อมกันได้ (เช่น "display iphone")
+            let keywords = rawInput.split(/\s+/).filter(k => k.length > 0);
+
+            // 3. กรองตารางสต๊อก
+            let stockRows = document.getElementById("stockTableBody").getElementsByTagName("tr");
+            for (let i = 0; i < stockRows.length; i++) {
+                let rowText = stockRows[i].innerText.toLowerCase();
+                
+                // ถ้ารายการโหลดหรือว่างๆ ให้แสดง
+                if (rowText.includes("กำลังเชื่อมต่อ") || rowText.includes("ยังไม่มีข้อมูล")) {
+                    stockRows[i].style.display = "";
+                    continue;
+                }
+                
+                // ตรวจสอบว่ามี "ทุกคำ" (every) ในแถวนี้หรือไม่
+                let isMatch = keywords.every(k => rowText.includes(k));
+                stockRows[i].style.display = (keywords.length === 0 || isMatch) ? "" : "none";
+            }
+
+            // 4. กรองตารางประวัติ (พร้อมตัวกรองประเภท)
+            let logFilter = document.getElementById("logTypeFilter") ? document.getElementById("logTypeFilter").value : "ALL";
+            let logRows = document.getElementById("logTableBody").getElementsByTagName("tr");
+            for (let i = 0; i < logRows.length; i++) {
+                let row = logRows[i]; 
+                let rowText = row.innerText.toLowerCase(); 
+                let matchType = true;
+                
+                if (row.innerHTML.includes("กำลังเชื่อมต่อ") || row.innerHTML.includes("ไม่พบข้อมูล")) {
+                    row.style.display = "";
+                    continue;
+                }
+
+                if (logFilter !== "ALL") {
+                    let typeCellIndex = (currentBranch === "Admin") ? 2 : 1; 
+                    let jobCellIndex = (currentBranch === "Admin") ? 5 : 4;
+                    let typeCell = row.cells[typeCellIndex] ? row.cells[typeCellIndex].innerText.trim() : "";
+                    let jobCell = row.cells[jobCellIndex] ? row.cells[jobCellIndex].innerText.trim() : "";
+                    
+                    if (logFilter === "HAS_JOB") { 
+                        if (jobCell === "-" || jobCell === "") matchType = false; 
+                    } else { 
+                        if (typeCell !== logFilter) matchType = false; 
+                    }
+                }
+
+                let isTextMatch = keywords.every(k => rowText.includes(k));
+                row.style.display = (matchType && (keywords.length === 0 || isTextMatch)) ? "" : "none";
+            }
+        }
+
         // 🌟🌟🌟 ระบบ Audit แบบใหม่ (มี Search + Log สด) 🌟🌟🌟
         function openAuditModal() {
             if(currentBranch === "Admin") {
@@ -1621,7 +1672,7 @@
             document.getElementById('auditScanInput').value = "";
             document.getElementById('auditSearchInput').value = "";
             renderAuditTable();
-            renderAuditLog(); // เคลียร์ช่องล็อกล่าสุด
+            renderAuditLog(); 
             setTimeout(() => document.getElementById('auditScanInput').focus(), 100);
         }
 
@@ -1671,28 +1722,25 @@
                     });
                 } catch(err) {}
 
-                // เพิ่มยอด +1
                 if(auditSession[finalPart] === undefined) {
                     auditSession[finalPart] = 1;
                 } else {
                     auditSession[finalPart]++;
                 }
                 
-                // บันทึก Log การยิง (เอาไว้โชว์ด้านซ้าย)
                 let timeStr = new Date().toLocaleTimeString('th-TH');
                 auditScanLog.unshift({ time: timeStr, partNo: finalPart, name: partName });
-                if(auditScanLog.length > 50) auditScanLog.pop(); // เก็บประวัติแค่ 50 รายการล่าสุด
+                if(auditScanLog.length > 50) auditScanLog.pop(); 
                 
                 document.getElementById('auditScanInput').value = "";
-                document.getElementById('auditSearchInput').value = ""; // เคลียร์ช่องค้นหาเพื่อโชว์ทุกอัน
+                document.getElementById('auditSearchInput').value = ""; 
                 
                 renderAuditTable();
                 renderAuditLog();
                 
-                // ไฮไลต์สีให้เห็นชัดเจนในตาราง
                 let tr = document.getElementById(`audit-row-${finalPart}`);
                 if(tr) {
-                    tr.scrollIntoView({ behavior: 'smooth', block: 'center' }); // เลื่อนตารางไปหาตัวที่ยิง
+                    tr.scrollIntoView({ behavior: 'smooth', block: 'center' }); 
                     tr.style.backgroundColor = '#e8f5e9';
                     setTimeout(()=> {
                         if(document.getElementById(`audit-row-${finalPart}`)) {
@@ -1703,30 +1751,29 @@
             }
         }
 
-        // 🌟 ฟังก์ชันกรองข้อมูลในตาราง Audit 🌟
         function filterAuditTable() {
-            let input = document.getElementById("auditSearchInput").value.toUpperCase();
+            let rawInput = document.getElementById("auditSearchInput").value.toLowerCase().trim();
+            let keywords = rawInput.split(/\s+/).filter(k => k.length > 0);
+            
             let table = document.getElementById("auditMainTable");
             let tr = table.getElementsByTagName("tr");
 
-            for (let i = 1; i < tr.length; i++) { // ข้ามหัวตาราง
+            for (let i = 1; i < tr.length; i++) { 
                 if(tr[i].id.startsWith("audit-row-")) {
                     let tdPart = tr[i].getElementsByTagName("td")[0];
                     let tdName = tr[i].getElementsByTagName("td")[1];
                     if (tdPart || tdName) {
-                        let txtValuePart = tdPart.textContent || tdPart.innerText;
-                        let txtValueName = tdName.textContent || tdName.innerText;
-                        if (txtValuePart.toUpperCase().indexOf(input) > -1 || txtValueName.toUpperCase().indexOf(input) > -1) {
-                            tr[i].style.display = "";
-                        } else {
-                            tr[i].style.display = "none";
-                        }
+                        let txtValuePart = (tdPart.textContent || tdPart.innerText).toLowerCase();
+                        let txtValueName = (tdName.textContent || tdName.innerText).toLowerCase();
+                        let rowText = txtValuePart + " " + txtValueName;
+                        
+                        let isMatch = keywords.every(k => rowText.includes(k));
+                        tr[i].style.display = (keywords.length === 0 || isMatch) ? "" : "none";
                     }
                 }
             }
         }
 
-        // 🌟 เรนเดอร์หน้าต่าง Log การยิงล่าสุด (ด้านซ้าย) 🌟
         function renderAuditLog() {
             let logBox = document.getElementById('auditScanHistoryLog');
             if(auditScanLog.length === 0) {
@@ -1826,7 +1873,6 @@
             if(isNaN(num) || num < 0) num = 0;
             auditSession[partNo] = num;
             
-            // เพิ่ม Log เสมือนว่ายิง
             let timeStr = new Date().toLocaleTimeString('th-TH');
             auditScanLog.unshift({ time: timeStr, partNo: partNo, name: "(พิมพ์แก้ตัวเลขเอง)" });
             if(auditScanLog.length > 50) auditScanLog.pop();
@@ -1934,6 +1980,78 @@
                 closeAuditModal();
             } catch (err) {
                 alert("❌ เกิดข้อผิดพลาดในการบันทึก: " + err.message);
+            } finally {
+                hideLoading();
+            }
+        }
+
+        async function processExcelCompare() {
+            let rawData = document.getElementById('excelPasteArea').value.trim();
+            if(!rawData) { alert("กรุณาวางข้อมูลจาก Excel ก่อนครับ"); return; }
+            
+            showLoading("กำลังวิเคราะห์ข้อมูลเทียบเคียง...");
+            try {
+                let masterSnap = await db.collection("MasterParts").get();
+                let aliasMap = {}; 
+                masterSnap.forEach(doc => {
+                    let data = doc.data();
+                    let mainPart = data.partNo.toUpperCase();
+                    aliasMap[mainPart] = mainPart;
+                    if (data.aliases) {
+                        let aliasList = data.aliases.split(',');
+                        aliasList.forEach(a => {
+                            let cleanAlias = a.trim().toUpperCase();
+                            if(cleanAlias) aliasMap[cleanAlias] = mainPart; 
+                        });
+                    }
+                });
+
+                let rows = rawData.split('\n'); 
+                let appleStockMap = {}; 
+                rows.forEach(row => {
+                    let cols = row.split('\t'); 
+                    if(cols.length >= 1) {
+                        let rawPart = cols[0].trim().toUpperCase();
+                        let finalPart = aliasMap[rawPart] || rawPart; 
+                        
+                        let qty = 0;
+                        if(cols.length >= 2) qty = parseInt(cols[1].replace(/,/g, '').trim()) || 0;
+                        if(finalPart) appleStockMap[finalPart] = qty;
+                    }
+                });
+
+                let iserveStockMap = {}; 
+                currentLocalStock.forEach(item => { iserveStockMap[item.partNo.toUpperCase()] = parseInt(item.qty); });
+                
+                let compareResults = []; 
+                let allUniqueParts = new Set([...Object.keys(appleStockMap), ...Object.keys(iserveStockMap)]);
+                
+                allUniqueParts.forEach(part => {
+                    let iQty = iserveStockMap[part] || 0; let aQty = appleStockMap[part] || 0; let diff = aQty - iQty; 
+                    if (iQty === 0 && aQty === 0) return;
+                    compareResults.push({ partNo: part, iserveQty: iQty, appleQty: aQty, diff: diff });
+                });
+                compareResults.sort((a, b) => Math.abs(b.diff) - Math.abs(a.diff));
+
+                let thApple = (activeMode === 'CONSIGN') ? "ยอดไฟล์ Apple" : "ยอดไฟล์ POS";
+                document.getElementById('compareTableHeadRow').innerHTML = `<th>Part No</th><th style="text-align: right;">ยอดระบบ iServe</th><th style="text-align: right;">${thApple}</th><th style="text-align: center;">ผลต่าง (Diff)</th>`;
+                let tbody = document.getElementById('compareTableBody'); tbody.innerHTML = "";
+                
+                if(compareResults.length === 0) { tbody.innerHTML = `<tr><td colspan="4" style="text-align: center; padding: 20px;">ไม่พบความแตกต่าง</td></tr>`; } 
+                else {
+                    compareResults.forEach(res => {
+                        let diffClass = "diff-match", diffText = "ตรงกัน";
+                        if(res.diff > 0) { diffClass = "diff-extra"; diffText = `+${res.diff} (ใน iServe ขาดไป)`; } 
+                        else if (res.diff < 0) { diffClass = "diff-missing"; diffText = `${res.diff} (ใน iServe เกินมา)`; }
+                        tbody.innerHTML += `<tr><td style="font-weight: bold;">${res.partNo}</td><td style="text-align: right;">${res.iserveQty}</td><td style="text-align: right; font-weight: bold; color: #0071e3;">${res.appleQty}</td><td class="${diffClass}" style="text-align: center;">${diffText}</td></tr>`;
+                    });
+                }
+                document.getElementById('stockTable').style.display = "none"; document.getElementById('compareTable').style.display = "table";
+                let title = activeMode === 'CONSIGN' ? "📊 ผลการเปรียบเทียบสต๊อกกับไฟล์ Apple" : "📊 ผลการเปรียบเทียบสต๊อกกับไฟล์ POS/HQ";
+                document.getElementById('stockBoxTitle').innerText = title; document.getElementById('searchInput').value = ""; filterTables();
+                
+            } catch (err) {
+                alert("❌ เกิดข้อผิดพลาดระหว่างเปรียบเทียบ: " + err.message);
             } finally {
                 hideLoading();
             }

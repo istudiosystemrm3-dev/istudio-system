@@ -115,11 +115,17 @@
         .spinner { border: 4px solid #f3f3f3; border-top: 4px solid #0071e3; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin-bottom: 10px; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
-        /* ปุ่มและ Modal */
+        /* 🌟 ปุ่มและ Modal คิวมัดจำ และ ของโอน 🌟 */
         .btn-deposit-queue { background-color: #fffde5; color: #d4a017; border: 2px solid #f1c40f; padding: 8px 15px; border-radius: 20px; font-size: 13px; font-weight: bold; cursor: pointer; transition: 0.2s; display: flex; align-items: center; gap: 5px; }
         .btn-deposit-queue:hover { background-color: #f1c40f; color: #fff; }
         .btn-deposit-queue.has-items { background-color: #f1c40f; color: #fff; animation: pulse-warning 2s infinite; }
         @keyframes pulse-warning { 0% { box-shadow: 0 0 0 0 rgba(241, 196, 15, 0.7); } 70% { box-shadow: 0 0 0 10px rgba(241, 196, 15, 0); } 100% { box-shadow: 0 0 0 0 rgba(241, 196, 15, 0); } }
+
+        /* 🌟 สไตล์ปุ่มติดตามของโอนสีชมพู 🌟 */
+        .btn-transfer-queue { background-color: #fce4ec; color: #d81b60; border: 2px solid #f48fb1; padding: 8px 15px; border-radius: 20px; font-size: 13px; font-weight: bold; cursor: pointer; transition: 0.2s; display: flex; align-items: center; gap: 5px; }
+        .btn-transfer-queue:hover { background-color: #f48fb1; color: #fff; }
+        .btn-transfer-queue.has-items { background-color: #d81b60; color: #fff; animation: pulse-transfer 2s infinite; border-color: #d81b60; }
+        @keyframes pulse-transfer { 0% { box-shadow: 0 0 0 0 rgba(216, 27, 96, 0.7); } 70% { box-shadow: 0 0 0 10px rgba(216, 27, 96, 0); } 100% { box-shadow: 0 0 0 0 rgba(216, 27, 96, 0); } }
 
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: none; align-items: center; justify-content: center; z-index: 2000; }
         .modal-box { background: white; width: 95%; max-width: 850px; border-radius: 12px; padding: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); max-height: 92vh; overflow-y: auto; }
@@ -127,6 +133,7 @@
         .modal-title { font-size: 18px; font-weight: bold; color: #1d1d1f; margin: 0; }
         .btn-close-modal { background: none; border: none; font-size: 20px; cursor: pointer; color: #86868b; }
         .btn-clear-deposit-action { background: #388e3c; color: white; border: none; padding: 6px 12px; border-radius: 6px; font-size: 12px; font-weight: bold; cursor: pointer; }
+        .btn-receive-transfer-action { background: #1e88e5; color: white; border: none; padding: 6px 12px; border-radius: 6px; font-size: 12px; font-weight: bold; cursor: pointer; }
 
         /* เครื่องมือ Admin & ปุ่มจัดการ */
         .btn-admin-edit { background: #ff9500; color: white; border: none; padding: 5px 8px; border-radius: 4px; font-size: 12px; font-weight: bold; cursor: pointer; transition: 0.2s; }
@@ -164,7 +171,23 @@
         </div>
     </div>
 
-    <!-- 🌟 Modal จัดการ Master Parts สำหรับ Admin 🌟 -->
+    <!-- 🌟 Modal ติดตามของโอนค้างรับ 🌟 -->
+    <div class="modal-overlay" id="transferModal">
+        <div class="modal-box">
+            <div class="modal-header">
+                <h3 class="modal-title" style="color: #d81b60;">🚚 รายการโอนอะไหล่ (รอรับคืน)</h3>
+                <button class="btn-close-modal" onclick="closeTransferModal()">✖</button>
+            </div>
+            <div class="table-container" style="max-height: 400px;">
+                <table style="width: 100%;">
+                    <thead style="background: #fce4ec;"><tr><th>วันที่โอนออก</th><th>Part No</th><th>สาขาปลายทาง</th><th>จำนวน</th><th style="text-align: right;">จัดการ</th></tr></thead>
+                    <tbody id="transferQueueBody"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal จัดการ Master Parts สำหรับ Admin -->
     <div class="modal-overlay" id="masterPartModal">
         <div class="modal-box">
             <div class="modal-header">
@@ -194,12 +217,9 @@
                 <label style="display: block; font-size: 13px; font-weight: bold; color: #0071e3; margin-bottom: 5px;">📥 จัดการรายชื่ออะไหล่ (Mass Tools)</label>
                 <textarea id="bulkMasterPaste" rows="3" placeholder="นำเข้าจาก Excel: คอลัมน์ซ้าย=Part Noหลัก | คอลัมน์กลาง=ชื่ออะไหล่ | คอลัมน์ขวา(ไม่บังคับ)=รหัส HQ/Apple (คั่นด้วย ,) แล้วกดปุ่มสีน้ำเงิน" style="width: 100%; padding: 10px; border: 1px solid #c8e1fa; border-radius: 6px; font-size: 13px; box-sizing: border-box; outline: none; margin-bottom: 8px;"></textarea>
                 
-                <!-- 🌟 เพิ่มปุ่ม ดึงรายการใหม่จากสต๊อก 🌟 -->
                 <div style="display: flex; gap: 10px; flex-wrap: wrap;">
                     <button onclick="bulkImportMasterParts()" style="flex: 1; background: #0071e3; color: white; border: none; padding: 10px 15px; border-radius: 6px; font-size: 13px; font-weight: bold; cursor: pointer;">🚀 นำเข้า Excel</button>
-                    
                     <button onclick="pullMissingFromStock()" style="flex: 1; background: #00a88f; color: white; border: none; padding: 10px 15px; border-radius: 6px; font-size: 13px; font-weight: bold; cursor: pointer;" title="ดึงรหัสที่เคยยิงเข้าสต๊อกแต่ไม่มีใน Master เข้ามาอัตโนมัติ">📥 ดึงรายการใหม่จากสต๊อก</button>
-                    
                     <button onclick="syncAllStockNamesWithMaster()" style="flex: 1; background: #ff9500; color: white; border: none; padding: 10px 15px; border-radius: 6px; font-size: 13px; font-weight: bold; cursor: pointer;" title="แก้คำว่า สินค้าทั่วไป ในสต๊อกให้เป็นชื่อตาม Master">🔄 ซิงค์ชื่อกลับไปสต๊อก</button>
                 </div>
             </div>
@@ -268,6 +288,10 @@
                 <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
                     <button id="btnMasterPart" class="btn-admin-master" onclick="openMasterPartModal()" style="display: none;">
                         ⚙️ ฐานข้อมูลอะไหล่
+                    </button>
+                    <!-- 🌟 ปุ่มเปิดคิวมัดจำ และ ปุ่มโอนของค้างรับ 🌟 -->
+                    <button id="btnTransferQueue" class="btn-transfer-queue" onclick="openTransferModal()" style="display: none;">
+                        🚚 ติดตามของโอน (0)
                     </button>
                     <button id="btnDepositQueue" class="btn-deposit-queue" onclick="openDepositModal()" style="display: none;">
                         🟡 คิวมัดจำค้าง (0)
@@ -379,6 +403,7 @@
                     <h3 id="logTitle" style="margin: 0; font-size: 16px;">🕒 ประวัติทำรายการ 150 รายการล่าสุด</h3>
                     
                     <div class="date-filter-group">
+                        <!-- 🌟 เพิ่มตัวกรอง โอนออก / รับโอน 🌟 -->
                         <select id="logTypeFilter" class="date-input" onchange="filterTables()" style="font-weight: bold; color: #0071e3; cursor: pointer;">
                             <option value="ALL">รายการทั้งหมด</option>
                             <option value="HAS_JOB">📌 เฉพาะที่มี Job No</option>
@@ -387,6 +412,8 @@
                             <option value="รับเข้า">🟢 เฉพาะ "รับเข้า"</option>
                             <option value="รับมัดจำ">🟡 เฉพาะ "รับมัดจำ"</option>
                             <option value="ล้างมัดจำ">✅ เฉพาะ "ล้างมัดจำ"</option>
+                            <option value="โอนออก">📤 เฉพาะ "โอนออก"</option>
+                            <option value="รับโอน">📥 เฉพาะ "รับโอน"</option>
                             <option value="ปรับยอดโดย Admin">🛠️ เฉพาะ "ปรับยอดโดย Admin"</option>
                         </select>
                         <input type="date" id="filterStartDate" class="date-input">
@@ -503,6 +530,7 @@
                 document.getElementById('actionFormCard').style.display = "block";
                 document.querySelector('.action-panel').style.gridTemplateColumns = "1fr 1fr";
                 document.getElementById('btnDepositQueue').style.display = "flex";
+                document.getElementById('btnTransferQueue').style.display = "flex"; // แสดงปุ่มของโอน
                 document.getElementById('btnMasterPart').style.display = "none";
             }
             startRealtimeListeners();
@@ -770,25 +798,21 @@
             } catch (err) { alert("❌ เกิดข้อผิดพลาดในการนำเข้า: " + err.message); } finally { hideLoading(); }
         }
 
-        // 🌟🌟🌟 ฟังก์ชันใหม่: ดึงรหัสที่เคยยิงเข้าสต๊อกแต่ยังไม่มีใน Master 🌟🌟🌟
         async function pullMissingFromStock() {
             if (!confirm("📥 ยืนยันการดึงรายชื่ออะไหล่ที่อยู่ในสต๊อก (แต่ยังไม่มีใน Master) เข้าสู่ระบบอัตโนมัติใช่หรือไม่?")) return;
             
             showLoading("กำลังค้นหาและดึงข้อมูลจากสต๊อก...");
             try {
-                // 1. โหลด Master Parts ที่มีอยู่แล้วมาเก็บไว้เช็ค
                 let masterSnap = await db.collection("MasterParts").get();
                 let masterSet = new Set();
                 masterSnap.forEach(doc => masterSet.add(doc.id.toUpperCase()));
 
-                // 2. โหลด Stock ทั้งหมด
                 let stockSnap = await db.collection("Stock").get();
                 let batch = db.batch();
                 let count = 0;
                 let addedCount = 0;
                 let uniqueNewParts = {};
 
-                // 3. หาสิ่งที่ไม่มีใน Master
                 stockSnap.forEach(doc => {
                     let s = doc.data();
                     let pNo = (s.partNo || "").toUpperCase();
@@ -806,7 +830,6 @@
                     return;
                 }
 
-                // 4. เซฟลง Master Parts
                 for (let i = 0; i < newPartKeys.length; i++) {
                     let pNo = newPartKeys[i];
                     let pName = uniqueNewParts[pNo];
@@ -825,7 +848,7 @@
                 }
 
                 showToast(`✅ ดึงรหัสใหม่เข้า Master สำเร็จ ${addedCount} รายการ!`);
-                loadMasterParts(); // โหลดตารางใหม่
+                loadMasterParts(); 
             } catch (err) {
                 alert("❌ เกิดข้อผิดพลาด: " + err.message);
             } finally {
@@ -900,6 +923,7 @@
                 currentLocalStock = stockArray;
                 renderStockTable(stockArray);
                 updateDepositQueue(stockArray); 
+                updateTransferQueue(stockArray); // 🌟 อัปเดตคิวของโอน 🌟
                 filterTables(); 
             });
 
@@ -948,9 +972,11 @@
             }
 
             let btn = document.getElementById('btnDepositQueue');
-            btn.innerText = `🟡 คิวมัดจำค้าง (${totalPending})`;
-            if(totalPending > 0) btn.className = "btn-deposit-queue has-items";
-            else btn.className = "btn-deposit-queue";
+            if(btn) {
+                btn.innerText = `🟡 คิวมัดจำค้าง (${totalPending})`;
+                if(totalPending > 0) btn.className = "btn-deposit-queue has-items";
+                else btn.className = "btn-deposit-queue";
+            }
         }
 
         function openDepositModal() { document.getElementById('depositModal').style.display = "flex"; }
@@ -982,6 +1008,83 @@
                 showToast("✅ ส่งเครื่องและล้างมัดจำเรียบร้อย!");
             } catch (err) { alert("❌ ผิดพลาด: " + err.message); } finally { hideLoading(); }
         }
+
+        // 🌟🌟🌟 ระบบติดตามของโอนค้างรับ 🌟🌟🌟
+        function updateTransferQueue(stockArray) {
+            if(currentBranch === "Admin") return;
+            let totalPending = 0;
+            let tbody = document.getElementById('transferQueueBody');
+            tbody.innerHTML = "";
+
+            stockArray.forEach(item => {
+                if (item.transferList && item.transferList.length > 0) {
+                    item.transferList.forEach(tr => {
+                        totalPending++;
+                        tbody.innerHTML += `
+                            <tr>
+                                <td style="color: #515154;">${tr.date}</td>
+                                <td style="font-weight: bold;">${item.partNo}</td>
+                                <td style="color: #d81b60; font-weight: bold;">${tr.toBranch}</td>
+                                <td>${tr.qty}</td>
+                                <td style="text-align: right;">
+                                    <button class="btn-receive-transfer-action" onclick="submitClearSpecificTransfer('${item.id}', '${tr.id}', '${item.partNo}', ${tr.qty}, '${tr.toBranch}')">✅ รับคืนแล้ว</button>
+                                </td>
+                            </tr>
+                        `;
+                    });
+                }
+            });
+
+            if(totalPending === 0) {
+                tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; padding: 20px; color: #86868b;">ไม่มีรายการโอนค้างรับ</td></tr>`;
+            }
+
+            let btn = document.getElementById('btnTransferQueue');
+            if (btn) {
+                btn.innerText = `🚚 ติดตามของโอน (${totalPending})`;
+                if(totalPending > 0) {
+                    btn.className = "btn-transfer-queue has-items";
+                    btn.style.backgroundColor = "#d81b60";
+                    btn.style.color = "#fff";
+                } else {
+                    btn.className = "btn-transfer-queue";
+                    btn.style.backgroundColor = "#fce4ec";
+                    btn.style.color = "#d81b60";
+                }
+            }
+        }
+
+        function openTransferModal() { document.getElementById('transferModal').style.display = "flex"; }
+        function closeTransferModal() { document.getElementById('transferModal').style.display = "none"; }
+
+        async function submitClearSpecificTransfer(docId, transferId, partNo, qty, toBranch) {
+            if(!confirm(`ยืนยันว่าได้รับอะไหล่คืนจากสาขา ${toBranch} สำหรับ \nPart: ${partNo} \nจำนวน: ${qty} ชิ้น ใช่หรือไม่?\n\n(ระบบจะคืนสต๊อกหน้าตู้และสร้างประวัติ 'รับโอน' ให้อัตโนมัติ)`)) return;
+            showLoading("กำลังรับของคืนและอัปเดตสต๊อก...");
+            try {
+                let stockRef = db.collection("Stock").doc(docId);
+                await db.runTransaction(async (transaction) => {
+                    let stockDoc = await transaction.get(stockRef);
+                    if(!stockDoc.exists) throw "ไม่พบข้อมูลสต๊อก";
+
+                    let data = stockDoc.data();
+                    let currentQty = data.qty || 0;
+                    let transferList = data.transferList || [];
+                    let newList = transferList.filter(t => t.id !== transferId);
+
+                    transaction.set(stockRef, { qty: currentQty + qty, transferList: newList }, { merge: true });
+
+                    let logRef = db.collection("Logs").doc();
+                    transaction.set(logRef, {
+                        mode: activeMode, branch: currentBranch, timestamp: Date.now(),
+                        time: new Date().toLocaleString('th-TH', { hour12: false }),
+                        type: "รับโอน", partNo: partNo, qty: qty, job: "-", repairId: "-", note: "รับคืนจาก: " + toBranch
+                    });
+                });
+                showToast("✅ รับคืนอะไหล่เข้าสต๊อกเรียบร้อย!");
+            } catch (err) { alert("❌ ผิดพลาด: " + err.message); } finally { hideLoading(); }
+        }
+        // 🌟🌟🌟 สิ้นสุดระบบติดตามของโอนค้างรับ 🌟🌟🌟
+
 
         async function fetchReport() {
             let sDate = document.getElementById('filterStartDate').value;
@@ -1242,7 +1345,7 @@
         }
 
         async function voidTransaction(logId, partNo, qty, type, branch) {
-            if(!confirm(`⚠️ ยืนยันการ "ยกเลิก" รายการนี้หรือไม่?\nระบบจะลบประวัติและคำนวณสต๊อก (${partNo} = ${qty} ชิ้น) คืนให้อัตโนมัติ`)) return;
+            if(!confirm(`⚠️ ยืนยันการ "ยกเลิก" รายการนี้หรือไม่?\nระบบจะลบประวัติและคำนวณสต๊อก (${partNo} = ${qty} ชิ้น) คืนให้อัตโนมัติ\n\n(หากเป็นการยกเลิกรายการ "โอนออก" อย่าลืมไปกดลบในหน้า "🚚 ติดตามของโอน" ด้วยนะครับ)`)) return;
             try {
                 showLoading("กำลังยกเลิกและคืนยอด...");
                 
@@ -1255,6 +1358,7 @@
                     if(stockDoc.exists) {
                         let currentQty = stockDoc.data().qty || 0;
                         let currentPending = stockDoc.data().pendingQty || 0;
+                        let transferList = stockDoc.data().transferList || [];
                         let newQty = currentQty;
                         let newPending = currentPending;
 
@@ -1263,6 +1367,11 @@
                             if (activeMode === "STORE") newPending = currentPending - qty;
                         } else if (type === "ขายขาด" || type === "โอนออก" || type === "ส่งคืน") {
                             newQty = currentQty + qty;
+                            if (type === "โอนออก") {
+                                // พยายามเคลียร์คิวโอนออกล่าสุดออกไปด้วย (ถ้ามี)
+                                let tIndex = transferList.findLastIndex(t => t.qty === qty);
+                                if(tIndex > -1) transferList.splice(tIndex, 1);
+                            }
                         } else if (type === "รับเข้า") {
                             newQty = currentQty - qty;
                         } else if (type === "คืนสต๊อก" || type === "รับโอน") {
@@ -1272,10 +1381,10 @@
                         }
                         if (newPending < 0) newPending = 0;
 
-                        if (newQty === 0 && newPending === 0) {
+                        if (newQty === 0 && newPending === 0 && transferList.length === 0) {
                             transaction.delete(stockRef);
                         } else {
-                            transaction.set(stockRef, { qty: newQty, pendingQty: newPending }, { merge: true });
+                            transaction.set(stockRef, { qty: newQty, pendingQty: newPending, transferList: transferList }, { merge: true });
                         }
                     }
                     transaction.delete(logRef); 
@@ -1329,11 +1438,14 @@
                 
                 await db.runTransaction(async (transaction) => {
                     let stockDoc = await transaction.get(stockRef);
-                    let currentQty = 0; let currentPending = 0; let existingName = partName || "สินค้าทั่วไป"; let depositList = [];
+                    let currentQty = 0; let currentPending = 0; let existingName = partName || "สินค้าทั่วไป"; 
+                    let depositList = [];
+                    let transferList = []; 
                     
                     if(stockDoc.exists) {
                         currentQty = stockDoc.data().qty || 0; currentPending = stockDoc.data().pendingQty || 0;
                         depositList = stockDoc.data().depositList || [];
+                        transferList = stockDoc.data().transferList || [];
                         if (!partName && stockDoc.data().name && stockDoc.data().name !== "สินค้าทั่วไป") {
                             existingName = stockDoc.data().name;
                         }
@@ -1342,7 +1454,11 @@
                     let newQty = currentQty; let newPending = currentPending;
 
                     if (actualTypeToSubmit === "เบิกใช้") { newQty = currentQty - qty; if (activeMode === "STORE") newPending = currentPending + qty;      
-                    } else if (actualTypeToSubmit === "ขายขาด" || actualTypeToSubmit === "โอนออก" || actualTypeToSubmit === "ส่งคืน") { newQty = currentQty - qty;         
+                    } else if (actualTypeToSubmit === "ขายขาด" || actualTypeToSubmit === "ส่งคืน") { newQty = currentQty - qty;         
+                    } else if (actualTypeToSubmit === "โอนออก") { 
+                        newQty = currentQty - qty; 
+                        // 🌟 เพิ่มรายการโอนออกลงในคิว 🌟
+                        transferList.push({ id: Date.now().toString(), toBranch: transferBranch, qty: qty, date: new Date().toLocaleString('th-TH', { hour12: false }), note: note });
                     } else if (actualTypeToSubmit === "รับเข้า") { newQty = currentQty + qty; newPending = currentPending - qty; if (newPending < 0) newPending = 0; 
                     } else if (actualTypeToSubmit === "คืนสต๊อก" || actualTypeToSubmit === "รับโอน") { newQty = currentQty + qty;         
                     } else if (actualTypeToSubmit === "รับมัดจำ") {
@@ -1360,7 +1476,7 @@
                         finalNote = noteStr + (finalNote !== "-" && finalNote !== "" ? " | " + finalNote : "");
                     }
 
-                    transaction.set(stockRef, { mode: activeMode, branch: currentBranch, partNo: cleanPartNo, name: existingName, qty: newQty, pendingQty: newPending, depositList: depositList }, { merge: true });
+                    transaction.set(stockRef, { mode: activeMode, branch: currentBranch, partNo: cleanPartNo, name: existingName, qty: newQty, pendingQty: newPending, depositList: depositList, transferList: transferList }, { merge: true });
                     let logRef = db.collection("Logs").doc(); 
                     transaction.set(logRef, {
                         mode: activeMode, branch: currentBranch, timestamp: Date.now(), time: new Date().toLocaleString('th-TH', { hour12: false }), 

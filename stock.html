@@ -55,6 +55,7 @@
         .action-card input:focus, .action-card textarea:focus { border-color: #0071e3; }
         
         #transferBox { background: #fce4ec; padding: 10px; border-radius: 8px; border: 1px dashed #d81b60; margin-bottom: 12px; }
+        #mainStockBox { background: #f3e5f5; padding: 10px; border-radius: 8px; border: 1px dashed #8e24aa; margin-bottom: 12px; }
         
         #consumeSubOptions { background: #f0f7ff; padding: 12px; border-radius: 8px; border: 1px solid #c8e1fa; margin-bottom: 15px; }
         .sub-option-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
@@ -114,7 +115,7 @@
         .spinner { border: 4px solid #f3f3f3; border-top: 4px solid #0071e3; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin-bottom: 10px; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
-        /* ปุ่มต่างๆ */
+        /* ปุ่มและ Modal */
         .btn-deposit-queue { background-color: #fffde5; color: #d4a017; border: 2px solid #f1c40f; padding: 8px 15px; border-radius: 20px; font-size: 13px; font-weight: bold; cursor: pointer; transition: 0.2s; display: flex; align-items: center; gap: 5px; }
         .btn-deposit-queue:hover { background-color: #f1c40f; color: #fff; }
         .btn-deposit-queue.has-items { background-color: #f1c40f; color: #fff; animation: pulse-warning 2s infinite; }
@@ -184,7 +185,7 @@
         </div>
     </div>
 
-    <!-- 🌟 Modal โหมดตรวจนับสต๊อก (Audit Mode ใหม่) 🌟 -->
+    <!-- 🌟 Modal โหมดตรวจนับสต๊อก (Audit Mode) 🌟 -->
     <div class="modal-overlay" id="auditModal">
         <div class="modal-box" style="max-width: 900px;">
             <div class="modal-header">
@@ -225,7 +226,7 @@
         </div>
     </div>
 
-    <!-- Modal จัดการ Master Parts สำหรับ Admin -->
+    <!-- 🌟 Modal จัดการ Master Parts สำหรับ Admin (เพิ่มปุ่มล้างสต๊อก) 🌟 -->
     <div class="modal-overlay" id="masterPartModal">
         <div class="modal-box">
             <div class="modal-header">
@@ -258,7 +259,8 @@
                 <div style="display: flex; gap: 10px; flex-wrap: wrap;">
                     <button onclick="bulkImportMasterParts()" style="flex: 1; background: #0071e3; color: white; border: none; padding: 10px 15px; border-radius: 6px; font-size: 13px; font-weight: bold; cursor: pointer;">🚀 นำเข้า Excel</button>
                     <button onclick="pullMissingFromStock()" style="flex: 1; background: #00a88f; color: white; border: none; padding: 10px 15px; border-radius: 6px; font-size: 13px; font-weight: bold; cursor: pointer;" title="ดึงรหัสที่เคยยิงเข้าสต๊อกแต่ไม่มีใน Master เข้ามาอัตโนมัติ">📥 ดึงรายการใหม่จากสต๊อก</button>
-                    <button onclick="syncAllStockNamesWithMaster()" style="flex: 1; background: #ff9500; color: white; border: none; padding: 10px 15px; border-radius: 6px; font-size: 13px; font-weight: bold; cursor: pointer;" title="แก้คำว่า สินค้าทั่วไป ในสต๊อกให้เป็นชื่อตาม Master">🔄 ซิงค์ชื่อกลับไปสต๊อก</button>
+                    <!-- 🌟 ปุ่มล้างสต๊อกทั้งหมด สำหรับลบรายการที่ยิงทดสอบผิด 🌟 -->
+                    <button onclick="clearAllStockForBranch()" style="flex: 1; background: #ff3b30; color: white; border: none; padding: 10px 15px; border-radius: 6px; font-size: 13px; font-weight: bold; cursor: pointer;" title="ล้างยอดสต๊อกคงเหลือของสาขานี้ให้เป็น 0 ทั้งหมด">🗑️ ล้างสต๊อกทั้งหมด (สาขานี้)</button>
                 </div>
             </div>
 
@@ -354,7 +356,6 @@
                         <div class="type-btn" id="btnTypeReturn" onclick="selectActionType('ส่งคืน')">🟠 ส่งคืน</div>
                         <div class="type-btn" id="btnTypeTransferOutConsign" onclick="selectActionType('โอนออก')">📤 โอนออก</div>
                         <div class="type-btn" id="btnTypeTransferInConsign" onclick="selectActionType('รับโอน')">📥 รับโอน</div>
-                        <!-- 🌟 ปุ่มตรวจนับยอด เปลี่ยนไปเปิดหน้าต่าง Audit Modal แทน 🌟 -->
                         <div class="type-btn" id="btnTypeAudit" onclick="openAuditModal()" style="background: #f3e5f5; color: #8e24aa; border-color: #8e24aa;">📝 ตรวจนับ</div>
                         <div class="type-btn" id="btnTypeCompare" onclick="selectActionType('เทียบสต๊อก')">📊 เทียบไฟล์ Apple</div>
                     </div>
@@ -365,7 +366,6 @@
                         <div class="type-btn" id="btnTypeRefund" onclick="selectActionType('คืนสต๊อก')">↩️ คืนสต๊อก</div>
                         <div class="type-btn" id="btnTypeTransferOut" onclick="selectActionType('โอนออก')">📤 โอนออก</div>
                         <div class="type-btn" id="btnTypeTransferIn" onclick="selectActionType('รับโอน')">📥 รับโอน</div>
-                        <!-- 🌟 ปุ่มตรวจนับยอด เปลี่ยนไปเปิดหน้าต่าง Audit Modal แทน 🌟 -->
                         <div class="type-btn" id="btnTypeAuditStore" onclick="openAuditModal()" style="background: #f3e5f5; color: #8e24aa; border-color: #8e24aa;">📝 ตรวจนับ</div>
                         <div class="type-btn" id="btnTypeCompareStore" onclick="selectActionType('เทียบสต๊อก')">📊 เทียบไฟล์ Excel</div>
                     </div>
@@ -399,6 +399,7 @@
                         </div>
 
                         <div class="form-row" id="transferBox" style="display:none;"><div class="flex-1"><label id="transferLabel">ระบุสาขาปลายทาง *</label><input type="text" id="transferBranch" placeholder="เช่น iStudio Central World..."></div></div>
+                        <div class="form-row" id="mainStockBox" style="display:none;"><div class="flex-1"><label style="color: #8e24aa;">สต๊อกคลังจริง (ระบบ POS/HQ)</label><input type="number" id="mainStock" placeholder="ใส่ยอดจากระบบหลักเพื่อเปรียบเทียบ..." min="0"></div></div>
                         <div class="form-row"><div class="flex-1"><label>Description (ชื่อสินค้า/อะไหล่)</label><input type="text" id="partName" placeholder="ระบบดึงให้อัตโนมัติ หรือพิมพ์ระบุเอง..."></div></div>
                         <div class="form-row">
                             <div class="flex-1"><label>Job / SO Number</label><input type="text" id="jobNo" placeholder="อ้างอิงใบงานซ่อม/บิลขาย..."></div>
@@ -494,7 +495,6 @@
         let unsubscribeLogs = null;
         let lastAutoFilledPartNo = ""; 
         
-        // ตัวแปรสำหรับระบบ Audit
         let auditSession = {}; 
 
         window.onload = function() {
@@ -749,6 +749,69 @@
             } catch (err) { alert("❌ ผิดพลาด: " + err.message); } finally { hideLoading(); }
         }
 
+        // 🌟 อัปเดตฟังก์ชันดึงรหัสใหม่: ป้องกันการดึงรหัสแปลกๆ 🌟
+        async function pullMissingFromStock() {
+            if (!confirm("📥 ยืนยันการดึงรายชื่ออะไหล่ที่อยู่ในสต๊อก (แต่ยังไม่มีใน Master) เข้าสู่ระบบอัตโนมัติใช่หรือไม่?")) return;
+            
+            showLoading("กำลังค้นหาและดึงข้อมูลจากสต๊อก...");
+            try {
+                let masterSnap = await db.collection("MasterParts").get();
+                let masterSet = new Set();
+                masterSnap.forEach(doc => masterSet.add(doc.id.toUpperCase()));
+
+                let stockSnap = await db.collection("Stock").get();
+                let batch = db.batch();
+                let count = 0;
+                let addedCount = 0;
+                let uniqueNewParts = {};
+
+                stockSnap.forEach(doc => {
+                    let s = doc.data();
+                    let pNo = (s.partNo || "").toUpperCase();
+                    let pName = s.name || "";
+                    
+                    // ป้องกันการดึง "สินค้าทั่วไป" หรือรหัสภาษาไทยแปลกๆ เข้าไปใน Master
+                    let isInvalidName = pName === "" || pName === "สินค้าทั่วไป";
+                    let hasThaiChar = /[ก-๙]/.test(pNo); 
+
+                    if (pNo && !masterSet.has(pNo) && !uniqueNewParts[pNo] && !isInvalidName && !hasThaiChar) {
+                        uniqueNewParts[pNo] = pName;
+                    }
+                });
+
+                let newPartKeys = Object.keys(uniqueNewParts);
+                if (newPartKeys.length === 0) {
+                    showToast("ไม่มีรายการใหม่ที่มีชื่อสมบูรณ์ให้ดึงครับ");
+                    hideLoading();
+                    return;
+                }
+
+                for (let i = 0; i < newPartKeys.length; i++) {
+                    let pNo = newPartKeys[i];
+                    let pName = uniqueNewParts[pNo];
+                    
+                    let docRef = db.collection("MasterParts").doc(pNo);
+                    batch.set(docRef, { partNo: pNo, name: pName, aliases: "" });
+                    
+                    count++;
+                    addedCount++;
+
+                    if (count === 490 || i === newPartKeys.length - 1) {
+                        await batch.commit();
+                        batch = db.batch();
+                        count = 0;
+                    }
+                }
+
+                showToast(`✅ ดึงรหัสใหม่เข้า Master สำเร็จ ${addedCount} รายการ!`);
+                loadMasterParts(); 
+            } catch (err) {
+                alert("❌ เกิดข้อผิดพลาด: " + err.message);
+            } finally {
+                hideLoading();
+            }
+        }
+
         async function syncAllStockNamesWithMaster() {
             if (!confirm("🔄 ต้องการอัปเดตชื่ออะไหล่ในสต๊อกทุกสาขา ให้ตรงกับฐานข้อมูล Master Parts ปัจจุบันใช่หรือไม่?")) return;
             showLoading("กำลังซิงค์ชื่ออะไหล่เข้ากับสต๊อกทุกสาขา...");
@@ -839,57 +902,43 @@
             } catch (err) { alert("❌ เกิดข้อผิดพลาดในการนำเข้า: " + err.message); } finally { hideLoading(); }
         }
 
-        async function pullMissingFromStock() {
-            if (!confirm("📥 ยืนยันการดึงรายชื่ออะไหล่ที่อยู่ในสต๊อก (แต่ยังไม่มีใน Master) เข้าสู่ระบบอัตโนมัติใช่หรือไม่?")) return;
-            
-            showLoading("กำลังค้นหาและดึงข้อมูลจากสต๊อก...");
-            try {
-                let masterSnap = await db.collection("MasterParts").get();
-                let masterSet = new Set();
-                masterSnap.forEach(doc => masterSet.add(doc.id.toUpperCase()));
+        // 🌟 ฟังก์ชันใหม่: ล้างสต๊อกทั้งหมดของสาขานั้น 🌟
+        async function clearAllStockForBranch() {
+            let targetBranch = currentBranch === "Admin" ? document.getElementById('adminBranchFilterSelect').value : currentBranch;
+            if(targetBranch === "ALL") {
+                alert("⚠️ กรุณาเลือกเจาะจงสาขาที่ต้องการล้างยอดสต๊อกก่อนครับ");
+                return;
+            }
 
-                let stockSnap = await db.collection("Stock").get();
+            if (!confirm(`🚨 คำเตือนขั้นสูงสุด!\n\nคุณกำลังจะลบรายการสต๊อกคงเหลือทั้งหมดของสาขา "${targetBranch}" ออกจากระบบ (ลบให้เป็น 0 ทุกรายการ)\n\nการกระทำนี้เหมาะสำหรับตอนที่เพิ่งยิงทดสอบระบบเสร็จ และต้องการเริ่มนับสต๊อกใหม่จริงๆ เท่านั้น\n\nยืนยันที่จะลบข้อมูลหรือไม่?`)) return;
+            if (!confirm(`🚨 ถามย้ำอีกครั้ง!\n\nแน่ใจจริงๆ นะครับว่าจะลบสต๊อกทั้งหมดของสาขา "${targetBranch}" ทิ้ง? (ประวัติการทำรายการจะไม่ถูกลบ)`)) return;
+
+            showLoading(`กำลังล้างสต๊อกทั้งหมดของสาขา ${targetBranch}...`);
+            try {
+                let stockSnap = await db.collection("Stock").where("branch", "==", targetBranch).get();
                 let batch = db.batch();
                 let count = 0;
-                let addedCount = 0;
-                let uniqueNewParts = {};
+                let totalDeleted = 0;
 
-                stockSnap.forEach(doc => {
-                    let s = doc.data();
-                    let pNo = (s.partNo || "").toUpperCase();
-                    let pName = s.name || "สินค้าทั่วไป";
-                    
-                    if (pNo && !masterSet.has(pNo) && !uniqueNewParts[pNo]) {
-                        uniqueNewParts[pNo] = pName;
-                    }
-                });
-
-                let newPartKeys = Object.keys(uniqueNewParts);
-                if (newPartKeys.length === 0) {
-                    showToast("ไม่มีรายการใหม่ครับ ทุกรหัสในสต๊อกมีอยู่ใน Master แล้ว");
-                    hideLoading();
-                    return;
-                }
-
-                for (let i = 0; i < newPartKeys.length; i++) {
-                    let pNo = newPartKeys[i];
-                    let pName = uniqueNewParts[pNo];
-                    
-                    let docRef = db.collection("MasterParts").doc(pNo);
-                    batch.set(docRef, { partNo: pNo, name: pName, aliases: "" });
-                    
+                for (let i = 0; i < stockSnap.docs.length; i++) {
+                    batch.delete(stockSnap.docs[i].ref);
                     count++;
-                    addedCount++;
+                    totalDeleted++;
 
-                    if (count === 490 || i === newPartKeys.length - 1) {
+                    if (count === 490 || i === stockSnap.docs.length - 1) {
                         await batch.commit();
                         batch = db.batch();
                         count = 0;
                     }
                 }
+                showToast(`🗑️ ล้างยอดสต๊อกเรียบร้อยแล้ว ${totalDeleted} รายการ!`);
+                
+                // ถ้าระหว่างล้างมีหน้าต่างนับสต๊อกเปิดอยู่ ให้ล้างเซสชันด้วย
+                auditSession = {};
+                if(document.getElementById('auditModal').style.display === 'flex') {
+                    renderAuditTable();
+                }
 
-                showToast(`✅ ดึงรหัสใหม่เข้า Master สำเร็จ ${addedCount} รายการ!`);
-                loadMasterParts(); 
             } catch (err) {
                 alert("❌ เกิดข้อผิดพลาด: " + err.message);
             } finally {
@@ -914,260 +963,6 @@
             } catch (err) { alert("❌ ผิดพลาด: " + err.message); } finally { hideLoading(); }
         }
 
-        // 🌟🌟🌟 ฟังก์ชันสำหรับระบบตรวจนับสต๊อก (Audit Mode) 🌟🌟🌟
-        function openAuditModal() {
-            if(currentBranch === "Admin") {
-                let filter = document.getElementById('adminBranchFilterSelect').value;
-                if(filter === "ALL") {
-                    alert("⚠️ กรุณาเลือกสาขาที่ต้องการตรวจนับจากเมนูมุมซ้ายบนก่อนครับ");
-                    return;
-                }
-            }
-            document.getElementById('auditModal').style.display = 'flex';
-            document.getElementById('auditScanInput').value = "";
-            renderAuditTable();
-            setTimeout(() => document.getElementById('auditScanInput').focus(), 100);
-        }
-
-        function closeAuditModal() {
-            if(Object.keys(auditSession).length > 0) {
-                if(!confirm("คุณมีรายการที่กำลังนับค้างอยู่ ยืนยันที่จะปิดหน้าต่างและทิ้งข้อมูลการนับใช่หรือไม่?")) return;
-            }
-            auditSession = {};
-            document.getElementById('auditModal').style.display = 'none';
-        }
-
-        function resetAuditSession() {
-            if(!confirm("⚠️ ต้องการล้างยอดที่สแกนนับไว้ทั้งหมด เพื่อเริ่มนับ 0 ใหม่ใช่หรือไม่?")) return;
-            auditSession = {};
-            document.getElementById('auditScanInput').value = "";
-            renderAuditTable();
-            document.getElementById('auditScanInput').focus();
-        }
-
-        async function handleAuditScan(e) {
-            if (e.key === 'Enter') {
-                e.preventDefault();
-                let partNo = document.getElementById('auditScanInput').value.trim().toUpperCase();
-                if(!partNo) return;
-                
-                // แปลงรหัสเทียบเคียง (Alias) ให้เป็นรหัสหลัก
-                let finalPart = partNo;
-                try {
-                    let masterSnap = await db.collection("MasterParts").get();
-                    masterSnap.forEach(doc => {
-                        let data = doc.data();
-                        if (data.aliases) {
-                            let aliases = data.aliases.split(',');
-                            aliases.forEach(a => {
-                                if(a.trim().toUpperCase() === partNo) finalPart = data.partNo.toUpperCase();
-                            });
-                        }
-                    });
-                } catch(err) {}
-
-                if(auditSession[finalPart] === undefined) {
-                    auditSession[finalPart] = 1;
-                } else {
-                    auditSession[finalPart]++;
-                }
-                
-                document.getElementById('auditScanInput').value = "";
-                renderAuditTable();
-                
-                // ไฮไลต์ให้รู้ว่ายิงติดแล้ว
-                let tr = document.getElementById(`audit-row-${finalPart}`);
-                if(tr) {
-                    tr.style.backgroundColor = '#e8f5e9';
-                    setTimeout(()=> {
-                        if(document.getElementById(`audit-row-${finalPart}`)) {
-                            document.getElementById(`audit-row-${finalPart}`).style.backgroundColor = auditSession[finalPart] !== (parseInt(document.getElementById(`sys-qty-${finalPart}`).innerText)||0) ? '#fff8e1' : '#f1f8e9';
-                        }
-                    }, 500);
-                }
-            }
-        }
-
-        function renderAuditTable() {
-            let tbody = document.getElementById('auditTableBody');
-            tbody.innerHTML = "";
-            
-            let targetBranch = currentBranch === "Admin" ? document.getElementById('adminBranchFilterSelect').value : currentBranch;
-
-            let stockMap = {};
-            currentLocalStock.forEach(item => {
-                if(item.branch === targetBranch) {
-                    stockMap[item.partNo] = item;
-                }
-            });
-
-            // เอาคีย์ทั้งหมดมารวมกัน (ของในสต๊อก + ของที่ยิงใหม่แต่ยังไม่มีในสต๊อก)
-            let allKeys = new Set([...Object.keys(stockMap), ...Object.keys(auditSession)]);
-            let html = "";
-            let hasItems = false;
-
-            allKeys.forEach(partNo => {
-                let sysQty = stockMap[partNo] ? (parseInt(stockMap[partNo].qty) || 0) : 0;
-                let name = stockMap[partNo] ? stockMap[partNo].name : "สินค้าทั่วไป (ของใหม่/นอกระบบ)";
-                
-                let counted = auditSession[partNo];
-                let isCounted = counted !== undefined;
-                
-                let diffText = "-";
-                let diffClass = "";
-                let countDisplayHtml = `<span style="color:#d2d2d7;">-</span>`;
-                let trStyle = "";
-
-                if(isCounted) {
-                    let diff = counted - sysQty;
-                    if(diff === 0) {
-                        diffText = "ตรงกัน";
-                        diffClass = "diff-match";
-                        trStyle = "background: #f1f8e9;";
-                    } else if (diff > 0) {
-                        diffText = `เกิน +${diff}`;
-                        diffClass = "diff-extra";
-                        trStyle = "background: #fff8e1;";
-                    } else {
-                        diffText = `ขาด ${diff}`;
-                        diffClass = "diff-missing";
-                        trStyle = "background: #fff8e1;";
-                    }
-                    countDisplayHtml = `<input type="number" value="${counted}" min="0" onchange="updateAuditManual('${partNo}', this.value)" style="width: 60px; padding: 5px; text-align: center; border: 1px solid #8e24aa; border-radius: 4px; font-weight: bold; color: #8e24aa; outline: none;">`;
-                }
-
-                html += `
-                    <tr id="audit-row-${partNo}" style="${trStyle}">
-                        <td style="font-weight: bold; color: #1d1d1f;">${partNo}</td>
-                        <td style="color: #515154;">${name}</td>
-                        <td id="sys-qty-${partNo}" style="text-align: center; font-size: 14px; font-weight: bold; color: #86868b;">${sysQty}</td>
-                        <td style="text-align: center;">${countDisplayHtml}</td>
-                        <td style="text-align: center;"><span class="${diffClass}" style="padding: 2px 8px; border-radius: 4px; font-size: 12px;">${diffText}</span></td>
-                        <td style="text-align: right;">
-                            ${isCounted 
-                                ? `<button onclick="removeAuditItem('${partNo}')" style="background: #ff3b30; color: white; border: none; padding: 4px 8px; border-radius: 4px; font-size: 11px; cursor: pointer;">🗑️ ลบการนับ</button>` 
-                                : `<button onclick="startAuditItem('${partNo}')" style="background: #f5f5f7; color: #515154; border: 1px solid #d2d2d7; padding: 4px 8px; border-radius: 4px; font-size: 11px; cursor: pointer;">เริ่มนับ</button>`}
-                        </td>
-                    </tr>
-                `;
-                hasItems = true;
-            });
-
-            if(!hasItems) {
-                tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; padding: 20px; color: #86868b;">ยังไม่มีรายการสต๊อกในสาขานี้</td></tr>`;
-            } else {
-                tbody.innerHTML = html;
-            }
-        }
-
-        function updateAuditManual(partNo, val) {
-            let num = parseInt(val);
-            if(isNaN(num) || num < 0) num = 0;
-            auditSession[partNo] = num;
-            renderAuditTable();
-        }
-        
-        function removeAuditItem(partNo) {
-            delete auditSession[partNo];
-            renderAuditTable();
-        }
-        
-        function startAuditItem(partNo) {
-            auditSession[partNo] = 0; 
-            renderAuditTable();
-        }
-
-        async function submitAuditSession() {
-            let keys = Object.keys(auditSession);
-            if(keys.length === 0) {
-                alert("⚠️ ยังไม่มีรายการถูกนับ กรุณาสแกนอะไหล่ก่อนครับ\n\n(รายการที่ขึ้นเครื่องหมาย '-' จะไม่ถูกเปลี่ยนแปลงยอดในระบบ)"); 
-                return;
-            }
-
-            let targetBranch = currentBranch === "Admin" ? document.getElementById('adminBranchFilterSelect').value : currentBranch;
-            let updates = [];
-            
-            let stockMap = {};
-            currentLocalStock.forEach(item => {
-                if(item.branch === targetBranch) stockMap[item.partNo] = item;
-            });
-
-            keys.forEach(partNo => {
-                let sysQty = stockMap[partNo] ? (parseInt(stockMap[partNo].qty) || 0) : 0;
-                let counted = auditSession[partNo];
-                if(counted !== sysQty) {
-                    updates.push({
-                        partNo: partNo,
-                        oldQty: sysQty,
-                        newQty: counted,
-                        diff: counted - sysQty,
-                        docId: stockMap[partNo] ? stockMap[partNo].id : `${activeMode}_${targetBranch}_${partNo}`,
-                        name: stockMap[partNo] ? stockMap[partNo].name : "สินค้าทั่วไป"
-                    });
-                }
-            });
-
-            if(updates.length === 0) {
-                alert("✅ ยอดทุกรายการที่คุณนับ 'ตรงกับในระบบ' ทั้งหมด ไม่จำเป็นต้องปรับยอดครับ");
-                auditSession = {};
-                closeAuditModal();
-                return;
-            }
-
-            if(!confirm(`⚠️ พบรายการที่ยอดไม่ตรงกันจำนวน ${updates.length} รายการ\nยืนยันที่จะ 'ปรับยอดในระบบ' ให้ตรงกับที่นับจริงใช่หรือไม่?`)) return;
-
-            showLoading("กำลังบันทึกผลการตรวจนับ...");
-            try {
-                let batch = db.batch();
-                let count = 0;
-                let totalUpdated = 0;
-
-                for (let i = 0; i < updates.length; i++) {
-                    let u = updates[i];
-                    
-                    let stockRef = db.collection("Stock").doc(u.docId);
-                    batch.set(stockRef, {
-                        mode: activeMode,
-                        branch: targetBranch,
-                        partNo: u.partNo,
-                        name: u.name,
-                        qty: u.newQty
-                    }, { merge: true });
-
-                    let logRef = db.collection("Logs").doc();
-                    let diffText = u.diff > 0 ? `เกิน +${u.diff}` : `ขาด ${u.diff}`;
-                    batch.set(logRef, {
-                        mode: activeMode,
-                        branch: targetBranch,
-                        timestamp: Date.now() + i,
-                        time: new Date().toLocaleString('th-TH', { hour12: false }),
-                        type: "ตรวจนับยอด",
-                        partNo: u.partNo,
-                        qty: u.newQty,
-                        job: "-",
-                        repairId: "-",
-                        note: `ระบบมี ${u.oldQty}, นับจริง ${u.newQty} (${diffText})`
-                    });
-
-                    count += 2; 
-                    totalUpdated++;
-
-                    if (count >= 490 || i === updates.length - 1) {
-                        await batch.commit();
-                        batch = db.batch();
-                        count = 0;
-                    }
-                }
-                
-                showToast(`✅ ปรับยอดสำเร็จ ${totalUpdated} รายการ!`);
-                auditSession = {};
-                closeAuditModal();
-            } catch (err) {
-                alert("❌ เกิดข้อผิดพลาดในการบันทึก: " + err.message);
-            } finally {
-                hideLoading();
-            }
-        }
         // -------------------------------------------------------------------------
 
         function switchDB(mode) {
@@ -1221,7 +1016,6 @@
                 updateTransferQueue(stockArray); 
                 filterTables(); 
                 
-                // ถ้าระหว่างเปิดหน้า Audit มีคนทำรายการสต๊อก ให้รีเฟรชตาราง Audit ด้วย
                 if(document.getElementById('auditModal').style.display === 'flex') {
                     renderAuditTable();
                 }
@@ -1876,6 +1670,258 @@
                     else { if (typeCell !== logFilter) matchType = false; }
                 }
                 if ((rowText.indexOf(input) > -1 || row.innerHTML.includes("กำลังเชื่อมต่อ") || row.innerHTML.includes("ไม่พบข้อมูล")) && matchType) row.style.display = ""; else row.style.display = "none";
+            }
+        }
+
+        // 🌟🌟🌟 ฟังก์ชัน ระบบตรวจนับสต๊อก (Audit Mode) 🌟🌟🌟
+        function openAuditModal() {
+            if(currentBranch === "Admin") {
+                let filter = document.getElementById('adminBranchFilterSelect').value;
+                if(filter === "ALL") {
+                    alert("⚠️ กรุณาเลือกสาขาที่ต้องการตรวจนับจากเมนูมุมซ้ายบนก่อนครับ");
+                    return;
+                }
+            }
+            document.getElementById('auditModal').style.display = 'flex';
+            document.getElementById('auditScanInput').value = "";
+            renderAuditTable();
+            setTimeout(() => document.getElementById('auditScanInput').focus(), 100);
+        }
+
+        function closeAuditModal() {
+            if(Object.keys(auditSession).length > 0) {
+                if(!confirm("คุณมีรายการที่กำลังนับค้างอยู่ ยืนยันที่จะปิดหน้าต่างและทิ้งข้อมูลการนับใช่หรือไม่?")) return;
+            }
+            auditSession = {};
+            document.getElementById('auditModal').style.display = 'none';
+        }
+
+        function resetAuditSession() {
+            if(!confirm("⚠️ ต้องการล้างยอดที่สแกนนับไว้ทั้งหมด เพื่อเริ่มนับ 0 ใหม่ใช่หรือไม่?")) return;
+            auditSession = {};
+            document.getElementById('auditScanInput').value = "";
+            renderAuditTable();
+            document.getElementById('auditScanInput').focus();
+        }
+
+        async function handleAuditScan(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                let partNo = document.getElementById('auditScanInput').value.trim().toUpperCase();
+                if(!partNo) return;
+                
+                let finalPart = partNo;
+                try {
+                    let masterSnap = await db.collection("MasterParts").get();
+                    masterSnap.forEach(doc => {
+                        let data = doc.data();
+                        if (data.aliases) {
+                            let aliases = data.aliases.split(',');
+                            aliases.forEach(a => {
+                                if(a.trim().toUpperCase() === partNo) finalPart = data.partNo.toUpperCase();
+                            });
+                        }
+                    });
+                } catch(err) {}
+
+                if(auditSession[finalPart] === undefined) {
+                    auditSession[finalPart] = 1;
+                } else {
+                    auditSession[finalPart]++;
+                }
+                
+                document.getElementById('auditScanInput').value = "";
+                renderAuditTable();
+                
+                let tr = document.getElementById(`audit-row-${finalPart}`);
+                if(tr) {
+                    tr.style.backgroundColor = '#e8f5e9';
+                    setTimeout(()=> {
+                        if(document.getElementById(`audit-row-${finalPart}`)) {
+                            document.getElementById(`audit-row-${finalPart}`).style.backgroundColor = auditSession[finalPart] !== (parseInt(document.getElementById(`sys-qty-${finalPart}`).innerText)||0) ? '#fff8e1' : '#f1f8e9';
+                        }
+                    }, 500);
+                }
+            }
+        }
+
+        function renderAuditTable() {
+            let tbody = document.getElementById('auditTableBody');
+            tbody.innerHTML = "";
+            
+            let targetBranch = currentBranch === "Admin" ? document.getElementById('adminBranchFilterSelect').value : currentBranch;
+
+            let stockMap = {};
+            currentLocalStock.forEach(item => {
+                if(item.branch === targetBranch) {
+                    stockMap[item.partNo] = item;
+                }
+            });
+
+            let allKeys = new Set([...Object.keys(stockMap), ...Object.keys(auditSession)]);
+            let html = "";
+            let hasItems = false;
+
+            allKeys.forEach(partNo => {
+                let sysQty = stockMap[partNo] ? (parseInt(stockMap[partNo].qty) || 0) : 0;
+                let name = stockMap[partNo] ? stockMap[partNo].name : "สินค้าทั่วไป (ของใหม่/นอกระบบ)";
+                
+                let counted = auditSession[partNo];
+                let isCounted = counted !== undefined;
+                
+                let diffText = "-";
+                let diffClass = "";
+                let countDisplayHtml = `<span style="color:#d2d2d7;">-</span>`;
+                let trStyle = "";
+
+                if(isCounted) {
+                    let diff = counted - sysQty;
+                    if(diff === 0) {
+                        diffText = "ตรงกัน";
+                        diffClass = "diff-match";
+                        trStyle = "background: #f1f8e9;";
+                    } else if (diff > 0) {
+                        diffText = `เกิน +${diff}`;
+                        diffClass = "diff-extra";
+                        trStyle = "background: #fff8e1;";
+                    } else {
+                        diffText = `ขาด ${diff}`;
+                        diffClass = "diff-missing";
+                        trStyle = "background: #fff8e1;";
+                    }
+                    countDisplayHtml = `<input type="number" value="${counted}" min="0" onchange="updateAuditManual('${partNo}', this.value)" style="width: 60px; padding: 5px; text-align: center; border: 1px solid #8e24aa; border-radius: 4px; font-weight: bold; color: #8e24aa; outline: none;">`;
+                }
+
+                html += `
+                    <tr id="audit-row-${partNo}" style="${trStyle}">
+                        <td style="font-weight: bold; color: #1d1d1f;">${partNo}</td>
+                        <td style="color: #515154;">${name}</td>
+                        <td id="sys-qty-${partNo}" style="text-align: center; font-size: 14px; font-weight: bold; color: #86868b;">${sysQty}</td>
+                        <td style="text-align: center;">${countDisplayHtml}</td>
+                        <td style="text-align: center;"><span class="${diffClass}" style="padding: 2px 8px; border-radius: 4px; font-size: 12px;">${diffText}</span></td>
+                        <td style="text-align: right;">
+                            ${isCounted 
+                                ? `<button onclick="removeAuditItem('${partNo}')" style="background: #ff3b30; color: white; border: none; padding: 4px 8px; border-radius: 4px; font-size: 11px; cursor: pointer;">🗑️ ลบการนับ</button>` 
+                                : `<button onclick="startAuditItem('${partNo}')" style="background: #f5f5f7; color: #515154; border: 1px solid #d2d2d7; padding: 4px 8px; border-radius: 4px; font-size: 11px; cursor: pointer;">เริ่มนับ</button>`}
+                        </td>
+                    </tr>
+                `;
+                hasItems = true;
+            });
+
+            if(!hasItems) {
+                tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; padding: 20px; color: #86868b;">ยังไม่มีรายการสต๊อกในสาขานี้</td></tr>`;
+            } else {
+                tbody.innerHTML = html;
+            }
+        }
+
+        function updateAuditManual(partNo, val) {
+            let num = parseInt(val);
+            if(isNaN(num) || num < 0) num = 0;
+            auditSession[partNo] = num;
+            renderAuditTable();
+        }
+        
+        function removeAuditItem(partNo) {
+            delete auditSession[partNo];
+            renderAuditTable();
+        }
+        
+        function startAuditItem(partNo) {
+            auditSession[partNo] = 0; 
+            renderAuditTable();
+        }
+
+        async function submitAuditSession() {
+            let keys = Object.keys(auditSession);
+            if(keys.length === 0) {
+                alert("⚠️ ยังไม่มีรายการถูกนับ กรุณาสแกนอะไหล่ก่อนครับ\n\n(รายการที่ขึ้นเครื่องหมาย '-' จะไม่ถูกเปลี่ยนแปลงยอดในระบบ)"); 
+                return;
+            }
+
+            let targetBranch = currentBranch === "Admin" ? document.getElementById('adminBranchFilterSelect').value : currentBranch;
+            let updates = [];
+            
+            let stockMap = {};
+            currentLocalStock.forEach(item => {
+                if(item.branch === targetBranch) stockMap[item.partNo] = item;
+            });
+
+            keys.forEach(partNo => {
+                let sysQty = stockMap[partNo] ? (parseInt(stockMap[partNo].qty) || 0) : 0;
+                let counted = auditSession[partNo];
+                if(counted !== sysQty) {
+                    updates.push({
+                        partNo: partNo,
+                        oldQty: sysQty,
+                        newQty: counted,
+                        diff: counted - sysQty,
+                        docId: stockMap[partNo] ? stockMap[partNo].id : `${activeMode}_${targetBranch}_${partNo}`,
+                        name: stockMap[partNo] ? stockMap[partNo].name : "สินค้าทั่วไป"
+                    });
+                }
+            });
+
+            if(updates.length === 0) {
+                alert("✅ ยอดทุกรายการที่คุณนับ 'ตรงกับในระบบ' ทั้งหมด ไม่จำเป็นต้องปรับยอดครับ");
+                auditSession = {};
+                closeAuditModal();
+                return;
+            }
+
+            if(!confirm(`⚠️ พบรายการที่ยอดไม่ตรงกันจำนวน ${updates.length} รายการ\nยืนยันที่จะ 'ปรับยอดในระบบ' ให้ตรงกับที่นับจริงใช่หรือไม่?`)) return;
+
+            showLoading("กำลังบันทึกผลการตรวจนับ...");
+            try {
+                let batch = db.batch();
+                let count = 0;
+                let totalUpdated = 0;
+
+                for (let i = 0; i < updates.length; i++) {
+                    let u = updates[i];
+                    
+                    let stockRef = db.collection("Stock").doc(u.docId);
+                    batch.set(stockRef, {
+                        mode: activeMode,
+                        branch: targetBranch,
+                        partNo: u.partNo,
+                        name: u.name,
+                        qty: u.newQty
+                    }, { merge: true });
+
+                    let logRef = db.collection("Logs").doc();
+                    let diffText = u.diff > 0 ? `เกิน +${u.diff}` : `ขาด ${u.diff}`;
+                    batch.set(logRef, {
+                        mode: activeMode,
+                        branch: targetBranch,
+                        timestamp: Date.now() + i,
+                        time: new Date().toLocaleString('th-TH', { hour12: false }),
+                        type: "ตรวจนับยอด",
+                        partNo: u.partNo,
+                        qty: u.newQty,
+                        job: "-",
+                        repairId: "-",
+                        note: `ระบบมี ${u.oldQty}, นับจริง ${u.newQty} (${diffText})`
+                    });
+
+                    count += 2; 
+                    totalUpdated++;
+
+                    if (count >= 490 || i === updates.length - 1) {
+                        await batch.commit();
+                        batch = db.batch();
+                        count = 0;
+                    }
+                }
+                
+                showToast(`✅ ปรับยอดสำเร็จ ${totalUpdated} รายการ!`);
+                auditSession = {};
+                closeAuditModal();
+            } catch (err) {
+                alert("❌ เกิดข้อผิดพลาดในการบันทึก: " + err.message);
+            } finally {
+                hideLoading();
             }
         }
 

@@ -164,7 +164,7 @@
         </div>
     </div>
 
-    <!-- Modal จัดการ Master Parts สำหรับ Admin -->
+    <!-- 🌟 Modal จัดการ Master Parts สำหรับ Admin 🌟 -->
     <div class="modal-overlay" id="masterPartModal">
         <div class="modal-box">
             <div class="modal-header">
@@ -191,12 +191,16 @@
             </div>
 
             <div style="background: #f0f7ff; padding: 15px; border-radius: 8px; border: 1px dashed #0071e3; margin-bottom: 15px;">
-                <label style="display: block; font-size: 13px; font-weight: bold; color: #0071e3; margin-bottom: 5px;">📥 นำเข้าทีละหลายรายการจาก Excel</label>
-                <p style="font-size: 11px; color: #515154; margin: 0 0 5px 0;">รูปแบบ: <b>คอลัมน์ซ้าย</b>=Part Noหลัก | <b>คอลัมน์กลาง</b>=ชื่ออะไหล่ | <b>คอลัมน์ขวา(ไม่บังคับ)</b>=รหัส HQ/Apple (คั่นด้วย ,)</p>
-                <textarea id="bulkMasterPaste" rows="3" placeholder="ก๊อปปี้คอลัมน์จาก Excel มาวางลงที่นี่..." style="width: 100%; padding: 10px; border: 1px solid #c8e1fa; border-radius: 6px; font-size: 13px; box-sizing: border-box; outline: none; margin-bottom: 8px;"></textarea>
+                <label style="display: block; font-size: 13px; font-weight: bold; color: #0071e3; margin-bottom: 5px;">📥 จัดการรายชื่ออะไหล่ (Mass Tools)</label>
+                <textarea id="bulkMasterPaste" rows="3" placeholder="นำเข้าจาก Excel: คอลัมน์ซ้าย=Part Noหลัก | คอลัมน์กลาง=ชื่ออะไหล่ | คอลัมน์ขวา(ไม่บังคับ)=รหัส HQ/Apple (คั่นด้วย ,) แล้วกดปุ่มสีน้ำเงิน" style="width: 100%; padding: 10px; border: 1px solid #c8e1fa; border-radius: 6px; font-size: 13px; box-sizing: border-box; outline: none; margin-bottom: 8px;"></textarea>
+                
+                <!-- 🌟 เพิ่มปุ่ม ดึงรายการใหม่จากสต๊อก 🌟 -->
                 <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-                    <button onclick="bulkImportMasterParts()" style="flex: 2; background: #0071e3; color: white; border: none; padding: 10px 15px; border-radius: 6px; font-size: 13px; font-weight: bold; cursor: pointer;">🚀 นำเข้าข้อมูลทั้งหมดลงฐานระบบ</button>
-                    <button onclick="syncAllStockNamesWithMaster()" style="flex: 1; background: #ff9500; color: white; border: none; padding: 10px 15px; border-radius: 6px; font-size: 13px; font-weight: bold; cursor: pointer;" title="แก้คำว่า สินค้าทั่วไป ในสต๊อกให้เป็นชื่อตาม Master">🔄 ซิงค์ชื่อเข้าสต๊อกทั้งหมด</button>
+                    <button onclick="bulkImportMasterParts()" style="flex: 1; background: #0071e3; color: white; border: none; padding: 10px 15px; border-radius: 6px; font-size: 13px; font-weight: bold; cursor: pointer;">🚀 นำเข้า Excel</button>
+                    
+                    <button onclick="pullMissingFromStock()" style="flex: 1; background: #00a88f; color: white; border: none; padding: 10px 15px; border-radius: 6px; font-size: 13px; font-weight: bold; cursor: pointer;" title="ดึงรหัสที่เคยยิงเข้าสต๊อกแต่ไม่มีใน Master เข้ามาอัตโนมัติ">📥 ดึงรายการใหม่จากสต๊อก</button>
+                    
+                    <button onclick="syncAllStockNamesWithMaster()" style="flex: 1; background: #ff9500; color: white; border: none; padding: 10px 15px; border-radius: 6px; font-size: 13px; font-weight: bold; cursor: pointer;" title="แก้คำว่า สินค้าทั่วไป ในสต๊อกให้เป็นชื่อตาม Master">🔄 ซิงค์ชื่อกลับไปสต๊อก</button>
                 </div>
             </div>
 
@@ -213,7 +217,7 @@
         </div>
     </div>
 
-    <!-- 🌟 Modal แก้ไขประวัติ Log ที่พิมพ์ผิด 🌟 -->
+    <!-- Modal แก้ไขประวัติ Log ที่พิมพ์ผิด -->
     <div class="modal-overlay" id="editLogModal">
         <div class="modal-box" style="max-width: 400px;">
             <div class="modal-header">
@@ -561,7 +565,6 @@
             }
         }
 
-        // 🌟 ฟังก์ชันจัดการหน้าต่างแก้ไขประวัติ 🌟
         function openEditLogModal(id, job, repair, note) {
             document.getElementById('editLogId').value = id;
             document.getElementById('editLogJobNo').value = job === "-" ? "" : job;
@@ -595,8 +598,6 @@
                 hideLoading();
             }
         }
-
-        // --------------------------------------------------------
 
         function openMasterPartModal() {
             document.getElementById('masterPartModal').style.display = "flex";
@@ -767,6 +768,69 @@
                 document.getElementById('bulkMasterPaste').value = "";
                 loadMasterParts(); 
             } catch (err) { alert("❌ เกิดข้อผิดพลาดในการนำเข้า: " + err.message); } finally { hideLoading(); }
+        }
+
+        // 🌟🌟🌟 ฟังก์ชันใหม่: ดึงรหัสที่เคยยิงเข้าสต๊อกแต่ยังไม่มีใน Master 🌟🌟🌟
+        async function pullMissingFromStock() {
+            if (!confirm("📥 ยืนยันการดึงรายชื่ออะไหล่ที่อยู่ในสต๊อก (แต่ยังไม่มีใน Master) เข้าสู่ระบบอัตโนมัติใช่หรือไม่?")) return;
+            
+            showLoading("กำลังค้นหาและดึงข้อมูลจากสต๊อก...");
+            try {
+                // 1. โหลด Master Parts ที่มีอยู่แล้วมาเก็บไว้เช็ค
+                let masterSnap = await db.collection("MasterParts").get();
+                let masterSet = new Set();
+                masterSnap.forEach(doc => masterSet.add(doc.id.toUpperCase()));
+
+                // 2. โหลด Stock ทั้งหมด
+                let stockSnap = await db.collection("Stock").get();
+                let batch = db.batch();
+                let count = 0;
+                let addedCount = 0;
+                let uniqueNewParts = {};
+
+                // 3. หาสิ่งที่ไม่มีใน Master
+                stockSnap.forEach(doc => {
+                    let s = doc.data();
+                    let pNo = (s.partNo || "").toUpperCase();
+                    let pName = s.name || "สินค้าทั่วไป";
+                    
+                    if (pNo && !masterSet.has(pNo) && !uniqueNewParts[pNo]) {
+                        uniqueNewParts[pNo] = pName;
+                    }
+                });
+
+                let newPartKeys = Object.keys(uniqueNewParts);
+                if (newPartKeys.length === 0) {
+                    showToast("ไม่มีรายการใหม่ครับ ทุกรหัสในสต๊อกมีอยู่ใน Master แล้ว");
+                    hideLoading();
+                    return;
+                }
+
+                // 4. เซฟลง Master Parts
+                for (let i = 0; i < newPartKeys.length; i++) {
+                    let pNo = newPartKeys[i];
+                    let pName = uniqueNewParts[pNo];
+                    
+                    let docRef = db.collection("MasterParts").doc(pNo);
+                    batch.set(docRef, { partNo: pNo, name: pName, aliases: "" });
+                    
+                    count++;
+                    addedCount++;
+
+                    if (count === 490 || i === newPartKeys.length - 1) {
+                        await batch.commit();
+                        batch = db.batch();
+                        count = 0;
+                    }
+                }
+
+                showToast(`✅ ดึงรหัสใหม่เข้า Master สำเร็จ ${addedCount} รายการ!`);
+                loadMasterParts(); // โหลดตารางใหม่
+            } catch (err) {
+                alert("❌ เกิดข้อผิดพลาด: " + err.message);
+            } finally {
+                hideLoading();
+            }
         }
 
         function editMasterPart(pNo, pName, pAlias) {
@@ -1088,7 +1152,6 @@
             }
         }
 
-        // 🌟 แก้ไข: ตารางแสดงประวัติ (เพิ่มปุ่ม "แก้ไข" ข้างปุ่มลบ) 🌟
         function renderLogTable(logArray) {
             let isAdmin = (currentBranch === "Admin");
             let adminFilter = document.getElementById('adminBranchFilterSelect') ? document.getElementById('adminBranchFilterSelect').value : "ALL";
@@ -1130,7 +1193,6 @@
                 let repairHtml = (!isAdmin && activeMode === "STORE") ? "" : `<td>${log.repairId || "-"}</td>`;
                 let branchHtml = isAdmin ? `<td><span class="branch-badge">${log.branch}</span></td>` : "";
                 
-                // แปลงข้อมูลเพื่อไม่ให้โค้ดพังเวลาเรียกใช้งานใน onclick
                 let safeJob = (log.job || "-").replace(/'/g, "\\'");
                 let safeRepair = (log.repairId || "-").replace(/'/g, "\\'");
                 let safeNote = (log.note || "-").replace(/'/g, "\\'");
